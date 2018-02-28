@@ -205,8 +205,8 @@ check_standard_protocols (struct Protocol_List *p_pl)
 
   struct Protocol std_protocosls[] =
     {
-      { "telnet", PROT_TYPE_TELNET, "telnet", "%h %p", 23, PROT_FLAG_ASKUSER|PROT_FLAG_ASKPASSWORD, NULL }, 
       { "ssh", PROT_TYPE_SSH, "ssh", "-p %p -l %u %h", 22, PROT_FLAG_ASKPASSWORD, NULL },
+      { "telnet", PROT_TYPE_TELNET, "telnet", "%h %p", 23, PROT_FLAG_ASKUSER|PROT_FLAG_ASKPASSWORD, NULL },
       { "samba", PROT_TYPE_SAMBA, "smbclient", "//%h/%d -U %u%%%P", -1, PROT_FLAG_NO, NULL }
     };
 
