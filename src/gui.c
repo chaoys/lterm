@@ -2913,8 +2913,22 @@ view_fullscreen ()
     }
 }
 
-void view_go_back () { gtk_notebook_prev_page (GTK_NOTEBOOK (notebook)); }
-void view_go_forward () { gtk_notebook_next_page (GTK_NOTEBOOK (notebook)); }
+void view_go_back ()
+{
+	GtkNotebook *nb = GTK_NOTEBOOK (notebook);
+	if (gtk_notebook_get_current_page(nb) == 0)
+		gtk_notebook_set_current_page(nb, gtk_notebook_get_n_pages(nb) - 1);
+	else
+		gtk_notebook_prev_page (nb);
+}
+void view_go_forward ()
+{
+	GtkNotebook *nb = GTK_NOTEBOOK (notebook);
+	if (gtk_notebook_get_current_page(nb) == (gtk_notebook_get_n_pages(nb) - 1))
+		gtk_notebook_set_current_page(nb, 0);
+	else
+		gtk_notebook_next_page (nb);
+}
 
 void zoom_in() { if (p_current_connection_tab) adjust_font_size (p_current_connection_tab->vte, 1); }
 void zoom_out() { if (p_current_connection_tab) adjust_font_size (p_current_connection_tab->vte, -1); }
