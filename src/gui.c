@@ -195,7 +195,7 @@ GtkActionEntry main_menu_items[] = {
   { "ProfileMenu", NULL, N_("Change profile") },
   { "CharacterEncodingMenu", NULL, N_("Character Encoding") },
   { "Reset", NULL, N_("_Reset"), NULL, NULL, G_CALLBACK (terminal_reset) },
-  { "DetachRight", MY_STOCK_SPLIT_H, N_("_Detach tab to the right"), "<control>P", "Detach tab to the right", G_CALLBACK (terminal_detach_right) },
+  { "DetachRight", MY_STOCK_SPLIT_H, N_("_Detach tab to the right"), NULL, "Detach tab to the right", G_CALLBACK (terminal_detach_right) },
   { "DetachDown", MY_STOCK_SPLIT_V, N_("Detach tab _down"), NULL, "Detach tab down", G_CALLBACK (terminal_detach_down) },
   { "AttachCurrent", NULL, N_("_Attach to main group"), NULL, NULL, G_CALLBACK (terminal_attach_current_to_main) },
   { "RegroupAll", MY_STOCK_REGROUP, N_("_Regroup all tabs"), NULL, "Regroup all tabs", G_CALLBACK (terminal_regroup_all) },
