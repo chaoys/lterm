@@ -1230,6 +1230,7 @@ connection_tab_add (struct ConnectionTab *connection_tab)
   gint w, h;
   PangoFontDescription *font_desc;
   int font_size;
+  gint new_pagenum;
 
 #if (GTK_MAJOR_VERSION == 2)
   connection_tab->hbox_terminal = gtk_hbox_new (FALSE, 0); /* for vte and scrolbar */
@@ -1304,13 +1305,13 @@ connection_tab_add (struct ConnectionTab *connection_tab)
 
   gtk_widget_show_all (tab_label);
 
-
-  gtk_notebook_append_page_menu (GTK_NOTEBOOK (notebook), connection_tab->hbox_terminal, tab_label, gtk_label_new (connection_tab->connection.name));
+  new_pagenum = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook)) + 1;
+  gtk_notebook_insert_page_menu (GTK_NOTEBOOK (notebook), connection_tab->hbox_terminal, tab_label, gtk_label_new (connection_tab->connection.name), new_pagenum);
 
   gtk_notebook_set_tab_reorderable (GTK_NOTEBOOK (notebook), connection_tab->hbox_terminal, TRUE);
   gtk_notebook_set_tab_detachable (GTK_NOTEBOOK (notebook), connection_tab->hbox_terminal, FALSE);
 
-  gtk_notebook_set_current_page (GTK_NOTEBOOK (notebook), -1);
+  gtk_notebook_set_current_page (GTK_NOTEBOOK (notebook), new_pagenum);
 
   connection_tab->notebook = notebook;
 
