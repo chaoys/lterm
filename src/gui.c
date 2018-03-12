@@ -5549,6 +5549,9 @@ apply_preferences ()
       strcpy (word_chars, DEFAULT_WORD_CHARS);
       strcat (word_chars, prefs.extra_word_chars);
       vte_terminal_set_word_chars (VTE_TERMINAL (vte), word_chars);
+#else
+      //use only default words. I dont know where the exceptions come from.
+      vte_terminal_set_word_char_exceptions(VTE_TERMINAL(vte), "");
 #endif
       ////////vte_terminal_set_size (VTE_TERMINAL (vte), prefs.columns, prefs.rows);
 
