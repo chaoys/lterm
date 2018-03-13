@@ -737,7 +737,6 @@ enable_dependency_tracking
 enable_xml_catalog_update
 enable_update_databases
 enable_debug
-with_gtk2
 with_freedesktop_org_mime
 '
       ac_precious_vars='build_alias
@@ -1403,7 +1402,6 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-gtk2             forces linking with gtk+ 2.0
   --with-freedesktop_org-mime=[DIR]
                           install freedesktop.org mime support files in
                           directory DIR (if supplied) or suppress installation
@@ -3995,12 +3993,7 @@ if test $debug = 1 ; then
 fi
 
 
-# Check whether --with-gtk2 was given.
-if test "${with_gtk2+set}" = set; then :
-  withval=$with_gtk2; usegtk2="1"
-else
-  usegtk2="0"
-fi
+usegtk2="0"
 
 
 
@@ -4140,27 +4133,16 @@ printf %s "checking for gtk libs... "
 
 foundgtk=0
 
-if  test ${usegtk2} = 0 ; then
-  if pkg-config --exists gtk+-3.0; then
-    LIBS="$LIBS `pkg-config --libs gtk+-3.0`"
-    CFLAGS="$CFLAGS `pkg-config --cflags gtk+-3.0`"
-    echo "found gtk 3.0"
-    foundgtk=3
-  fi
-fi
-
-if  test ${foundgtk} = 0 ; then
-  if pkg-config --exists gtk+-2.0; then
-    LIBS="$LIBS `pkg-config --libs gtk+-2.0`"
-    CFLAGS="$CFLAGS `pkg-config --cflags gtk+-2.0`"
-    echo "found gtk 2.0"
-    foundgtk=2
-  fi
+if pkg-config --exists gtk+-3.0; then
+  LIBS="$LIBS `pkg-config --libs gtk+-3.0`"
+  CFLAGS="$CFLAGS `pkg-config --cflags gtk+-3.0`"
+  echo "found gtk 3.0"
+  foundgtk=3
 fi
 
 if  test ${foundgtk} = 0 ; then
   echo "no"
-  as_fn_error $? "libgtk3.0-dev and libgtk2.0-dev missing, please install at least one" "$LINENO" 5
+  as_fn_error $? "libgtk3.0-dev missing, please install at least one" "$LINENO" 5
 fi
 
 printf %s "checking for vte emulator widget... "

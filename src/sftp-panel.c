@@ -1375,10 +1375,6 @@ sftp_panel_change_time ()
   
   sprintf (ui, "%s/time.glade", globals.data_dir);
   
-#if (GTK_MAJOR_VERSION == 2)
-  strcat (ui, ".gtk2");
-#endif
-
   if (gtk_builder_add_from_file (builder, ui, &error) == 0)
     {
       msgbox_error ("Can't load user interface file:\n%s", error->message);
@@ -1621,12 +1617,7 @@ refresh_panel_history ()
   
   //n_items = count_bookmarks (&c->history);
   
-#if (GTK_MAJOR_VERSION == 2)
-  for (i=0; i<MAX_BOOKMARKS; i++)
-    gtk_combo_box_remove_text (GTK_COMBO_BOX (sftp_panel.combo_position), 0);
-#else
   gtk_combo_box_text_remove_all (GTK_COMBO_BOX_TEXT (sftp_panel.combo_position));
-#endif
   
   /* recreate list */
   
@@ -1642,11 +1633,7 @@ refresh_panel_history ()
 
   while (b)
     {
-#if (GTK_MAJOR_VERSION == 2)
-      gtk_combo_box_prepend_text (GTK_COMBO_BOX (sftp_panel.combo_position), b->item);
-#else
       gtk_combo_box_text_prepend_text (GTK_COMBO_BOX_TEXT(sftp_panel.combo_position), b->item);
-#endif
 
       b = b->next;
     }
@@ -1658,11 +1645,7 @@ refresh_panel_history ()
     for (i=0; i<c->directories->len; i++) {
       dir = (gchar *) g_ptr_array_index (c->directories, i);
 
-  #if (GTK_MAJOR_VERSION == 2)
-      gtk_combo_box_prepend_text (GTK_COMBO_BOX (sftp_panel.combo_position), dir);
-  #else
       gtk_combo_box_text_prepend_text (GTK_COMBO_BOX_TEXT(sftp_panel.combo_position), dir);
-  #endif
     }
   }
 }
@@ -2230,11 +2213,7 @@ combo_change_position_cb (GtkWidget *entry, gpointer user_data)
   if (sftp_panel.position_selected_tearoff == FALSE)
     return;
   
-#if (GTK_MAJOR_VERSION == 2)
-  sftp_panel_change_directory ((char *) gtk_combo_box_get_active_text (GTK_COMBO_BOX (entry)));
-#else
   sftp_panel_change_directory ((char *) gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (entry)));
-#endif
   
   sftp_panel.position_selected_tearoff = FALSE;
 }
@@ -2337,10 +2316,6 @@ create_sftp_panel ()
   
   sprintf (ui, "%s/sftp.glade", globals.data_dir);
   
-#if (GTK_MAJOR_VERSION == 2)
-  strcat (ui, ".gtk2");
-#endif
-
   if (gtk_builder_add_from_file (builder, ui, &error) == 0)
     {
       msgbox_error ("Can't load user interface file:\n%s", error->message);
@@ -2396,11 +2371,7 @@ create_sftp_panel ()
 
   GtkWidget *hbox_position = GTK_WIDGET (gtk_builder_get_object (builder, "hbox_position"));
 
-#if (GTK_MAJOR_VERSION == 2)
-  sftp_panel.combo_position = gtk_combo_box_entry_new_text ();
-#else
   sftp_panel.combo_position = gtk_combo_box_text_new_with_entry ();
-#endif
   gtk_box_pack_start (GTK_BOX (hbox_position), sftp_panel.combo_position, TRUE, TRUE, 0);
   
   //sftp_panel.entry_sftp_position = GTK_WIDGET (gtk_builder_get_object (builder, "entry_position"));

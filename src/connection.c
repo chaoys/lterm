@@ -1144,11 +1144,6 @@ get_connection_by_host (char *host)
 void
 set_private_key_controls (gboolean status)
 {
-#if (GTK_MAJOR_VERSION == 2)
-  gtk_widget_set_sensitive (authWidgets.entry_private_key, status);
-  gtk_widget_set_sensitive (authWidgets.button_select_private_key, status);
-  gtk_widget_set_sensitive (authWidgets.password_entry, status);
-#else
   gtk_widget_set_state_flags (authWidgets.entry_private_key, 
                               status ? GTK_STATE_FLAG_NORMAL : GTK_STATE_FLAG_INSENSITIVE, 
                               TRUE);
@@ -1158,7 +1153,6 @@ set_private_key_controls (gboolean status)
   gtk_widget_set_state_flags (authWidgets.button_clear_private_key, 
                               status ? GTK_STATE_FLAG_NORMAL : GTK_STATE_FLAG_INSENSITIVE, 
                               TRUE);
-#endif
 }
 
 static void
@@ -1169,22 +1163,12 @@ change_protocol_cb (GtkWidget *entry, gpointer user_data)
 
   log_debug ("[start]\n");
 
-#if (GTK_MAJOR_VERSION == 2)
-  p_prot = get_protocol (&g_prot_list, (char *) gtk_combo_box_get_active_text (GTK_COMBO_BOX (entry)));
-#else
   p_prot = get_protocol (&g_prot_list, (char *) gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (entry)));
-#endif
 
   if (p_prot)
     {
       gtk_spin_button_set_value (GTK_SPIN_BUTTON (port_spin_button), p_prot->port);
 /*
-#if (GTK_MAJOR_VERSION == 2)
-      gtk_widget_set_sensitive (check_x11, p_prot->type == PROT_TYPE_SSH);
-      gtk_widget_set_sensitive (check_disable_key_checking, p_prot->type == PROT_TYPE_SSH);
-      gtk_widget_set_sensitive (authWidgets.radio_auth_key, p_prot->type == PROT_TYPE_SSH);
-#else
-
       GtkStateFlags flags = p_prot->type == PROT_TYPE_SSH ? GTK_STATE_FLAG_NORMAL : GTK_STATE_FLAG_INSENSITIVE;
 
       gtk_widget_set_state_flags (check_x11, flags, FALSE);
@@ -1199,7 +1183,6 @@ change_protocol_cb (GtkWidget *entry, gpointer user_data)
       gtk_widget_set_sensitive (check_keepAliveInterval, sensitive);
       gtk_widget_set_sensitive (spin_keepAliveInterval, sensitive);
       gtk_widget_set_sensitive (authWidgets.radio_auth_key, sensitive);
-//#endif
 
       //set_private_key_controls (p_prot->type == PROT_TYPE_SSH);
 
@@ -1221,11 +1204,7 @@ change_search_by_cb (GtkWidget *entry, gpointer user_data)
 
   tree_view = GTK_WIDGET (user_data); 
 
-#if (GTK_MAJOR_VERSION == 2)
-  if (!strcmp (gtk_combo_box_get_active_text (GTK_COMBO_BOX (entry)), SEARCH_BY_NAME))
-#else
   if (!strcmp (gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (entry)), SEARCH_BY_NAME))
-#endif
     {
       prefs.search_by = 0;
     }
@@ -1270,11 +1249,7 @@ create_entry_control (char *label, GtkWidget *entry)
 {
   GtkWidget *hbox;
 
-#if (GTK_MAJOR_VERSION == 2)
-  hbox = gtk_hbox_new (FALSE, 10);
-#else
   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
-#endif
 
   gtk_box_pack_start (GTK_BOX (hbox), gtk_widget_new (GTK_TYPE_LABEL, "label", label, "xalign", 0.0, NULL), FALSE, TRUE, 0);
 
@@ -1289,10 +1264,6 @@ radio_auth_save_cb (GtkToggleButton *togglebutton, gpointer user_data)
 {
   log_debug("\n");
 
-#if (GTK_MAJOR_VERSION == 2)
-  gtk_widget_set_sensitive (authWidgets.user_entry, gtk_toggle_button_get_active (togglebutton));
-  gtk_widget_set_sensitive (authWidgets.password_entry, gtk_toggle_button_get_active (togglebutton));
-#else
   gtk_widget_set_state_flags (authWidgets.user_entry, 
                               gtk_toggle_button_get_active (togglebutton) ? GTK_STATE_FLAG_NORMAL : GTK_STATE_FLAG_INSENSITIVE, 
                               TRUE);
@@ -1300,7 +1271,6 @@ radio_auth_save_cb (GtkToggleButton *togglebutton, gpointer user_data)
   gtk_widget_set_state_flags (authWidgets.password_entry, 
                               gtk_toggle_button_get_active (togglebutton) ? GTK_STATE_FLAG_NORMAL : GTK_STATE_FLAG_INSENSITIVE, 
                               TRUE);
-#endif
 }
 
 void
@@ -1518,10 +1488,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
   
   sprintf (ui, "%s/edit-connection.glade", globals.data_dir);
   
-#if (GTK_MAJOR_VERSION == 2)
-  strcat (ui, ".gtk2");
-#endif
-
   if (gtk_builder_add_from_file (builder, ui, &error) == 0)
     {
       msgbox_error ("Can't load user interface file:\n%s", error->message);
@@ -1861,11 +1827,7 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
           strcpy (conn_new.host, gtk_entry_get_text (GTK_ENTRY (host_entry)));
           trim (conn_new.host);
 
-#if (GTK_MAJOR_VERSION == 2)
-          strcpy (conn_new.protocol, gtk_combo_box_get_active_text (GTK_COMBO_BOX (protocol_combo)));
-#else
           strcpy (conn_new.protocol, gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT(protocol_combo)));
-#endif
           trim (conn_new.protocol);
         
           conn_new.port = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (port_spin_button));
@@ -2228,13 +2190,8 @@ conn_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 {
   int keyReturn, keyEnter;
 
-#if (GTK_MAJOR_VERSION == 2)
-  keyReturn = GDK_Return;
-  keyEnter = GDK_KP_Enter;
-#else
   keyReturn = GDK_KEY_Return;
   keyEnter = GDK_KEY_KP_Enter;
-#endif
 
   if (event->keyval == keyReturn || event->keyval == keyEnter)
     {
@@ -2753,15 +2710,9 @@ create_connections_tree_view ()
 GtkWidget *
 create_search_by_combo ()
 {
-#if (GTK_MAJOR_VERSION == 2)
-  GtkWidget *search_by_combo = gtk_combo_box_new_text ();
-  gtk_combo_box_append_text (GTK_COMBO_BOX (search_by_combo), SEARCH_BY_NAME);
-  gtk_combo_box_append_text (GTK_COMBO_BOX (search_by_combo), SEARCH_BY_HOST);
-#else
   GtkWidget *search_by_combo = gtk_combo_box_text_new ();
   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT(search_by_combo), SEARCH_BY_NAME);
   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT(search_by_combo), SEARCH_BY_HOST);
-#endif
 
   gtk_combo_box_set_active (GTK_COMBO_BOX (search_by_combo), prefs.search_by);
   gtk_widget_show (search_by_combo);
@@ -3085,11 +3036,7 @@ choose_manage_connection (struct Connection *p_conn)
 
   g_signal_connect (dialog_window, "delete_event", G_CALLBACK (dialog_delete_event_cb), NULL);
 
-#if (GTK_MAJOR_VERSION == 2)
-  GtkWidget *dialog_vbox = gtk_vbox_new (FALSE, 0);
-#else
   GtkWidget *dialog_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-#endif
 
   /* create a tree view for connections before buttons so we can pass it to callback functions */
 
@@ -3115,11 +3062,7 @@ choose_manage_connection (struct Connection *p_conn)
   //ifr_add (ITERATION_REFRESH_QUICK_LAUCH_TREE_VIEW, NULL);
 
 /*
-#if (GTK_MAJOR_VERSION == 2)
-  g_signal_connect (GTK_OBJECT (tree_view), "cursor-changed", GTK_SIGNAL_FUNC (cursor_changed_cb), select);
-#else
   g_signal_connect (tree_view, "cursor-changed", G_CALLBACK (cursor_changed_cb), select);
-#endif
 */
   g_signal_connect (tree_view, "cursor-changed", G_CALLBACK (cursor_changed_cb), select);
 
@@ -3139,11 +3082,7 @@ choose_manage_connection (struct Connection *p_conn)
 
   /* command buttons */
 
-#if (GTK_MAJOR_VERSION == 2)
-  buttons_hbox = gtk_hbox_new (FALSE, 5);
-#else
   buttons_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
-#endif
 
   gtk_container_set_border_width (GTK_CONTAINER (buttons_hbox), 5);
 
@@ -3216,11 +3155,7 @@ choose_manage_connection (struct Connection *p_conn)
   //gtk_box_pack_end (gtk_dialog_get_content_area (GTK_DIALOG (connections_dialog)), search_by_combo, TRUE, FALSE, 0);
 
 /*
-#if (GTK_MAJOR_VERSION == 2)
-  g_signal_connect (G_OBJECT (GTK_COMBO_BOX (search_by_combo)), "changed", G_CALLBACK (change_search_by_cb), tree_view);
-#else
   g_signal_connect (GTK_COMBO_BOX (search_by_combo), "changed", G_CALLBACK (change_search_by_cb), tree_view);
-#endif
 */
 
   g_signal_connect (GTK_COMBO_BOX (search_by_combo), "changed", G_CALLBACK (change_search_by_cb), tree_view);
@@ -3228,11 +3163,7 @@ choose_manage_connection (struct Connection *p_conn)
 
   /* standard buttons */
 
-#if (GTK_MAJOR_VERSION == 2)
-  GtkWidget *std_buttons_hbox = gtk_hbox_new (TRUE, 5); 
-#else
   GtkWidget *std_buttons_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
-#endif
 
   //gtk_box_set_homogeneous (GTK_BOX (std_buttons_hbox), TRUE);
   gtk_container_set_border_width (GTK_CONTAINER (std_buttons_hbox), 10);
@@ -3259,11 +3190,7 @@ choose_manage_connection (struct Connection *p_conn)
   //gtk_widget_show (l_align);
 
   //gtk_box_pack_end (dialog_vbox, std_buttons_hbox, FALSE, FALSE, 0);
-#if (GTK_MAJOR_VERSION == 2)
-  GtkWidget *sep = gtk_hseparator_new ();
-#else
   GtkWidget *sep = gtk_separator_new (GTK_ORIENTATION_HORIZONTAL);
-#endif
 
   gtk_box_pack_end (GTK_BOX(dialog_vbox), b_align, FALSE, FALSE, 0);
   gtk_box_pack_end (GTK_BOX(dialog_vbox), sep, FALSE, FALSE, 10);
@@ -3292,11 +3219,7 @@ choose_manage_connection (struct Connection *p_conn)
 
   int keyEsc;
 
-#if (GTK_MAJOR_VERSION == 2)
-  keyEsc = GDK_Escape;
-#else
   keyEsc = GDK_KEY_Escape;
-#endif
 
   closure = g_cclosure_new (G_CALLBACK (dialog_delete_event_cb), NULL, NULL);
   gtk_accel_group_connect (gtk_accel, keyEsc, 0, GTK_ACCEL_VISIBLE, closure);
@@ -3370,11 +3293,7 @@ create_quick_launch_window (struct QuickLaunchWindow *p_qlv)
   gtk_tree_view_remove_column (GTK_TREE_VIEW (p_qlv->tree_view), gtk_tree_view_get_column (GTK_TREE_VIEW (p_qlv->tree_view), 2));
   gtk_tree_view_remove_column (GTK_TREE_VIEW (p_qlv->tree_view), gtk_tree_view_get_column (GTK_TREE_VIEW (p_qlv->tree_view), 2));
 /*
-#if (GTK_MAJOR_VERSION == 2)
-  g_signal_connect (GTK_OBJECT (p_qlv->tree_view), "cursor-changed", GTK_SIGNAL_FUNC (cursor_changed_cb), select);
-#else
   g_signal_connect (p_qlv->tree_view, "cursor-changed", G_CALLBACK (cursor_changed_cb), select);
-#endif
 */
 
   g_signal_connect (p_qlv->tree_view, "cursor-changed", G_CALLBACK (cursor_changed_cb), select);
@@ -3423,11 +3342,7 @@ create_quick_launch_window (struct QuickLaunchWindow *p_qlv)
 
   /* main vertical box */
   
-#if (GTK_MAJOR_VERSION == 2)
-  p_qlv->vbox = gtk_vbox_new (FALSE, 5);
-#else
   p_qlv->vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-#endif
 
   gtk_box_pack_start (GTK_BOX (p_qlv->vbox), p_qlv->scrolled_window, TRUE, TRUE, 0);
   gtk_box_pack_end (GTK_BOX (p_qlv->vbox), p_qlv->copy_button, FALSE, FALSE, 0);

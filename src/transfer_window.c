@@ -731,10 +731,6 @@ view_transfer_window ()
   
   sprintf (ui, "%s/transfer.glade", globals.data_dir);
   
-#if (GTK_MAJOR_VERSION == 2)
-  strcat (ui, ".gtk2");
-#endif
-
   if (gtk_builder_add_from_file (builder, ui, &error) == 0)
     {
       msgbox_error ("Can't load user interface file:\n%s", error->message);

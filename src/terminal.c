@@ -63,15 +63,6 @@ terminal_new (struct ConnectionTab *p_connection_tab, char *directory)
 
   log_debug ("Creating terminal ...\n");
 
-#if (GTK_MAJOR_VERSION == 2)
-  p_connection_tab->pid = vte_terminal_fork_command (VTE_TERMINAL (p_connection_tab->vte), 
-                                                     NULL, NULL, NULL, NULL, TRUE, TRUE, TRUE);
-                                                     
-  success = (gboolean) p_connection_tab->pid != -1; 
-
-  if (success == FALSE)
-    strcpy (error_msg, "Can't create the terminal");
-#else
   log_debug("Using vte_terminal_fork_command_full()\n");
 
   GError *error = NULL;
@@ -105,7 +96,6 @@ terminal_new (struct ConnectionTab *p_connection_tab, char *directory)
 
   if (success == FALSE)
     strcpy (error_msg, error->message);
-#endif
 
   return (success);
 }
@@ -382,14 +372,6 @@ log_on (struct ConnectionTab *p_conn_tab)
   //vte_terminal_feed (VTE_TERMINAL (p_conn_tab->vte), _("Logging in...\n\r"), -1);
   terminal_write_ex (p_conn_tab, _("Logging in...\n\r"));
 
-#if (GTK_MAJOR_VERSION == 2)
-  p_conn_tab->pid = vte_terminal_fork_command (VTE_TERMINAL (p_conn_tab->vte), p_prot->command, p_params, NULL, NULL, TRUE, TRUE, TRUE);
-
-  success = (gboolean) p_conn_tab->pid != -1;
-
-  if (success == FALSE)
-    strcpy (error_msg, _("Can't create fork command"));
-#else
   log_debug("using vte_terminal_fork_command_full()\n");
 
   GError *error = NULL;
@@ -409,7 +391,6 @@ log_on (struct ConnectionTab *p_conn_tab)
 
   if (success == FALSE)
     strcpy (error_msg, error->message);
-#endif
 
   log_debug ("Child process id : %d\n", p_conn_tab->pid);
 

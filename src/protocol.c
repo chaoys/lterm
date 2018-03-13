@@ -433,11 +433,7 @@ change_edit_protocol_cb (GtkWidget *entry, gpointer user_data)
 
   p_pl = (struct Protocol_List *) user_data;
 
-#if (GTK_MAJOR_VERSION == 2)
-  fill_protocol_entries ((char *) gtk_combo_box_get_active_text (GTK_COMBO_BOX (entry)), p_pl);
-#else
   fill_protocol_entries ((char *) gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (entry)), p_pl);
-#endif
 }
 
 int
@@ -551,11 +547,7 @@ prot_revert_clicked_cb (GtkButton *button, gpointer user_data)
 
   p_pl = (struct Protocol_List *) user_data;
 
-#if (GTK_MAJOR_VERSION == 2)
-  fill_protocol_entries ((char *) gtk_combo_box_get_active_text (GTK_COMBO_BOX (protocol_combo)), p_pl);
-#else
   fill_protocol_entries ((char *) gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (protocol_combo)), p_pl);
-#endif
 
   modified = 0;
   gtk_label_set_markup (GTK_LABEL (label_status), "Reverted to saved version");
@@ -574,11 +566,7 @@ prot_save_clicked_cb (GtkButton *button, gpointer user_data)
 
   p_pl = (struct Protocol_List *) user_data;
 
-#if (GTK_MAJOR_VERSION == 2)
-  p_prot = get_protocol (p_pl, (char *) gtk_combo_box_get_active_text (GTK_COMBO_BOX (protocol_combo)));
-#else
   p_prot = get_protocol (p_pl, (char *) gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (protocol_combo)));
-#endif
 
   if (p_prot)
     {
@@ -613,11 +601,7 @@ prot_delete_clicked_cb (GtkButton *button, gpointer user_data)
   printf ("prot_delete_clicked_cb()\n");
 #endif
 
-#if (GTK_MAJOR_VERSION == 2)
-  strcpy (name, (char *) gtk_combo_box_get_active_text (GTK_COMBO_BOX (protocol_combo)));
-#else
   strcpy (name, (char *) gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT(protocol_combo)));
-#endif
   
   p_pl = (struct Protocol_List *) user_data;
 
@@ -670,14 +654,7 @@ refresh_protocols (struct Protocol_List *p_pl)
   
   /* empty list */
 
-#if (GTK_MAJOR_VERSION == 2)
-  for (i=0; i<pl_count (p_pl)+1; i++)
-    {
-      gtk_combo_box_remove_text (GTK_COMBO_BOX (protocol_combo), 0);
-    }
-#else
   gtk_combo_box_text_remove_all (GTK_COMBO_BOX_TEXT (protocol_combo));
-#endif
   
   /* recreate list */
 
@@ -685,11 +662,7 @@ refresh_protocols (struct Protocol_List *p_pl)
 
   while (p)
     {
-#if (GTK_MAJOR_VERSION == 2)
-      gtk_combo_box_append_text (GTK_COMBO_BOX (protocol_combo), p->name);
-#else
       gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT(protocol_combo), p->name);
-#endif
 
       p = p->next;
     }
@@ -712,33 +685,18 @@ manage_protocols (struct Protocol_List *p_pl)
   struct Protocol *p;
   gint result;
 
-#if (GTK_MAJOR_VERSION == 2)
-  GtkWidget *main_vbox = gtk_vbox_new (FALSE, 5);
-  GtkWidget *edit_hbox = gtk_hbox_new (FALSE, 20);
-  GtkWidget *entries_vbox = gtk_vbox_new (FALSE, 5);
-  GtkWidget *buttons_vbox = gtk_vbox_new (FALSE, 5);
-#else
   GtkWidget *main_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);    /* main vertical box: contains everything */
   GtkWidget *edit_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 20);   /* edit horizontal box: contains entries_vbox box and buttons_vbox*/
   GtkWidget *entries_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5); /* entries vertical box: contains entry controls */
   GtkWidget *buttons_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5); /* buttons vertical box: contains buttons */
-#endif
 
   /* protocol combo */
 
-#if (GTK_MAJOR_VERSION == 2)
-  GtkWidget *protocol_hbox = gtk_hbox_new (FALSE, 10);
-#else
   GtkWidget *protocol_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
-#endif
 
   gtk_box_pack_start (GTK_BOX (protocol_hbox), gtk_widget_new (GTK_TYPE_LABEL, "label", _("Protocol"), "xalign", 0.0, NULL), FALSE, TRUE, 5);
 
-#if (GTK_MAJOR_VERSION == 2)
-  protocol_combo = gtk_combo_box_new_text ();
-#else
   protocol_combo = gtk_combo_box_text_new_with_entry ();
-#endif
 
   gtk_box_pack_end (GTK_BOX (protocol_hbox), protocol_combo, TRUE, TRUE, 5);
   gtk_box_pack_start (GTK_BOX (entries_vbox), protocol_hbox, FALSE, TRUE, 5);
@@ -848,11 +806,7 @@ manage_protocols (struct Protocol_List *p_pl)
   gtk_container_set_border_width (GTK_CONTAINER (variables_frame), 5);
   gtk_widget_show (variables_frame);
   
-#if (GTK_MAJOR_VERSION == 2)
-  GtkWidget *variables_vbox = gtk_vbox_new (TRUE, 0); /* vbox */
-#else
   GtkWidget *variables_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0); /* vbox */
-#endif
 
   gtk_container_set_border_width (GTK_CONTAINER (variables_vbox), 5);
   gtk_widget_show (variables_vbox);

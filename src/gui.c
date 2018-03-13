@@ -670,13 +670,8 @@ query_value (char *title, char *labeltext, char *default_value, char *buffer, in
   GtkWidget *main_hbox;
   GtkWidget *text_vbox;
   
-#if (GTK_MAJOR_VERSION == 2)
-  main_hbox = gtk_hbox_new (FALSE, 5);
-  text_vbox = gtk_vbox_new (FALSE, 5);
-#else
   main_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
   text_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
-#endif
 
   /* image */
 
@@ -891,10 +886,6 @@ show_login_mask (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth)
   
   sprintf (ui, "%s/login.glade", globals.data_dir);
   
-#if (GTK_MAJOR_VERSION == 2)
-  strcat (ui, ".gtk2");
-#endif
-
   sprintf (image_auth_filename, "%s/keys-64.png", globals.img_dir);
 
   if (gtk_builder_add_from_file (builder, ui, &error) == 0)
@@ -1232,10 +1223,6 @@ connection_tab_add (struct ConnectionTab *connection_tab)
   int font_size;
   gint new_pagenum;
 
-#if (GTK_MAJOR_VERSION == 2)
-  connection_tab->hbox_terminal = gtk_hbox_new (FALSE, 0); /* for vte and scrolbar */
-  connection_tab->scrollbar = gtk_vscrollbar_new (vte_terminal_get_adjustment (VTE_TERMINAL (connection_tab->vte)));
-#else
   connection_tab->hbox_terminal = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0); /* for vte and scrolbar */
 #if (VTE_CHECK_VERSION(0,38,3) == 1)
   connection_tab->scrollbar = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL,
@@ -1245,18 +1232,13 @@ connection_tab_add (struct ConnectionTab *connection_tab)
                                                  vte_terminal_get_adjustment (VTE_TERMINAL (connection_tab->vte))
                                                  /*gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(connection_tab->vte))*/);
 #endif
-#endif
 
 
   gtk_box_pack_start (GTK_BOX (connection_tab->hbox_terminal), connection_tab->vte, TRUE, TRUE, 0);
   gtk_box_pack_end (GTK_BOX (connection_tab->hbox_terminal), connection_tab->scrollbar, FALSE, FALSE, 0);
   gtk_widget_show_all (connection_tab->hbox_terminal);
 
-#if (GTK_MAJOR_VERSION == 2)
-  tab_label = gtk_hbox_new (FALSE, 0);
-#else
   tab_label = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-#endif
 
   gtk_container_set_border_width (GTK_CONTAINER (tab_label), 0);
   gtk_box_set_spacing (GTK_BOX (tab_label), 8);
@@ -1287,11 +1269,7 @@ connection_tab_add (struct ConnectionTab *connection_tab)
   */
   gtk_container_add (GTK_CONTAINER (close_button), image);
 
-#if (GTK_MAJOR_VERSION == 2)
-  g_signal_connect (GTK_OBJECT (close_button), "clicked", GTK_SIGNAL_FUNC (close_button_clicked_cb), connection_tab);
-#else
   g_signal_connect (close_button, "clicked", G_CALLBACK (close_button_clicked_cb), connection_tab);
-#endif
 
 /*
   gtk_box_pack_start (GTK_BOX (tab_hbox), image_type, FALSE, FALSE, 0);
@@ -2475,10 +2453,6 @@ edit_find ()
   
   sprintf (ui, "%s/find.glade", globals.data_dir);
   
-#if (GTK_MAJOR_VERSION == 2)
-  strcat (ui, ".gtk2");
-#endif
-
   if (gtk_builder_add_from_file (builder, ui, &error) == 0)
     {
       msgbox_error ("Can't load user interface file:\n%s", error->message);
@@ -2588,10 +2562,6 @@ transfer_window_init ()
   
   sprintf (ui, "%s/transfer-item.glade", globals.data_dir);
   
-#if (GTK_MAJOR_VERSION == 2)
-  strcat (ui, ".gtk2");
-#endif
-
   GtkWidget *grid = gtk_grid_new ();
   gtk_grid_set_column_homogeneous (grid, FALSE);
 
@@ -2993,14 +2963,7 @@ terminal_detach (GtkOrientation orientation)
   switch_tab_enabled = FALSE;
 
   // Create a new paned window
-#if (GTK_MAJOR_VERSION == 2)
-  if (orientation == GTK_ORIENTATION_HORIZONTAL)
-    hpaned_split = gtk_hpaned_new ();
-  else
-    hpaned_split = gtk_vpaned_new ();
-#else
   hpaned_split = gtk_paned_new (orientation);
-#endif
 
   // Get the notebook parent
   parent = gtk_widget_get_parent(notebook);
@@ -3217,10 +3180,6 @@ terminal_cluster ()
   
   sprintf (ui, "%s/cluster.glade", globals.data_dir);
   
-#if (GTK_MAJOR_VERSION == 2)
-  strcat (ui, ".gtk2");
-#endif
-
   if (gtk_builder_add_from_file (builder, ui, &error) == 0) {
     msgbox_error ("Can't load user interface file:\n%s", error->message);
     return;
@@ -3649,10 +3608,6 @@ Info ()
   
   sprintf (ui, "%s/credits.glade", globals.data_dir);
   
-#if (GTK_MAJOR_VERSION == 2)
-  strcat (ui, ".gtk2");
-#endif
-
   if (gtk_builder_add_from_file (builder, ui, &error) == 0)
     {
       msgbox_error ("Can't load user interface file:\n%s", error->message);
@@ -3694,15 +3649,9 @@ Info ()
   /* libraries */
   GtkWidget *label_libs = GTK_WIDGET (gtk_builder_get_object (builder, "label_libs"));
   
-#if (GTK_MAJOR_VERSION == 2)
-  major = gtk_major_version;
-  minor = gtk_minor_version;
-  micro = gtk_micro_version;
-#else
   major = gtk_get_major_version ();
   minor = gtk_get_minor_version ();
   micro = gtk_get_micro_version ();
-#endif
 
   sprintf (s_linked,
            "GTK+ version %d.%d.%d\n"
@@ -4183,12 +4132,7 @@ search_entry_focus_in_event_cb (GtkWidget *widget, GdkEvent *event, gpointer use
 {
   
 
-#if (GTK_MAJOR_VERSION == 2)
-  const GdkColor BLACK_COLOR = { 0, 0, 0, 0 };
-  gtk_widget_modify_text (widget, GTK_STATE_NORMAL, &BLACK_COLOR);
-#else
   gtk_widget_override_color (search_entry, GTK_STATE_NORMAL, NULL);
-#endif
 
   gtk_entry_set_text (GTK_ENTRY (widget), "");
 
@@ -4202,13 +4146,8 @@ search_entry_focus_out_event_cb (GtkWidget *widget, GdkEvent *event, gpointer us
 {
   
 
-#if (GTK_MAJOR_VERSION == 2)
-  const GdkColor GRAY_COLOR = { 0, 45000, 45000, 45000 };
-  gtk_widget_modify_text (search_entry, GTK_STATE_NORMAL, &GRAY_COLOR);
-#else
   const GdkRGBA GRAY_COLOR = { 0.6, 0.6, 0.6, 1 };
   gtk_widget_override_color (search_entry, GTK_STATE_NORMAL, &GRAY_COLOR);
-#endif
   //g_object_set (widget, "foreground-set", "gray", "foreground", TRUE, NULL);
 
   gtk_entry_set_text (GTK_ENTRY (widget), ACCEL_SEARCH_ENTRY);
@@ -4313,11 +4252,7 @@ add_toolbar (GtkWidget *box)
     {
       GtkWidget *toggle = gtk_ui_manager_get_widget (ui_manager, N_("/MainMenu/ViewMenu/Toolbar"));
 
-//#if (GTK_MAJOR_VERSION == 2)
-//      GTK_CHECK_MENU_ITEM (toggle)->active = 1;
-//#else
       gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toggle), TRUE);
-//#endif
 
       //gtk_widget_show (main_toolbar);
     }
@@ -4333,11 +4268,7 @@ void create_statusbar()
   gint cw = -1;
   PangoLayout *layout;
 
-#if (GTK_MAJOR_VERSION == 2)
-  statusbar = gtk_hbox_new (FALSE, 0);
-#else
   statusbar = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-#endif
 
   sb_msg = gtk_statusbar_new();
   //gtk_statusbar_set_has_resize_grip (GTK_STATUSBAR (sb_msg), FALSE);
@@ -4369,11 +4300,7 @@ void create_statusbar()
       //gtk_widget_show_all (statusbar);
       GtkWidget *toggle = gtk_ui_manager_get_widget (ui_manager, N_("/MainMenu/ViewMenu/Statusbar"));
 
-//#if (GTK_MAJOR_VERSION == 2)
-//      GTK_CHECK_MENU_ITEM (toggle)->active = 1;
-//#else
       gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toggle), TRUE);
-//#endif
     }
 }
 
@@ -5289,18 +5216,6 @@ char_size_changed_cb (VteTerminal *terminal, guint width, guint height, gpointer
   //terminal = VTE_TERMINAL(widget);
   window = GTK_WINDOW (user_data);
   /* maybe no more useful */
-#if (GTK_MAJOR_VERSION == 2)
-  vte_terminal_get_padding (terminal, &xpad, &ypad);
-
-  geometry.width_inc = vte_terminal_get_char_width (terminal);
-  geometry.height_inc = vte_terminal_get_char_height (terminal);
-  geometry.base_width = xpad;
-  geometry.base_height = ypad;
-  geometry.min_width = xpad + vte_terminal_get_char_width (terminal) * 2;
-  geometry.min_height = ypad + vte_terminal_get_char_height (terminal) * 2;
-
-  gtk_window_set_geometry_hints (window, GTK_WIDGET (terminal), &geometry, GDK_HINT_RESIZE_INC | GDK_HINT_BASE_SIZE | GDK_HINT_MIN_SIZE);
-#endif
 }
 
 void
@@ -5345,13 +5260,8 @@ key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
   int keyReturn, keyEnter;
   gboolean rc = FALSE;
 
-#if (GTK_MAJOR_VERSION == 2)
-  keyReturn = GDK_Return;
-  keyEnter = GDK_KP_Enter;
-#else
   keyReturn = GDK_KEY_Return;
   keyEnter = GDK_KEY_KP_Enter;
-#endif
     
   //log_debug("keyval=%d\n", event->keyval);
     
@@ -5587,14 +5497,6 @@ apply_profile_terminal (GtkWidget *terminal, struct Profile *p_profile)
   vte_terminal_set_opacity (VTE_TERMINAL (terminal), (int) 65535 * p_profile->alpha);
 */
 
-#if (GTK_MAJOR_VERSION == 2)
-  GdkColor terminal_fore_color;
-  GdkColor terminal_back_color;
-  
-  gdk_color_parse (p_profile->fg_color, &terminal_fore_color);
-  gdk_color_parse (p_profile->bg_color, &terminal_back_color);
-  vte_terminal_set_colors (VTE_TERMINAL (terminal), &terminal_fore_color, &terminal_back_color, NULL, 0);
-#else
   GdkRGBA fg, bg;
   gdk_rgba_parse (&fg, p_profile->fg_color);
   gdk_rgba_parse (&bg, p_profile->bg_color);
@@ -5605,8 +5507,6 @@ apply_profile_terminal (GtkWidget *terminal, struct Profile *p_profile)
   vte_terminal_set_color_background (VTE_TERMINAL (terminal), &bg);
 #else
   vte_terminal_set_colors_rgba (VTE_TERMINAL (terminal), &fg, &bg, NULL, 0);
-#endif
-
 #endif
 
 
@@ -5801,11 +5701,7 @@ start_gtk (int argc, char **argv)
   create_stock_objects ();
 
   /* Main vbox */
-#if (GTK_MAJOR_VERSION == 2)
-  vbox = gtk_vbox_new (FALSE, 0);
-#else
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-#endif
 
   gtk_container_add (GTK_CONTAINER (main_window), vbox);
   gtk_widget_show_all (vbox);
@@ -5838,11 +5734,7 @@ start_gtk (int argc, char **argv)
   add_toolbar (vbox);
   
   /* Paned window */
-#if (GTK_MAJOR_VERSION == 2)
-  hpaned = gtk_hpaned_new ();
-#else
   hpaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
-#endif
   //hbox_workspace = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   
   g_signal_connect (G_OBJECT(hpaned), "notify::position", G_CALLBACK (check_resize_cb), NULL);
@@ -5897,15 +5789,9 @@ start_gtk (int argc, char **argv)
   gtk_notebook_popup_enable (GTK_NOTEBOOK (notebook));
   gtk_notebook_set_show_border (GTK_NOTEBOOK (notebook), TRUE);
 
-#if (GTK_MAJOR_VERSION == 2)
-  gtk_notebook_set_tab_border (GTK_NOTEBOOK (notebook), 0);
-  g_signal_connect (G_OBJECT (notebook), "switch-page", G_CALLBACK (notebook_switch_page_cb), 0);
-  g_signal_connect (G_OBJECT (notebook), "page-reordered", G_CALLBACK (notebook_page_reordered_cb), 0);
-#else
   g_signal_connect (notebook, "switch-page", G_CALLBACK (notebook_switch_page_cb), 0);
   g_signal_connect (notebook, "page-reordered", G_CALLBACK (notebook_page_reordered_cb), 0);
   //g_signal_connect (notebook, "reorder-tab", G_CALLBACK (notebook_reorder_tab_cb), 0);
-#endif
 
 
   gtk_widget_show (notebook);
@@ -5923,16 +5809,10 @@ start_gtk (int argc, char **argv)
   create_statusbar ();
   gtk_box_pack_end (GTK_BOX (vbox), statusbar, FALSE, TRUE, 0);
 
-#if (GTK_MAJOR_VERSION == 2)
-  g_signal_connect (GTK_OBJECT (main_window), "delete_event", GTK_SIGNAL_FUNC (delete_event_cb), NULL);
-  g_signal_connect (GTK_OBJECT (main_window), "size-allocate", G_CALLBACK (size_allocate_cb), NULL);
-  g_signal_connect (GTK_OBJECT (main_window), "key-press-event", G_CALLBACK (key_press_event_cb), NULL);
-#else
   g_signal_connect (main_window, "delete_event", G_CALLBACK (delete_event_cb), NULL);
   g_signal_connect (main_window, "size-allocate", G_CALLBACK (size_allocate_cb), NULL);
   //g_signal_connect (main_window, "window-state-event", G_CALLBACK (window_state_event_cb), NULL);
   g_signal_connect (main_window, "key-press-event", G_CALLBACK (key_press_event_cb), NULL);
-#endif
 
   //g_signal_connect (G_OBJECT(main_window), "window-state-event", G_CALLBACK(window_state_event_cb), NULL);
   g_signal_connect (G_OBJECT (main_window), "window-state-event", G_CALLBACK (window_state_event_cb), NULL);

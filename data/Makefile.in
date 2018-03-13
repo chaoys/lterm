@@ -248,16 +248,12 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 EXTRA_DIST = credits.txt lterm.desktop.in lterm.xml \
              preferences.glade profile.glade transfer.glade edit-connection.glade sftp.glade login.glade \
-             find.glade credits.glade  preferences.glade.gtk2 profile.glade.gtk2 transfer.glade.gtk2 \
-             edit-connection.glade.gtk2 sftp.glade.gtk2 login.glade.gtk2 find.glade.gtk2 credits.glade.gtk2 \
-             cluster.glade cluster.glade.gtk2 time.glade time.glade.gtk2 transfer-item.glade transfer-item.glade.gtk2 \
+             find.glade credits.glade cluster.glade time.glade transfer-item.glade \
              additionals.xml types.xml PuttyExportTemplate.txt
 
 pkgdata_DATA = credits.txt lterm.desktop.in lterm.xml \
              preferences.glade profile.glade transfer.glade edit-connection.glade sftp.glade login.glade \
-             find.glade credits.glade  preferences.glade.gtk2 profile.glade.gtk2 transfer.glade.gtk2 \
-             edit-connection.glade.gtk2 sftp.glade.gtk2 login.glade.gtk2 find.glade.gtk2 credits.glade.gtk2 \
-             cluster.glade cluster.glade.gtk2 time.glade time.glade.gtk2 transfer-item.glade transfer-item.glade.gtk2 \
+             find.glade credits.glade  cluster.glade time.glade transfer-item.glade \
              additionals.xml types.xml PuttyExportTemplate.txt
 
 desktopdir = $(datadir)/applications

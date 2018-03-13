@@ -62,12 +62,7 @@ refresh_profiles_list_store ()
 
   gtk_list_store_clear (list_store_profiles);
   
-#if (GTK_MAJOR_VERSION == 2)
-  for (i=0; i<profile_count (&g_profile_list)+1; i++)
-    gtk_combo_box_remove_text (GTK_COMBO_BOX (default_profile_combo), 0);
-#else
   gtk_combo_box_text_remove_all (GTK_COMBO_BOX_TEXT (default_profile_combo));
-#endif
 
   p = g_profile_list.head;
   
@@ -79,11 +74,7 @@ refresh_profiles_list_store ()
       
       log_debug ("%d %s\n", i, p->name);
 
-#if (GTK_MAJOR_VERSION == 2)
-      gtk_combo_box_append_text (GTK_COMBO_BOX (default_profile_combo), p->name);
-#else
       gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (default_profile_combo), p->name);
-#endif
       
       if (p->id == g_profile_list.id_default)
         default_pos = i;
@@ -100,13 +91,9 @@ refresh_profiles_list_store ()
 void
 check_use_system_cb (GtkToggleButton *togglebutton, gpointer user_data)
 {
-#if (GTK_MAJOR_VERSION == 2)
-  gtk_widget_set_sensitive (fontbutton_terminal, !gtk_toggle_button_get_active (togglebutton));
-#else
   gtk_widget_set_state_flags (fontbutton_terminal, 
                               gtk_toggle_button_get_active (togglebutton) ? GTK_STATE_FLAG_INSENSITIVE : GTK_STATE_FLAG_NORMAL, 
                               TRUE);
-#endif
 }
 
 void
@@ -122,10 +109,6 @@ profile_edit (struct Profile *p_profile)
   
   sprintf (ui, "%s/profile.glade", globals.data_dir);
   
-#if (GTK_MAJOR_VERSION == 2)
-  strcat (ui, ".gtk2");
-#endif
-
   if (gtk_builder_add_from_file (builder, ui, &error) == 0)
     {
       msgbox_error ("Can't load user interface file:\n%s", error->message);
@@ -178,22 +161,6 @@ profile_edit (struct Profile *p_profile)
   GtkWidget *color_fg = GTK_WIDGET (gtk_builder_get_object (builder, "color_fg"));
   GtkWidget *color_bg = GTK_WIDGET (gtk_builder_get_object (builder, "color_bg"));
 
-#if (GTK_MAJOR_VERSION == 2)
-  GdkColor fg, bg;
-  if (p_profile)
-    {
-      gdk_color_parse (p_profile->fg_color, &fg);
-      gdk_color_parse (p_profile->bg_color, &bg);
-    }
-  else
-    {
-      gdk_color_parse ("light gray", &fg);
-      gdk_color_parse ("black", &bg);
-    }  
-    
-  gtk_color_button_set_color (GTK_COLOR_BUTTON (color_fg), &fg);
-  gtk_color_button_set_color (GTK_COLOR_BUTTON (color_bg), &bg);
-#else
   GdkRGBA fg, bg;
   if (p_profile)
     {
@@ -208,7 +175,6 @@ profile_edit (struct Profile *p_profile)
 
   gtk_color_chooser_set_rgba (GTK_COLOR_CHOOSER(color_fg), &fg);
   gtk_color_chooser_set_rgba (GTK_COLOR_CHOOSER(color_bg), &bg);
-#endif
 /*
   GtkWidget *scale_opacity = GTK_WIDGET (gtk_builder_get_object (builder, "scale_opacity"));
   gtk_range_set_value (GTK_RANGE(scale_opacity), p_profile ? p_profile->alpha : 1.0);
@@ -258,18 +224,11 @@ profile_edit (struct Profile *p_profile)
           new_profile.bell_audible = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_audible_bell)) ? 1 : 0;
           new_profile.bell_visible = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_visible_bell)) ? 1 : 0;
           
-#if (GTK_MAJOR_VERSION == 2)
-          gtk_color_button_get_color (GTK_COLOR_BUTTON (color_fg), &fg);
-          gtk_color_button_get_color (GTK_COLOR_BUTTON (color_bg), &bg);
-          strcpy (new_profile.fg_color, gdk_color_to_string (&fg));
-          strcpy (new_profile.bg_color, gdk_color_to_string (&bg));
-#else
           gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER(color_fg), &fg);
           strcpy (new_profile.fg_color, gdk_rgba_to_string (&fg));
 
           gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER(color_bg), &bg);
           strcpy (new_profile.bg_color, gdk_rgba_to_string (&bg));
-#endif
           //new_profile.alpha = gtk_range_get_value (GTK_RANGE(scale_opacity));
 
           if (p_profile)
@@ -357,21 +316,13 @@ profile_selected_cb (GtkTreeView *tree_view, gpointer user_data)
 void
 radio_ask_cb (GtkToggleButton *togglebutton, gpointer user_data)
 {
-#if (GTK_MAJOR_VERSION == 2)
-  gtk_widget_set_sensitive (GTK_WIDGET(user_data), FALSE);
-#else
   gtk_widget_set_state_flags (GTK_WIDGET(user_data), GTK_STATE_FLAG_INSENSITIVE, TRUE);
-#endif
 }
 
 void
 radio_dir_cb (GtkToggleButton *togglebutton, gpointer user_data)
 {
-#if (GTK_MAJOR_VERSION == 2)
-  gtk_widget_set_sensitive (GTK_WIDGET(user_data), TRUE);
-#else
   gtk_widget_set_state_flags (GTK_WIDGET(user_data), GTK_STATE_FLAG_NORMAL, TRUE);
-#endif
 }
 
 void
@@ -391,10 +342,6 @@ show_preferences ()
   
   sprintf (ui, "%s/preferences.glade", globals.data_dir);
   
-#if (GTK_MAJOR_VERSION == 2)
-  strcat (ui, ".gtk2");
-#endif
-
   if (gtk_builder_add_from_file (builder, ui, &error) == 0)
     {
       msgbox_error ("Can't load user interface file:\n%s", error->message);
@@ -557,21 +504,13 @@ show_preferences ()
     {
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(radio_ask), TRUE);
       
-#if (GTK_MAJOR_VERSION == 2)
-      gtk_widget_set_sensitive (entry_download_dir, FALSE);
-#else
       gtk_widget_set_state_flags (entry_download_dir, GTK_STATE_FLAG_INSENSITIVE, TRUE);
-#endif
     }
   else
     {
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(radio_dir), TRUE);
       
-#if (GTK_MAJOR_VERSION == 2)
-      gtk_widget_set_sensitive (entry_download_dir, TRUE);
-#else
       gtk_widget_set_state_flags (entry_download_dir, GTK_STATE_FLAG_NORMAL, TRUE);
-#endif
     }
     
   GtkWidget *entry_text_editor = GTK_WIDGET (gtk_builder_get_object (builder, "entry_text_editor"));
