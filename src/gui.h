@@ -18,20 +18,6 @@
 #define QUERY_FILE_NEW 4
 #define QUERY_FOLDER_NEW 5
 
-// Tab status for alerts
-/*
-#define TAB_STATUS_NORMAL 0
-#define TAB_STATUS_CHANGED 2
-#define TAB_STATUS_DISCONNECTED 3
-*/
-
-// Tab connection status
-/*
-#define TAB_CONN_STATUS_DISCONNECTED 0
-#define TAB_CONN_STATUS_CONNECTING 1
-#define TAB_CONN_STATUS_CONNECTED 2
-#define TAB_CONN_STATUS_LOGGED 3
-*/
 enum { TAB_CONN_STATUS_DISCONNECTED = 0, TAB_CONN_STATUS_CONNECTING, TAB_CONN_STATUS_CONNECTED };
 
 #define AUTH_STATE_NOT_LOGGED 0
@@ -51,15 +37,12 @@ typedef struct ConnectionTab
     struct Connection last_connection;
     struct SSH_Info ssh_info;
 
-    //int connected; // DEPRECATED: use connectionStatus
-    //int logged; // DEPRECATED: use flags
     int connectionStatus;
     int enter_key_relogging;
     unsigned int auth_state;
     int changes_count;
     int auth_attempt;
     int type;
-    //int status; // DEPRECATED: use flags
     unsigned int flags; // logged, changed
     char *buffer;
     char md5Buffer[1024];

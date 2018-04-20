@@ -812,76 +812,11 @@ sftp_panel_check_inotify ()
   SMirrorFile *mf;
   gboolean isModified = FALSE;
 
-#ifdef __linux__DONT_USE
-/*
-  int length, i = 0;
-  char buffer[EVENT_BUF_LEN];
-  struct timeval timeout;
-
-  FD_ZERO (&globals.rfds);
-  FD_SET (globals.inotifyFd, &globals.rfds);
-
-  timeout.tv_sec = 0;
-  timeout.tv_usec = 0;
- 
-  //log_write ("Checking...\n");
-  rc = select (globals.inotifyFd + 1, &globals.rfds, NULL, NULL, &timeout);
-
-  if (rc <= 0)
-    return;
-
-  if (FD_ISSET (globals.inotifyFd, &globals.rfds)) {
-    //log_debug ("Reading from Inotify...\n");
-    length = read (globals.inotifyFd, buffer, EVENT_BUF_LEN);
-
-    //log_write ("length = %d\n", length);
-
-    while (i < length) {
-      struct inotify_event *event = (struct inotify_event *) &buffer[i];
-
-      log_write ("Changed file descriptor: %d\n", event->wd);
-
-      if (mf = sftp_panel_get_mirror_file_by_wd (event->wd)) {
-        //log_debug ("event->mask = %d (IN_MODIFY=%d)\n", event->mask, IN_MODIFY);
-        if (event->mask & IN_MODIFY) {
-          if (saveMirrorFile (mf) != 0)
-              msgbox_error ("Can't save remote file\n%s", mf->remoteFile);
-        }
-      }
-
-      i += EVENT_SIZE + event->len;
-    }
-  }
-*/
-#else
   int i;
   struct timeval timeout;
     
   if (!mirrorFiles || mirrorFiles->len == 0)
     return;
-/*
-  // kevent returns error 35 Resource temporarily unavailable, so don't use it
-  timeout.tv_sec = 0;
-  timeout.tv_usec = 0;
-    
-  struct kevent triggeredEvent;
-    
-  i = kevent (globals.inotifyFd, NULL, 0, &triggeredEvent, 1, &timeout);
-    
-  if (i > 0) {
-    log_debug ("Events detected: %d\n", i);
-      
-    if (triggeredEvent.udata != NULL) {
-        // udata is non-null, so it's the name of the directory
-        log_debug ("%d %d\n", triggeredEvent.flags, triggeredEvent.fflags);
-        
-        if (triggeredEvent.fflags == NOTE_WRITE) {
-          mf = (SMirrorFile *) triggeredEvent.udata;
-          log_debug ("Modified: %s\n", mf->localFile);
-        }
-    }
-  }
-*/
  struct stat attrib;
   
   for (i=0; i<mirrorFiles->len; i++) {
@@ -900,8 +835,6 @@ sftp_panel_check_inotify ()
       //log_write ("Can't stat %s: %s", mf->localFile, strerror(errno));
     }
   }
-#endif
-
 }
 
 /**
@@ -929,23 +862,12 @@ sftp_panel_create_mirror_file(struct SSH_Info *pSSH, char *filename)
     return 1;
   }
 
-  // Download file
-/*  GSList *list = NULL;
-  list = g_slist_append (list, filename);
-
-  //if (transfer_sftp (SFTP_ACTION_DOWNLOAD, list, pSSH, mirrorDir) != 0) {
-  if (sftp_queue_add (SFTP_ACTION_DOWNLOAD, list, pSSH, mirrorDir) != 0) {
-    log_write("Can't download %s\n", filename);
-    return 2;
-  }
-*/
   struct TransferInfo ti;
 
   memset (&ti, 0, sizeof (struct TransferInfo));
   ti.state = TR_IN_PROGRESS;
   time (&ti.start_time);
   strcpy (ti.host, pSSH->ssh_node->host);
-  //strcpy (ti.status, "downloading...");
 
   sprintf (ti.source, "%s/%s", pSSH->directory, filename);
   sprintf (ti.destination, "%s/%s", mirrorDir, filename);
@@ -959,58 +881,12 @@ sftp_panel_create_mirror_file(struct SSH_Info *pSSH, char *filename)
     mirrorFiles = g_array_new(FALSE, TRUE, sizeof (SMirrorFile));
   }
 
-  //SMirrorFile *pMirror;
   SMirrorFile pMirror;
-
-  //pMirror = (SMirrorFile *) malloc (sizeof(SMirrorFile));
 
   pMirror.sshNode = pSSH->ssh_node;
   sprintf (pMirror.localDir, "%s", mirrorDir);
   sprintf (pMirror.localFile, "%s/%s", mirrorDir, filename);
   sprintf (pMirror.remoteFile, "%s/%s", pSSH->directory, filename);
-
-#ifdef __linux__DONT_USE
-/*
-  pMirror.wd = inotify_add_watch(globals.inotifyFd, pMirror.localFile, IN_MODIFY|IN_CLOSE_WRITE|IN_CLOSE_NOWRITE);
-
-  if (pMirror.wd == -1) {
-    log_write("Can't add watch for %s\n", pMirror.localFile);
-    return 4;
-  }
-
-  log_write("Added watch for %s using descriptor %d\n", pMirror.localFile, pMirror.wd);
-#else
-    pMirror.wd = open (pMirror.localFile, O_RDONLY);
-
-    if (pMirror.wd <= 0) {
-      log_write("Can't open %s\n", pMirror.localFile);
-      return 4;
-    }
-    \*
-    int flags;
-    flags = fcntl(pMirror.wd, F_GETFL);
-    fcntl(pMirror.wd, F_SETFL, flags | O_NONBLOCK); //opts & (~O_NONBLOCK)
-    *\
-
-\*
-    struct kevent event; // Event we want to monitor
-    
-    // Initialize kevent structure
-    EV_SET (&event, pMirror.wd, EVFILT_VNODE, EV_ADD | EV_CLEAR | EV_ENABLE, NOTE_WRITE, 0, (void *)&pMirror);
-    //EV_SET (&event, pMirror.wd, EVFILT_READ, EV_ADD | EV_CLEAR | EV_ENABLE, NOTE_WRITE, 0, (void *)&pMirror);
-    
-    //Attach event to the kqueue.
-    result = kevent(globals.inotifyFd, &event, 1, NULL, 0, NULL);
-    // !!! returns error 35 Resource temporarily unavailable, so don't use it
-    
-    if (result <= 0)
-      log_write ("Can't add event to queue: %d %s\n", errno, strerror(errno));
-*\
-*/
-  
-#endif
-    
-  //pMirror.lastSaved = time(NULL);
 
   struct stat attrib;
 

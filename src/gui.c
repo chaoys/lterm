@@ -44,26 +44,14 @@
 #include "connection_list.h"
 #include "transfer_window.h"
 
-#ifndef MAC_INTEGRATION
 #include <gdk/gdkx.h>
-#endif
 
-#ifdef MAC_INTEGRATION
-#  include <gtkosxapplication.h>
-#  define ACCEL_SEARCH_ENTRY "Search connection... ⌘K"
-#  define SHORTCUT_COPY "<ctrl>C"
-#  define SHORTCUT_PASTE "<ctrl>V"
-#  define SHORTCUT_FIND "<ctrl>F"
-#  define SHORTCUT_FIND_NEXT "<ctrl>G"
-#  define SHORTCUT_QUIT "<ctrl>Q"
-#else
 #  define ACCEL_SEARCH_ENTRY "Search connection... <Ctrl+K>"
 #  define SHORTCUT_COPY "<shift><ctrl>C"
 #  define SHORTCUT_PASTE "<shift><ctrl>V"
 #  define SHORTCUT_FIND "<shift><ctrl>F"
 #  define SHORTCUT_FIND_NEXT "<shift><ctrl>G"
 #  define SHORTCUT_QUIT "<Alt>X"
-#endif
 
 #define DEFAULT_WORD_CHARS "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -1355,60 +1343,6 @@ refreshTabStatus (SConnectionTab *pTab)
   gtk_label_set_markup (GTK_LABEL (pTab->label), l_text_new);   
 }
 
-/**
- * connection_tab_set_status() - Changes tab label (deprecated, use refreshTabStatus())
- */
-/*
-void
-connection_tab_set_status (struct ConnectionTab *connection_tab, int status)
-{
-\*
-  char *l_text;
-  char l_text_new[256];
-  
-  if (!prefs.tab_alerts)
-    return;
-  
-  if (connection_tab == p_current_connection_tab)
-    {
-      if (tabIsConnected(connection_tab)\*->connected*\)
-        status = TAB_STATUS_NORMAL;
-      else
-        status = TAB_STATUS_DISCONNECTED;
-    }
-  
-  connection_tab->status = status;
-
-  if (!GTK_IS_LABEL (connection_tab->label))
-    return;
-  
-  l_text = (char *) gtk_label_get_text (GTK_LABEL(connection_tab->label));
-  
-  switch (status) {
-    case TAB_STATUS_NORMAL:
-      sprintf (l_text_new, "%s", l_text);
-      break;
-      
-    case TAB_STATUS_CHANGED:
-      sprintf (l_text_new, "<span color=\"%s\">%s</span>", prefs.tab_status_changed_color, l_text);
-      break;
-      
-    case TAB_STATUS_DISCONNECTED:
-      if (connection_tab == p_current_connection_tab)
-        sprintf (l_text_new, "<span color=\"%s\">%s</span>", prefs.tab_status_disconnected_color, l_text);
-      else
-        sprintf (l_text_new, "<span color=\"%s\">%s</span>", prefs.tab_status_disconnected_alert_color, l_text);
-      break;
-      
-    default:
-      sprintf (l_text_new, "%s", l_text);
-      break;     
-  }
-  
-  gtk_label_set_markup (GTK_LABEL (connection_tab->label), l_text_new);
-*\
-}
-*/
 int
 connection_tab_getcwd (struct ConnectionTab *p_ct, char *directory)
 {
@@ -2031,39 +1965,6 @@ add_recent_connection (struct Connection *p_conn)
     NULL
   };
 
-  /* delete from internal list if present */
-/*
-  item = g_list_first (g_recent_connections_list);
-
-  while (item)
-    {
-      p_conn_recent = (struct Connection *) item->data;
-
-      if (!strcmp (p_conn_recent->user, p_conn->user) 
-          && !strcmp (p_conn_recent->name, p_conn->name) 
-          && !strcmp (p_conn_recent->protocol, p_conn->protocol) 
-         )
-        {
-          //log_debug ("remove %s@%s[%s]\n", p_conn_recent->user, p_conn_recent->name, p_conn_recent->protocol);
-          //g_recent_connections_list = g_list_remove (g_recent_connections_list, p_conn_recent);
-          found = 1;
-          break;
-        }
-
-      item = g_list_next (item);
-    }
-*/
-/*
-1.4.0-test11
-  if (!get_recent_connection (p_conn->user, p_conn->name, p_conn->protocol))
-    {
-      // add to internal list
-
-      //g_recent_connections_list = g_list_prepend (g_recent_connections_list, p_conn);
-      g_recent_connections_list = g_list_append (g_recent_connections_list, p_conn);
-    }
-*/
-
   // If already present, remove it before inserting
   item = get_recent_connection_item (p_conn->user, p_conn->name, p_conn->protocol);
 
@@ -2223,39 +2124,6 @@ load_recent_connections ()
   struct Connection *c;
     
   log_debug ("\n");
-/*
-  cl_init (&cl);
-
-  log_write ("Loading %s\n", globals.recent_connections_file);
-
-  rc = load_connections_from_file (globals.recent_connections_file, &cl);
-  
-  if (rc)
-    {
-      log_write ("Can't open %s\n", globals.recent_connections_file);
-      return (rc);
-    }
-
-  c = cl.head;
-  
-  while (c)
-    { 
-      //log_debug ("added %s@%s[%s]... ", c->user, c->name, c->protocol);
-
-      if (!get_recent_connection (c->user, c->name, c->protocol))
-        {
-          g_recent_connections_list = g_list_prepend (g_recent_connections_list, c);
-          //log_debug ("added\n");
-        }
-      else
-        {
-          //log_debug ("duplicated\n");
-        }
-        
-      c = c->next;
-    }
-*/
-
   log_write ("Loading recents: %s\n", globals.recent_connections_file);
 
   g_recent_connections_list = load_connection_list_from_file_xml (globals.recent_connections_file);
@@ -2279,38 +2147,6 @@ save_recent_connections ()
   int len, rc = 0;
   int i;
   GList *item;
-/*
-  // Create a new list fron recents
-  cl_init (&cl);
-
-  i = 0;
-  item = g_list_first (g_recent_connections_list);
-
-  while (item)
-    {
-      p_conn = (struct Connection *) item->data;
-
-      // Names must be distinct for proper loading
-
-      //sprintf (name_tmp, "%s~%d", p_conn->name, i);
-      //strcpy (p_conn->name, name_tmp);
-
-      //p_conn->auth = 1;
-      
-      // encrypt password
-      strcpy (p_conn->password_encrypted, des_encrypt_b64 (p_conn->password));
-      
-      cl_append (&cl, p_conn);
-
-      i ++;
-      item = g_list_next (item);
-    }
-
-  //rc = save_connections_to_file (globals.recent_connections_file, &cl, CONN_SAVE_USERPASS);
-  rc = save_connections_to_file_xml_from_list (&cl, globals.recent_connections_file);
-    
-  cl_release (&cl);
-*/
   rc = save_connections_to_file_xml_from_glist (g_recent_connections_list, globals.recent_connections_file);
   
   return 0;
@@ -2526,265 +2362,6 @@ edit_current_profile ()
 
   apply_profile (p_current_connection_tab, p_current_connection_tab->profile_id);
 }
-/*
-GtkWidget *transferQueueWindow = 0;
-GtkAdjustment *transferAdjustment;
-gboolean gTransferWindow, gForceRefresh, gRefreshing;
-
-gint
-transfer_window_delete_event_cb (GtkWidget *window, GdkEventAny *e, gpointer data)
-{
-  gTransferWindow = FALSE;
-
-  return TRUE;
-}
-
-void
-sftp_transfer_cancel_cb (GtkButton *button, gpointer user_data)
-{
-  STransferInfo *pTi;
-
-  pTi = (STransferInfo *) user_data;
-  pTi->result = 1;
-  pTi->state = TR_CANCELLED_USER;
-  gForceRefresh = TRUE;
-}
-
-GtkWidget *
-transfer_window_init ()
-{
-  GtkBuilder *builder; 
-  GError *error=NULL;
-  char ui[256];
-  int i;
-
-  builder = gtk_builder_new ();
-  
-  sprintf (ui, "%s/transfer-item.glade", globals.data_dir);
-  
-  GtkWidget *grid = gtk_grid_new ();
-  gtk_grid_set_column_homogeneous (grid, FALSE);
-
-  STransferInfo *pTi;
-
-  //pthread_mutex_lock(&sftp_panel.mutexQueue);
-  lockSFTPQueue (__func__, TRUE);
-
-  log_debug ("Initializating transfer window...\n");
-
-  for (i=0; i<g_list_length (sftp_panel.queue); i++) {
-    pTi = (STransferInfo *) g_list_nth (sftp_panel.queue, i)->data;
-
-    if (gtk_builder_add_from_file (builder, ui, &error) == 0)
-      {
-        msgbox_error ("Can't load user interface file:\n%s", error->message);
-        //return 0;
-        break;
-      }
-
-    pTi->vbox_transfer = GTK_WIDGET (gtk_builder_get_object (builder, "vbox_main"));
-
-    // Cancel button
-    pTi->button_cancel = GTK_WIDGET (gtk_builder_get_object (builder, "button_cancel"));
-    gtk_button_set_image (GTK_BUTTON(pTi->button_cancel), gtk_image_new_from_icon_name ("process-stop", GTK_ICON_SIZE_BUTTON));
-    g_signal_connect (G_OBJECT (pTi->button_cancel), "clicked", G_CALLBACK (sftp_transfer_cancel_cb), pTi);
-
-    gboolean sensitive;
-
-    sensitive = pTi->state <= TR_PAUSED ? TRUE : FALSE;
-    
-    gtk_widget_set_sensitive (pTi->button_cancel, sensitive);
-
-    pTi->label_status = GTK_WIDGET (gtk_builder_get_object (builder, "label_status"));
-    pTi->label_from = GTK_WIDGET (gtk_builder_get_object (builder, "label_filename_from"));
-    pTi->label_speed = GTK_WIDGET (gtk_builder_get_object (builder, "label_speed"));
-    pTi->label_time_left = GTK_WIDGET (gtk_builder_get_object (builder, "label_time_left"));
-    pTi->progress_transfer = GTK_WIDGET (gtk_builder_get_object (builder, "progressbar1"));
-
-    gtk_grid_attach (grid, pTi->vbox_transfer, 0, i, 1, 1);
-
-    //log_debug ("Added to transfer window: %s\n", pTi->label_from);
-  }
-
-  //pthread_mutex_unlock(&sftp_panel.mutexQueue);
-  lockSFTPQueue (__func__, FALSE);
-
-  gtk_widget_show_all (grid);
-
-  return (grid);
-}
-
-void
-transfer_window_refresh ()
-{
-  int i;
-  STransferInfo *pTi;
-
-  lockSFTPQueue (__func__, TRUE);
-
-  log_debug ("Refreshing transfer window...\n");
-
-  for (i=0; i<g_list_length (sftp_panel.queue); i++) {
-    pTi = (STransferInfo *) g_list_nth (sftp_panel.queue, i)->data;
-
-    gchar status[512];
-    sprintf (status, "%s %s", pTi->action == SFTP_ACTION_UPLOAD ? "upload" : "download", getTransferStatusDesc (pTi->state));
-
-    if (pTi->state == TR_CANCELLED_ERRORS) {
-      strcat (status, ":\n");
-      strcat (status, pTi->errorDesc);
-    }
-
-    gtk_label_set_text (GTK_LABEL(pTi->label_status), status);
-    gtk_label_set_text (GTK_LABEL(pTi->label_from), pTi->source);
-  
-#if (GTK_MAJOR_VERSION == 3)
-    gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR(pTi->progress_transfer), TRUE);
-#endif
-
-    gboolean sensitive;
-
-    sensitive = pTi->state <= TR_PAUSED ? TRUE : FALSE;
-    
-    gtk_widget_set_sensitive (pTi->button_cancel, sensitive);
-
-
-    time_t current_time;
-    double elapsed;
-    char speed[32], time_left[16];
-    uint64_t seconds_left;
-
-    time (&current_time); 
-    
-    if (pTi->state == TR_IN_PROGRESS)
-      {
-        elapsed = difftime (current_time, pTi->start_time);
-        sprintf (speed, "%.1f MB/sec.", elapsed > 0.0 ? (float) pTi->worked / (elapsed * 1024.0 * 1024.0) : 0.0);
-
-        if (pTi->sourceIsDir) {
-          strcpy (time_left, "unknown");
-          gtk_progress_bar_pulse (GTK_PROGRESS_BAR(pTi->progress_transfer));
-        }
-        else {
-          seconds_left = ((elapsed * pTi->size) / pTi->worked) - elapsed;
-          seconds_to_hhmmdd (seconds_left, time_left);
-        }
-        
-        gtk_label_set_text (GTK_LABEL(pTi->label_speed), speed);
-        gtk_label_set_text (GTK_LABEL(pTi->label_time_left), time_left);
-      }
-    
-    // Show progress or 100% if not directory
-
-    if (!pTi->sourceIsDir || pTi->state == TR_COMPLETED)
-      gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR(pTi->progress_transfer), pTi->size > 0 ? (float) pTi->worked/pTi->size : 0.0);
-  }
-
-  //pthread_mutex_unlock(&sftp_panel.mutexQueue);
-  lockSFTPQueue (__func__, FALSE);
-}
-
-void
-view_transfer_window ()
-{
-  int i;
-  GtkWidget *grid;
-
-  grid = 0;
-
-  // Create the window
-  transferQueueWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    
-  gtk_window_set_modal (GTK_WINDOW (transferQueueWindow), TRUE);
-  gtk_window_set_transient_for (GTK_WINDOW (transferQueueWindow), GTK_WINDOW (main_window));
-  gtk_window_set_position (GTK_WINDOW (transferQueueWindow), GTK_WIN_POS_CENTER_ON_PARENT);
-  gtk_window_set_title (GTK_WINDOW (transferQueueWindow), _("Transfer queue"));
-
-  GdkScreen *screen;
-  screen = gtk_window_get_screen (GTK_WINDOW (main_window));
-  gtk_widget_set_size_request (GTK_WIDGET (transferQueueWindow), gdk_screen_get_height (screen)/1.5, gdk_screen_get_height (screen)/1.8);
-
-  g_signal_connect (transferQueueWindow, "delete_event", G_CALLBACK (transfer_window_delete_event_cb), NULL);
-  //gtk_widget_show_all (p_qlv->scrolled_window);
-
-  // Scrolled window
-  GtkWindow *scrolled_window = gtk_scrolled_window_new (NULL, NULL);
-  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-  gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolled_window), GTK_SHADOW_ETCHED_IN);
-  transferAdjustment = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (scrolled_window));
-  //g_signal_connect (transferAdjustment, "changed", G_CALLBACK (transfer_adj_changed_cb), NULL);
-
-  grid = transfer_window_init ();
-
-  if (grid)
-#if GTK_CHECK_VERSION(3, 8, 0)
-    // Since 3.8 will automatically add a GtkViewport if the child doesn’t implement GtkScrollable
-    gtk_container_add (GTK_CONTAINER (scrolled_window), grid);
-#else
-    gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (scrolled_window), grid);
-#endif
-
-  gtk_container_add (GTK_CONTAINER (transferQueueWindow), scrolled_window);
-  
-  gtk_window_set_position (GTK_WINDOW (transferQueueWindow), GTK_WIN_POS_CENTER_ON_PARENT);
-  gtk_widget_show_all (transferQueueWindow);
-
-  time_t current_time, last_update;
-
-  gdouble adjValue = gtk_adjustment_get_value (transferAdjustment);
-  gTransferWindow = TRUE;
-  gForceRefresh = TRUE;
-  gRefreshing = FALSE;
-  last_update = 0; 
-
-  while (gTransferWindow)
-    {
-      time (&current_time); 
-
-      if (gForceRefresh || difftime (current_time, last_update) > 1) {
-        GList *children, *iter;
-
-        gRefreshing = TRUE;
-\/*
-        children = gtk_container_get_children(GTK_CONTAINER(scrolled_window));
-
-        for (iter = children; iter != NULL; iter = g_list_next(iter))
-          gtk_widget_destroy(GTK_WIDGET(iter->data));
-
-        g_list_free(children);
-
-        grid = transfer_window_refresh ();
-
-        if (grid)
-          gtk_container_add (GTK_CONTAINER (scrolled_window), grid);
-*\/
-        transfer_window_refresh ();
-
-        time (&last_update);
-
-        if (gForceRefresh)
-          gForceRefresh = FALSE;
-
-        gRefreshing = FALSE;
-      }
-
-      //gtk_adjustment_set_value (transferAdjustment, adjValue);
-
-      while (gtk_events_pending ())
-        gtk_main_iteration ();
-
-      //adjValue = gtk_adjustment_get_value (transferAdjustment);
-      // Prevent from 100% cpu usage
-      g_usleep (3000);
-    }
-
-  //g_object_unref (G_OBJECT (builder));
-  gtk_widget_destroy (transferQueueWindow);
-  transferQueueWindow = NULL;
-
-  update_statusbar ();
-}
-*/
 void
 view_toolbar ()
 {
@@ -3423,15 +3000,6 @@ clipboard_cb (GtkClipboard *clipboard, const gchar *text, gpointer data)
       log_debug ("g_vte_selected_text = %s\n", g_vte_selected_text);
     }
 }
-/*
-char *
-_vte_terminal_get_selection(VteTerminal *terminal)
-{
-  g_return_val_if_fail(VTE_IS_TERMINAL(terminal), NULL);
-
-  return g_strdup (terminal->pvt->selection);
-}
-*/
 char *
 get_terminal_selection (VteTerminal *terminal)
 {
@@ -3856,43 +3424,6 @@ recent_manager_changed (GtkRecentManager *manager)
   log_debug ("Done\n");
 }
 
-#ifdef MAC_INTEGRATION
-/* first move all accelerators away from <control> to <command>, and then in a second run
-move the <alt> accelerators to <control> (alt doesn't work on osx) */
-static void
-osx_accel_map_foreach_controltometa_lcb (gpointer data, const gchar * accel_path, guint accel_key,
-                                         GdkModifierType accel_mods, gboolean changed)
-{
-  if (accel_mods & GDK_CONTROL_MASK)
-    {
-      accel_mods &= (accel_mods & GDK_MOD1_MASK) ? ~GDK_MOD1_MASK : ~GDK_CONTROL_MASK;
-      accel_mods |= GDK_META_MASK;
-      if (!gtk_accel_map_change_entry (accel_path, accel_key, accel_mods, FALSE))
-        {
-          printf ("controltometa, could not change accelerator %s\n", accel_path);
-        }
-    }
-}
-
-static void
-osx_accel_map_foreach_mod1tocontrol_lcb (gpointer data, const gchar * accel_path, guint accel_key,
-                                         GdkModifierType accel_mods, gboolean changed)
-{
-  //log_debug("accelerator=%s\n", accel_path);
-    
-  if (accel_mods & GDK_MOD1_MASK)
-    {
-      //log_debug("accelerator %s has mod1\n", accel_path);
-      accel_mods &= ~GDK_MOD1_MASK;
-      accel_mods |= GDK_CONTROL_MASK;
-      if (!gtk_accel_map_change_entry (accel_path, accel_key, accel_mods, FALSE))
-        {
-          printf ("mod1tocontrol, could not change accelerator %s\n", accel_path);
-        }
-    }
-}
-#endif
-
 void
 refresh_profile_menu ()
 {
@@ -4020,9 +3551,6 @@ get_main_menu ()
 
   //refresh_profile_menu ();
 
-
-  /* recent files menu http://git.gnome.org/browse/gedit/tree/gedit/gedit-window.c?id=361135ec3c7fa7f27cebfa18f899818c0d5268c5 */
-
   /* create action group for recent files */
   recents_action_group = gtk_action_group_new ("SessionRecent");
   gtk_action_group_set_translation_domain (recents_action_group, NULL);
@@ -4034,48 +3562,12 @@ get_main_menu ()
   gtk_action_group_set_translation_domain (profile_action_group, NULL);
   gtk_ui_manager_insert_action_group (ui_manager, profile_action_group, 0);
   g_object_unref (profile_action_group);
-
-#ifdef MAC_INTEGRATION
-  GtkWidget *menuitem;
-
-  //GtkOSXApplication *theApp = g_object_new (GTK_TYPE_OSX_APPLICATION, NULL);
-  GtkosxApplication *theApp = g_object_new (GTKOSX_TYPE_APPLICATION, NULL);
-  gtkosx_application_set_menu_bar (theApp, GTK_MENU_SHELL(menubar));
-
-  menuitem = gtk_ui_manager_get_widget (ui_manager, "/MainMenu/EditMenu/Preferences");
-  gtkosx_application_insert_app_menu_item (theApp, menuitem, 5);
-
-  menuitem = gtk_ui_manager_get_widget (ui_manager, "/MainMenu/HelpMenu/About");
-  gtkosx_application_insert_app_menu_item (theApp, menuitem, 5);
-  
-  menuitem = gtk_ui_manager_get_widget (ui_manager, "/MainMenu/ConnectionMenu/Quit");
-  gtk_widget_hide (menuitem);
-
-
-// jbuild build meta-gtk-osx-themes
-/*
-#ifdef GTK_TYPE_OSX_APPLICATION
-  log_debug(">>> type1\n");
-  GtkOSXApplication *OSXApp = g_object_new (GTK_TYPE_OSX_APPLICATION, NULL);
-  gtk_osxapplication_set_menu_bar (OSXApp, GTK_MENU_SHELL (menubar));
-#else
-  log_debug(">>> type2\n");
-  GtkosxApplication *OSXApp = g_object_new (GTKOSX_TYPE_APPLICATION, NULL);
-  gtkosx_application_set_menu_bar (OSXApp, GTK_MENU_SHELL (menubar));
-#endif
-*/
-
-#endif
 }
 
 void
 activate_search_entry (/*GtkObject *object, gpointer data*/)
 {
-  
-
   gtk_widget_grab_focus (search_entry);
-
-  
 }
 
 gboolean
@@ -4083,8 +3575,6 @@ completion_match_selected_cb (GtkEntryCompletion *widget, GtkTreeModel *model,
                               GtkTreeIter *iter, gpointer user_data)
 {
   char connection_string[256];
-
-  
 
   GValue value = {0, };
   gtk_tree_model_get_value(model, iter, 0, &value);
@@ -4094,8 +3584,6 @@ completion_match_selected_cb (GtkEntryCompletion *widget, GtkTreeModel *model,
   open_connection (connection_string);
 
   search_entry_focus_out_event_cb (search_entry, NULL, NULL);
-
-  
 
   return (TRUE);
 }
@@ -4159,11 +3647,7 @@ create_accelerators ()
   GClosure *closure;
   GdkModifierType mt;
   
-#ifdef MAC_INTEGRATION
-  mt = GDK_META_MASK;
-#else
   mt = GDK_CONTROL_MASK;
-#endif
 
   closure = g_cclosure_new (G_CALLBACK (activate_search_entry), NULL, NULL);
   gtk_accel_group_connect (gtk_accel, gdk_keyval_from_name ("k"), mt, GTK_ACCEL_VISIBLE, closure);
@@ -5387,15 +4871,6 @@ notebook_page_reordered_cb (GtkNotebook *notebook, GtkWidget *child, guint page_
 {
   log_write ("Page reordered: %d\n", page_num);
 }
-/*
-gboolean
-notebook_reorder_tab_cb (GtkNotebook *notebook, GtkDirectionType arg1, gboolean arg2, gpointer user_data)
-{
-  log_debug ("\n");
-  
-  return (FALSE);
-}
-*/
 void
 apply_preferences ()
 {
@@ -5465,15 +4940,6 @@ apply_profile_terminal (GtkWidget *terminal, struct Profile *p_profile)
 {
   GObject *object;
   
-/*
-  \* this is needed for opacity to have effect *\
-  GdkRGBA white={255, 255, 255, 1};
-  vte_terminal_set_color_background_rgba (VTE_TERMINAL (terminal), &white);
-
-  //vte_terminal_set_background_saturation (VTE_TERMINAL (terminal), 1.0 - p_profile->alpha);
-  vte_terminal_set_opacity (VTE_TERMINAL (terminal), (int) 65535 * p_profile->alpha);
-*/
-
   GdkRGBA fg, bg;
   gdk_rgba_parse (&fg, p_profile->fg_color);
   gdk_rgba_parse (&bg, p_profile->bg_color);
@@ -5512,8 +4978,6 @@ apply_profile_terminal (GtkWidget *terminal, struct Profile *p_profile)
   vte_terminal_set_visible_bell (VTE_TERMINAL (terminal), p_profile->bell_visible);
 #endif
   
-//  while (gtk_events_pending ())
-//    gtk_main_iteration ();
 }
   
 void
@@ -5580,20 +5044,6 @@ open_connection (char *connection)
     load_session_file (connection);
 }
 
-#ifdef MAC_INTEGRATION
-static gboolean osx_open_file_cb(GtkosxApplication *app, gchar *path, gpointer user_data) {
-  
-  //GFile *file;
-  //Tbfwin *bfwin = BFWIN(g_list_last(main_v->bfwinlist)->data);
-  //g_print("osx_open_file_cb, open %s\n",path);
-  //doc_new_from_input(bfwin,path,FALSE,FALSE,-1);
-  
-  
-  
-  return TRUE;
-}
-#endif
-
 void
 check_resize_cb (GtkPaned *widget)
 {
@@ -5652,22 +5102,6 @@ start_gtk (int argc, char **argv)
 
   g_screen = gtk_widget_get_screen (GTK_WIDGET (main_window));
   
-  /* check rgba capabilities */
-/*
-  \*This should be the preferred method but causes some strange problems moving notebook tabs *\
-  GdkScreen *screen = gtk_widget_get_screen (GTK_WIDGET (main_window));
-  GdkVisual *visual = gdk_screen_get_rgba_visual (screen);
-  
-  if (visual != NULL && gdk_screen_is_composited (screen))
-    {
-      gtk_widget_set_visual (GTK_WIDGET (main_window), visual);
-      log_write ("RGBA capabilities OK\n");
-    } 
-  else
-    {
-      log_write ("can't get visual, no rgba capabilities!\n");
-    }
-*/
   set_title (0);
 
   if (prefs.maximize)
@@ -5840,21 +5274,4 @@ start_gtk (int argc, char **argv)
     
   sftp_spinner_stop ();
   sftp_end ();
-
-        
-#ifdef MAC_INTEGRATION
-  log_debug("MAC-INTEGRATION\n");
-  
-  gtk_widget_hide (menubar);
-  
-  gtk_accel_map_foreach_unfiltered (NULL, osx_accel_map_foreach_controltometa_lcb);
-  gtk_accel_map_foreach_unfiltered (NULL, osx_accel_map_foreach_mod1tocontrol_lcb);
-
-  GtkosxApplication *theApp = g_object_new (GTKOSX_TYPE_APPLICATION, NULL);
-
-  g_signal_connect (theApp, "NSApplicationOpenFile", osx_open_file_cb, NULL);
-  g_signal_connect (theApp, "NSApplicationBlockTermination", application_quit, NULL);
-  
-  gtkosx_application_ready (theApp);
-#endif
 }

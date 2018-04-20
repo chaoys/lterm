@@ -162,201 +162,6 @@ is_xml_file (char *filename)
 
   return (is_xml);
 }
-/*
-int
-load_connections_from_file_v1 (char *filename, struct Connection_List *p_cl)
-{
-  FILE *fp;
-  char line[1024];
-  char name[64], host[128], protocol[64], port_tmp[16];
-  int port;
-  struct Connection conn;
-
-  log_debug ("\n");
-
-  fp = fopen (filename, "r");
-
-  if (fp == 0) 
-    return 1;
-
-  while (fgets (line, 1024, fp) != 0)
-    {
-      if (strchr (";\n\r ", line[0]))
-        continue;
-
-      cut_newline (line);
-
-      list_get_nth (line, 1, ':', conn.name);
-      list_get_nth (line, 2, ':', conn.host);
-      list_get_nth (line, 3, ':', conn.protocol);
-      list_get_nth (line, 4, ':', port_tmp);
-      list_get_nth (line, 5, ':', conn.emulation);
-
-      if (is_numeric (port_tmp))
-        conn.port = atoi (port_tmp);
-      else
-        conn.port = -1;
-
-      //cl_append (p_cl, &conn);
-      cl_insert_sorted (p_cl, &conn);
-    }
-
-  fclose (fp);
-
-  return 0;
-}
-*/
-
-/**
- * load_connections_from_file_version() - loads a liear-type file. used in sessions loading
- */
-/*
-int
-load_connections_from_file_version (char *filename, struct Connection_List *p_cl, int version)
-{
-  FILE *fp;
-  char line[1024], *pc;
-  struct Connection conn, *c;
-  char *p_enc;
-  char *p_enc_b64;
-  int len;
-
-  log_debug ("%s\n", filename);
-  
-  fp = fopen (filename, "r");
-
-  if (fp == 0) 
-    return 1;
-
-  // find list of connections, only names
-  
-  while (fgets (line, 1024, fp) != 0)
-    {
-      if (line[0] != '[')
-        continue;
-      
-      pc = (char *) strchr (line, ']');
-      
-      if (!pc)
-        continue;
-
-      memset (&conn, 0x00, sizeof (struct Connection));
-      
-      *pc = 0;
-
-      pc = &line[1];
-      
-      if (!strcmp (pc, "CFG"))
-        continue;
-
-      strcpy (conn.name, pc);
-      
-      //log_debug ("%s\n", conn.name);
-
-      cl_insert_sorted (p_cl, &conn);
-    }
-
-  fclose (fp);
-  
-  // load parameters for each connection
-  
-  c = p_cl->head;
-
-  while (c)
-    {
-      profile_load_string (filename, c->name, "host", c->host, "localhost");
-      profile_load_string (filename, c->name, "protocol", c->protocol, "telnet");
-      c->port = profile_load_int (filename, c->name, "port", 23);
-      //profile_load_string (filename, c->name, "emulation", c->emulation, "xterm");
-      profile_load_string (filename, c->name, "last_user", c->last_user, "");
-      
-      c->flags = profile_load_int (filename, c->name, "flags", 0);
-
-      //c->auth = profile_load_int (filename, c->name, "auth", 0);
-      c->auth_mode = profile_load_int (filename, c->name, "auth_mode", 0);
-      profile_load_string (filename, c->name, "auth_user", c->auth_user, "");
-      profile_load_string (filename, c->name, "auth_password", c->auth_password_encrypted, "");
-      
-      // In 2 then "user" and "password" are used as "auth_user" and "auth_password"
-      
-      if (version == 2)
-        {
-          profile_load_string (filename, c->name, "user", c->auth_user, "");
-          profile_load_string (filename, c->name, "password", c->auth_password_encrypted, "");
-        }
-
-      profile_load_string (filename, c->name, "user", c->user, "");
-      profile_load_string (filename, c->name, "password", c->password_encrypted, "");
-
-      //log_debug ("host=%s user=%s last_user=%s\n", c->host, c->user, c->last_user);
-
-      if (strlen (c->password_encrypted) > 2)
-        {
-          // decrypt password
-          strcpy (c->password, des_decrypt_b64 (c->password_encrypted));
-        }
-      else
-        {
-          strcpy (c->password, "");
-          strcpy (c->password_encrypted, "");
-        }
-
-      if (strlen (c->auth_password_encrypted) > 2)
-        {
-          // decrypt password
-          strcpy (c->auth_password, (char *) des_decrypt_b64 (c->auth_password_encrypted));
-        }
-      else
-        {
-          strcpy (c->auth_password, "");
-          strcpy (c->auth_password_encrypted, "");
-        }
-
-      profile_load_string (filename, c->name, "user_options", c->user_options, "");
-      profile_load_string (filename, c->name, "directory", c->directory, "");
-
-      c->x11Forwarding = profile_load_int (filename, c->name, "x11Forwarding", 0);
-      log_debug ("reading identityFile\n");
-      profile_load_string (filename, c->name, "identityFile", c->identityFile, "");
-
-      // change name to original
-
-      pc = (char *) strrchr (c->name, '~');
-
-      if (pc)
-        *pc = 0;
-      
-      c = c->next;
-    }  
-
-  log_debug ("end\n");
-
-  return 0;
-}
-
-
-int
-load_connections_from_file (char *filename, struct Connection_List *p_cl)
-{
-  int ret, version;
-
-  version = detect_serverlist_file_version ();
-
-  switch (version) 
-    {
-    case 1:
-      //ret = load_connections_from_file_v1 (filename, p_cl);
-      break;
-    default:
-      //ret = load_connections_from_file_v2 (filename, p_cl);
-      ret = load_connections_from_file_version (filename, p_cl, version);
-      break;
-    }
-
-  return (ret);
-}
-*/
-
 int
 conn_update_last_user (char *cname, char *last_user)
 {
@@ -378,73 +183,6 @@ conn_update_last_user (char *cname, char *last_user)
 
   return 0;
 }
-
-/**
- * save_connections_to_file() - saves a linear-type file. used in sessions saving
- */
-/*
-int
-save_connections_to_file (char *filename, struct Connection_List *p_cl, int flags)
-{
-  struct Connection *c;
-  FILE *fp;
-
-  log_debug ("\n");
-
-  fp = fopen (filename, "w");
-
-  if (fp == 0) 
-    return 1;
-  
-  // fprintf (fp, ";mtsl-2\n\n"); // Version 2 header 
-
-  fprintf (fp, "[CFG]\n");
-  fprintf (fp, "version = %d\n\n", CFG_VERSION);
-  
-  c = p_cl->head;
-
-  while (c)
-    {
-      fprintf (fp, "[%s]\n", c->name);
-      fprintf (fp, "host = %s\n", c->host);
-      fprintf (fp, "protocol = %s\n", c->protocol);
-      fprintf (fp, "port = %d\n", c->port);
-      //fprintf (fp, "emulation = %s\n", c->emulation);
-      
-      if (c->last_user[0])
-        fprintf (fp, "last_user = %s\n", c->last_user);
-      
-      if (flags & CONN_SAVE_USERPASS)
-        {
-          fprintf (fp, "user = %s\n", c->user);
-          fprintf (fp, "password = %s\n", c->password_encrypted);
-        }
-      
-      //fprintf (fp, "auth = %d\n", c->auth);
-      fprintf (fp, "auth_mode = %d\n", c->auth_mode);
-      fprintf (fp, "auth_user = %s\n", c->auth_user);
-      fprintf (fp, "identityFile = %s\n", c->identityFile);
-
-      //fprintf (fp, "password = %s\n", c->password); // clear password
-      //fprintf (fp, "password = %s\n", c->password_encrypted, strlen (c->password_encrypted));
-      //fprintf (fp, "password = %s\n", g_base64_encode (c->password_encrypted, strlen (c->password_encrypted)));
-      fprintf (fp, "auth_password = %s\n", c->auth_password_encrypted);
-
-      fprintf (fp, "user_options = %s\n", c->user_options);
-      fprintf (fp, "directory = %s\n", c->directory);
-      fprintf (fp, "flags = %d\n", c->flags);
-      fprintf (fp, "x11Forwarding = %d\n", c->x11Forwarding);
-      
-      fprintf (fp, "\n"); 
-      
-      c = c->next;
-    }
-
-  fclose (fp);
-  
-  return (0);
-}
-*/
 
 void
 write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
@@ -590,47 +328,6 @@ save_connections_to_file_xml (char *filename)
 
   return (0);
 }
-/*
-int
-save_connections_to_file_xml_from_list (struct Connection_List *pList, char *filename)
-{
-  int i;
-  FILE *fp;
-  struct Connection *c;
-
-  log_debug ("%s\n", filename);
-
-  fp = fopen (filename, "w");
-
-  if (fp == 0) 
-    return 1;
-
-  fprintf (fp, 
-           "<?xml version = '1.0'?>\n"
-           "<!DOCTYPE connectionset>\n"
-           "<connectionset version=\"%d\">\n", 
-           CFG_XML_VERSION);
-  
-  //append_node_to_file_xml (fp, &g_groups.root, 2);
-  c = pList->head;
-
-  while (c)
-    {
-      log_debug ("Writing %s\n", c->name);
-      write_connection_node (fp, c, 2);
-      c = c->next;
-    }
-  
-  fprintf (fp, "</connectionset>\n"); 
-
-  fclose (fp);
-
-  
-
-  return (0);
-}
-*/
-
 int
 save_connections_to_file_xml_from_glist (GList *pList, char *filename)
 {
@@ -1087,31 +784,6 @@ load_connections ()
   /* try connections.xml file first */
   
   rc = load_connections_from_file_xml (globals.connections_xml);
-/*
-  // if connections.xml has not been found try loading old file format
-  
-  if (rc != 0)
-    {
-      rc = load_connections_from_file (globals.serverlist, &conn_list);
-
-      // add connections to tree, will be all children of root node
-      
-      p_conn = conn_list.head;
-      
-      while (p_conn)
-        {
-          group_node_add_child (&g_groups.root, GN_TYPE_CONNECTION, p_conn->name);
-
-          p_conn = p_conn->next;
-        }
-    }
-*/
-#ifdef DEBUG
-  //group_tree_dump (&g_groups);
-#endif
-
-  
-
   return (rc);
 }
 
@@ -1168,13 +840,6 @@ change_protocol_cb (GtkWidget *entry, gpointer user_data)
   if (p_prot)
     {
       gtk_spin_button_set_value (GTK_SPIN_BUTTON (port_spin_button), p_prot->port);
-/*
-      GtkStateFlags flags = p_prot->type == PROT_TYPE_SSH ? GTK_STATE_FLAG_NORMAL : GTK_STATE_FLAG_INSENSITIVE;
-
-      gtk_widget_set_state_flags (check_x11, flags, FALSE);
-      gtk_widget_set_state_flags (check_disable_key_checking, flags, FALSE);
-      gtk_widget_set_state_flags (authWidgets.radio_auth_key, flags, FALSE);
-*/
       gboolean sensitive = p_prot->type == PROT_TYPE_SSH;
 
       gtk_widget_set_sensitive (check_x11, sensitive);
@@ -1233,11 +898,6 @@ copy_button_clicked_cb (GtkButton *button, gpointer user_data)
 #ifdef DEBUG
       printf ("copy_button_clicked_cb() : copy %s (%s)\n", conn.host, conn.name);
 #endif
-      /*
-      clipboard = gtk_clipboard_get (GDK_SELECTION_PRIMARY);                                                            
-      gtk_clipboard_clear(clipboard);                                                                                  
-      gtk_clipboard_set_text(clipboard, conn.host, strlen (conn.host));                                                                        
-      */
       clipboard = gtk_clipboard_get (GDK_SELECTION_CLIPBOARD);                                                          
       gtk_clipboard_clear(clipboard);                                                                                
       gtk_clipboard_set_text(clipboard, conn.host, strlen (conn.host));
@@ -1611,27 +1271,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
     {
       gtk_spin_button_set_value (GTK_SPIN_BUTTON (port_spin_button), p_conn->port);
     }
-/*
-  GtkWidget *emulation_combo = GTK_WIDGET (gtk_builder_get_object (builder, "combo_emulation"));
-
-  for (i=1; i<=list_count (prefs.emulation_list, ':'); i++)
-    {
-      emu_tmp = (char *) malloc (64);
-
-      list_get_nth (prefs.emulation_list, i, ':', emu_tmp);
-      gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT(emulation_combo), emu_tmp);
-
-      if (p_conn)
-        {
-          if (!strcmp (p_conn->emulation, emu_tmp))
-            {
-              gtk_combo_box_set_active (GTK_COMBO_BOX (emulation_combo), i-1);
-            }
-        }
-      else
-        gtk_combo_box_set_active (GTK_COMBO_BOX (emulation_combo), 0);
-    }
-*/
   /* warnings */
   
   char warnings[1024];
@@ -1707,33 +1346,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(authWidgets.radio_auth_key), authMode == CONN_AUTH_MODE_KEY);
   radio_auth_key_cb (GTK_TOGGLE_BUTTON(authWidgets.radio_auth_key), NULL); // Force signal
-
-  //if (p_conn)
-  //  {
-/*
-      switch (authMode) {
-        case CONN_AUTH_MODE_SAVE:
-          gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(authWidgets.radio_auth_save), TRUE);
-          radio_auth_key_cb (GTK_TOGGLE_BUTTON(authWidgets.radio_auth_key), NULL); // Force update for the other
-          break;
-        case CONN_AUTH_MODE_KEY:
-          gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(authWidgets.radio_auth_key), TRUE);
-          radio_auth_save_cb (GTK_TOGGLE_BUTTON(authWidgets.radio_auth_save), NULL); // Force update for the other
-          break;
-        default:
-          gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(authWidgets.radio_auth_prompt), TRUE);
-          radio_auth_key_cb (GTK_TOGGLE_BUTTON(authWidgets.radio_auth_key), NULL); // Force update for the other
-          radio_auth_save_cb (GTK_TOGGLE_BUTTON(authWidgets.radio_auth_save), NULL); // Force update for the other
-          break;    
-        }
-*/
-  /*  }
-  else
-    {
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(authWidgets.radio_auth_prompt), TRUE);
-      radio_auth_key_cb (GTK_TOGGLE_BUTTON(authWidgets.radio_auth_key), NULL); // Force update for the other
-      radio_auth_save_cb (GTK_TOGGLE_BUTTON(authWidgets.radio_auth_save), NULL); // Force update for the other
-    }*/
 
   g_signal_connect (authWidgets.radio_auth_save, "toggled", G_CALLBACK (radio_auth_save_cb), NULL);
   g_signal_connect (authWidgets.radio_auth_key, "toggled", G_CALLBACK (radio_auth_key_cb), NULL);
@@ -2204,40 +1816,6 @@ conn_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
   return FALSE;
 }
 
-/*
-gboolean 
-treeview_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
-{ 
-  GtkTreePath *path;
-  GtkTreeIter iter;
-#ifdef DEBUG
-  gchar *name;
-#endif
-
-#ifdef DEBUG
-      printf ("treeview_key_press_cb()\n");
-#endif
-
-  if (event->keyval != GDK_Return && event->keyval != GDK_KP_Enter)
-    {
-#ifdef DEBUG
-      printf ("treeview_key_press_cb() : not enter/return\n");
-#endif
-      gtk_tree_selection_get_selected (GTK_TREE_SELECTION (user_data), NULL, &iter);
-#ifdef DEBUG
-      gtk_tree_model_get (GTK_TREE_MODEL (model), &iter, NAME_COLUMN, &name, -1);
-      printf ("treeview_key_press_cb() : selected %s\n", name);
-#endif
-      path = gtk_tree_model_get_path (GTK_TREE_MODEL (model), &iter);
-      //gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (tree_view), path, NULL, TRUE, 0, 0);
-      gtk_tree_view_scroll_to_point (GTK_TREE_VIEW (tree_view), 0, 11);
-      gtk_tree_path_free (path);
-    }
-
-  return FALSE;
-}
-*/
-
 void
 cursor_changed_cb (GtkTreeView *tree_view, gpointer user_data)
 {
@@ -2397,12 +1975,6 @@ connection_name_cell_data_func (GtkTreeViewColumn *col, GtkCellRenderer *rendere
   if (p_conn)
     {
       //log_debug("%s is a connection\n", name);
-/*
-      if (p_conn->warnings != CONN_WARNING_NONE)
-        g_object_set (renderer, "foreground", prefs.warnings_color, "foreground-set", TRUE, NULL);
-      else
-        g_object_set (renderer, "foreground", "Black", "foreground-set", TRUE, NULL);
-*/
       if (p_conn->warnings != CONN_WARNING_NONE)
         {
           if ((p_conn->warnings & CONN_WARNING_PROTOCOL_NOT_FOUND) || (p_conn->warnings & CONN_WARNING_PROTOCOL_COMMAND_NOT_FOUND))
@@ -2529,25 +2101,6 @@ on_drag_data_inserted (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter 
   
 }
 
-/* called when dropping in dialog, doesn't use functions in gtk main loop */
-/*
-void
-on_drag_data_deleted_dialog (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data)
-{
-  struct GtkTreeView *tree_view = (struct GtkTreeView *) user_data;
-
-  if (g_rebuilding_tree_store) return;
-
-  
-
-  g_signal_emit_by_name (tree_view, "lterm-refresh-dialog-tree-view");
-  
-  rows_signals_enabled = 1;
-  
-  
-}
-*/
-
 void
 on_drag_data_deleted (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data)
 {
@@ -2571,33 +2124,6 @@ on_drag_data_deleted (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user
   
   
 }
-
-/*
-void
-on_drag_data_changed (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data)
-{
-  if (!rows_signals_enabled) return;
-
-  GValue value={0,};
-  char *cptr, *spath;
-
-  
-  
-  if (g_selected_node == NULL)
-    return;
-  
-  log_debug ("moved %s\n", g_selected_node->name);
-
-  gtk_tree_model_get_value (tree_model, iter, NAME_COLUMN, &value);
-  cptr = (char*) g_value_get_string(&value);
-  
-  spath = gtk_tree_path_to_string(path);
-  
-  log_debug("cell=%s, path=%s\n", cptr, spath);
-  
-  g_value_unset (&value);
-}
-*/
 
 static GtkTargetEntry row_targets[] = {
   { "GTK_TREE_MODEL_ROW", GTK_TARGET_SAME_APP, 0}
@@ -2939,21 +2465,6 @@ new_folder_button_clicked_cb (GtkButton *button, gpointer user_data)
       move_cursor_to_node (tree_view, p_node);
     }
 }
-
-/*
-void
-refresh_dialog_tree_view_cb (gpointer user_data)
-{
-  struct GtkTreeView *tree_view = (struct GtkTreeView *) user_data;
-
-  
-
-  rebuild_tree_store ();
-  refresh_connection_tree_view (GTK_TREE_VIEW (tree_view));
-
-  
-}
-*/
 
 gint
 dialog_delete_event_cb (GtkWidget *window, GdkEventAny *e, gpointer data)

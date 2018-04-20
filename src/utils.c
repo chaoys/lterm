@@ -988,10 +988,6 @@ get_system (char *sys_name)
 #ifdef __linux__
   strcpy (sys_name, "Linux");
 #endif
-  
-#if defined WIN32
-  strcpy (sys_name, "Windows");
-#endif
 }
 
 char *

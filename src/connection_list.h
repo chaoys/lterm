@@ -7,18 +7,6 @@
 #define LOCAL_SHELL_TAG "local-shell"
 
 #define MAX_BOOKMARKS 10
-/*
-struct Bookmark {
-  char item[1024];
-  struct Bookmark *next;
-  struct Bookmark *prev;
-};
-
-struct Bookmarks {
-  struct Bookmark *head;
-  struct Bookmark *tail;
-};
-*/
 #define CONN_FLAG_MASK 255
 #define CONN_FLAG_NONE 0
 #define CONN_FLAG_IGNORE_WARNINGS 1
@@ -98,12 +86,6 @@ struct Connection *cl_host_search (struct Connection_List *p_cl, char *host, cha
 struct Connection *cl_get_by_index (struct Connection_List *p_cl, int index);
 struct Connection *cl_get_by_name (struct Connection_List *p_cl, char *name);
 
-/*
-//void init_bookmarks (struct Bookmarks *bookmarks);
-int count_bookmarks (struct Bookmarks *bookmarks);
-struct Bookmark* search_bookmark (struct Bookmarks *bookmarks, char *item);
-void add_bookmark (struct Bookmarks *bookmarks, char *item);
-*/
 int count_directories (SConnection *pConn);
 int search_directory (SConnection *pConn, gchar *item);
 void add_directory (SConnection *pConn, char *item);

@@ -341,42 +341,6 @@ cl_dump (struct Connection_List *p_cl)
 void
 connection_copy (struct Connection *p_dst, struct Connection *p_src)
 {
-/*
-  strcpy (p_dst->name, p_src->name);
-  strcpy (p_dst->host, p_src->host);
-  strcpy (p_dst->protocol, p_src->protocol);
-  p_dst->port = p_src->port;
-  //strcpy (p_dst->emulation, p_src->emulation);
-  strcpy (p_dst->last_user, p_src->last_user);
-  
-  //p_dst->auth = p_src->auth;  
-  p_dst->auth_mode = p_src->auth_mode;  
-  strcpy (p_dst->auth_user, p_src->auth_user);
-  strcpy (p_dst->auth_password, p_src->auth_password);
-  strcpy (p_dst->auth_password_encrypted, p_src->auth_password_encrypted);
-
-  strcpy (p_dst->user, p_src->user);
-  strcpy (p_dst->password, p_src->password);
-  strcpy (p_dst->password_encrypted, p_src->password_encrypted);
-
-  strcpy (p_dst->user_options, p_src->user_options);
-  strcpy (p_dst->directory, p_src->directory);
-  strcpy (p_dst->note, p_src->note);
-  strcpy (p_dst->sftp_dir, p_src->sftp_dir);
-  p_dst->flags = p_src->flags;  
-
-  p_dst->warnings = p_src->warnings;
-
-  p_dst->history.head = p_src->history.head;
-  p_dst->history.tail = p_src->history.tail;
-
-  strcpy (p_dst->upload_dir, p_src->upload_dir);
-  strcpy (p_dst->download_dir, p_src->download_dir);
-
-  p_dst->x11Forwarding = p_src->x11Forwarding;
-  p_dst->disableStrictKeyChecking = p_src->disableStrictKeyChecking;
-  strcpy (p_dst->identityFile, p_src->identityFile);
-*/
   memcpy(p_dst, p_src, sizeof(struct Connection));
 }
 
@@ -509,63 +473,12 @@ connection_fill_from_string (struct Connection *p_conn, char *connection_string)
   else
     return 2;
 }
-/*
-void init_bookmarks (struct Bookmarks *bookmarks)
-{
-  bookmarks->head = 0;
-  bookmarks->tail = 0;
-}
-*/
-/**
- * count_bookmarks()
- */
-/*
-int
-count_bookmarks (struct Bookmarks *bookmarks)
-{
-  struct Bookmark *b;
-  int n;
-
-  b = bookmarks->head;
-  n = 0;
-
-  while (b)
-    {
-      n ++;
-      b = b->next;
-    }
-
-  return (n);
-}
-*/
 int
 count_directories (SConnection *pConn)
 {
   return (pConn->directories ? pConn->directories->len : 0);
 }
 
-/**
- * search_bookmarks() - searches for a bookmark
- */
-/*
-struct Bookmark*
-search_bookmark (struct Bookmarks *bookmarks, char *item)
-{
-  struct Bookmark *b;
-
-  b = bookmarks->head;
-
-  while (b)
-    {
-      if (!strcmp (b->item, item))
-        return (b);
-        
-      b = b->next;
-    }
-
-  return (NULL);
-}
-*/
 int
 search_directory (SConnection *pConn, gchar *item)
 {
@@ -590,70 +503,6 @@ search_directory (SConnection *pConn, gchar *item)
   return -1;
 } 
 
-/**
- * add_bookmark() - adds a bookmark to a connection
- */
-/*
-void
-add_bookmark (struct Bookmarks *bookmarks, char *item)
-{
-  struct Bookmark *p_new_bookmark, *p_del;
-
-  // If bookmark is present move it at the end of the list
-  
-  if (p_new_bookmark = search_bookmark (bookmarks, item))
-    {
-      if (p_new_bookmark == bookmarks->tail)
-        return;
-      
-      if (p_new_bookmark == bookmarks->head)
-        {
-        //printf ("HEAD: %s\n", p_new_bookmark->item);
-          p_new_bookmark->next->prev = NULL;
-          bookmarks->head = p_new_bookmark->next;
-        }
-      else
-        {
-          p_new_bookmark->prev->next = p_new_bookmark->next;
-          p_new_bookmark->next->prev = p_new_bookmark->prev;
-        }
-      
-      p_new_bookmark->prev = bookmarks->tail;
-      p_new_bookmark->next = NULL;
-      bookmarks->tail->next = p_new_bookmark;
-      bookmarks->tail = p_new_bookmark;
-      
-      return;
-    }
-    
-  p_new_bookmark = (struct Bookmark *) malloc (sizeof (struct Bookmark));
-
-  memset (p_new_bookmark, 0, sizeof (struct Bookmark));
-  strcpy (p_new_bookmark->item, item);
-  p_new_bookmark->next = 0;
-
-  if (bookmarks->head == 0)
-    {
-      bookmarks->head = p_new_bookmark;
-      bookmarks->tail = p_new_bookmark;
-    }
-  else
-    {
-      bookmarks->tail->next = p_new_bookmark;
-      p_new_bookmark->prev = bookmarks->tail;
-      bookmarks->tail = p_new_bookmark;
-      
-      if (count_bookmarks (bookmarks) > MAX_BOOKMARKS)
-        {
-          p_del = bookmarks->head;
-          bookmarks->head = bookmarks->head->next;
-          free (p_del);
-        }
-    }
-    
-  //log_debug ("added %s (prev: %s)\n", p_new_bookmark->item, p_new_bookmark->prev != NULL ? p_new_bookmark->prev->item : "none");
-}
-*/
 void
 add_directory (SConnection *pConn, char *item)
 {

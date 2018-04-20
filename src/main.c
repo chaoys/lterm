@@ -137,7 +137,6 @@ log_write (const char *fmt,...)
   fclose (log_fp);
 }
 
-#ifndef WIN32
 static void
 sigterm_handler (int signalnum, siginfo_t *si, void *data)
 {
@@ -156,9 +155,6 @@ static void handle_signals (void)
   sigaction (SIGTERM, &sa, NULL);
   //sigaction (SIGINT,  &sa, 0);
 }
-#endif
-
-//int gtkRefreshing = 0;
 
 gboolean
 doGTKMainIteration ()
@@ -177,13 +173,6 @@ void
 addIdleGTKMainIteration ()
 {
   gdk_threads_add_idle (doGTKMainIteration, NULL);
-  //g_usleep (5000);
-/*
-gdk_threads_add_idle_full (G_PRIORITY_HIGH_IDLE,
-                           doGTKMainIteration,
-                           NULL,
-                           NULL);
-*/
 }
 
 void
@@ -193,9 +182,6 @@ lterm_iteration ()
   struct ConnectionTab *lterminal;
 
   //log_debug ("Start\n");
-
-  //while (gtk_events_pending ())
-  //  gtk_main_iteration ();
 
   doGTKMainIteration ();
 
@@ -219,35 +205,13 @@ lterm_iteration ()
         case ITERATION_CLOSE_TAB:
           connection_tab_close ((SConnectionTab *) ifr_function.user_data);
           break;
-/*
-        case ITERATION_REFRESH_QUICK_LAUCH_TREE_VIEW:
-          refresh_connection_tree_view (GTK_TREE_VIEW (g_quick_launch_window.tree_view));
-          break;
-
-        case ITERATION_SSH_KEEPALIVE:
-          ssh_list_keepalive (&globals.ssh_list);
-          break;
-*/
 
         default:
           break;
 
       } /* switch */
     }
-/*
-  if (lterminal = get_current_connection_tab ())
-    {
-      if (lterminal->ssh_info.ssh_node)
-        {
-          if (lterminal->ssh_info.ssh_node->valid && difftime (time (NULL), lterminal->ssh_info.ssh_node->last) > 60)
-            {
-              ssh_node_keepalive (lterminal->ssh_info.ssh_node);
-              ssh_node_update_time (lterminal->ssh_info.ssh_node);
-            }
-        }
-    }
-*/
-   
+  
   /* prevent from 100% cpu usage */
   g_usleep (1000);
 
@@ -327,40 +291,6 @@ main (int argc, char *argv[])
   int opt;
   int i;
 
-//printf ("%s\n", shortenString ("1234567890ABCDEFGHILMNOPQRSTUVZ", 25));
-//return 0;
-
-/*
-char **a = NULL;
-char s[2048];
-strcpy (s, "ssh -l user   -i \"identity file\"  bye");
-a = splitString (s, " ", FALSE, "\"", TRUE, &n);
-\*
-strcpy (s, "fabio@fabio-HP:/dati/Source/lterm$ ls\n"
-  "acconfig.h           config.guess      connections.xml     install-sh          missing             risultato.txt\n"
-  "aclocal.m4           config.h.in       COPYING             l368154_lterm.sql   myterm.conf         sqlnet.log\n"
-  "AUTHORS              config.log        data                l368154_lterm.sql~  NEWS                src\n"
-  "autom4te.cache       config.status     debian-package.txt  libtool             NEWS~               stamp-h1\n"
-  "autoscan.log         config.sub        depcomp             longstring.txt      nohup.out           TODO\n"
-  "auto_xyz_howto.txt   configure         en                  longstring.txt~     notes.txt\n"
-  "auto_xyz_howto.txt~  configure.ac      err                 lterm.conf          notes.txt~\n"
-  "ChangeLog            configure.ac~     errori.txt          Makefile            prova.xml\n"
-  "ChangeLog~           configure.in~     img                 Makefile.am         README\n"
-  "compile              configure.lineno  INSTALL             Makefile.in         recent_connections\n"
-  "fabio@fabio-HP:/dati/Source/lterm$ \n"
-  "fabio@fabio-HP:/dati/Source/lterm$ \n");
-
-a = splitString (s, "\n", FALSE, NULL, FALSE, &n);
-*\
-printf ("n = %d\n", n);
-for (i = 0; i < n; i++)
-  printf ("a[%d] = %s\n", i, a[i]);
-free (a);
-return (0);
-*/
-
-
- 
   setlocale (LC_ALL, "");
   textdomain (PACKAGE);
   bindtextdomain (PACKAGE, LOCALEDIR);
@@ -405,15 +335,6 @@ return (0);
           exit (1);
         }
     }
-/*    
-  i = optind;
-
-  if (i < argc)
-    {
-      strcpy (globals.start_session_file, argv[i]);
-    }
-*/
-
   for (i=optind; i<argc; i++)
     {
       if (i > optind)
@@ -443,7 +364,6 @@ return (0);
   sprintf (globals.log_file, "%s/lterm.log", globals.app_dir);
   sprintf (globals.profiles_file, "%s/profiles.xml", globals.app_dir);
   sprintf (globals.protocols_file, "%s/protocols.xml", globals.app_dir);
-  //sprintf (globals.recent_connections_file, "%s/recent_connections", globals.app_dir);
   sprintf (globals.recent_connections_file, "%s/recents.xml", globals.app_dir);
   sprintf (globals.recent_sessions_file, "%s/recent_sessions", globals.app_dir);
   sprintf (globals.conf_file, "%s/%s.conf", globals.app_dir, PACKAGE_NAME);
@@ -472,7 +392,6 @@ return (0);
 
   log_write ("Loading protocols...\n");
   pl_init (&g_prot_list);
-  //n = load_protocols_from_file (globals.conf_file, &g_prot_list);
   n = load_protocols_from_file_xml (globals.protocols_file, &g_prot_list);
   log_write ("Loaded protocols: %d\n", n);
 
@@ -524,25 +443,6 @@ return (0);
   log_write ("Initializing SFTP\n");
   ssh_init ();
 
-#ifdef __linux__DONT_USE
-  log_write ("Initializing INotify\n");
-
-  globals.inotifyFd = inotify_init();
-
-  if (globals.inotifyFd == -1) {
-    log_write("Can't init inotify\n");
-  }
-#else
-    /*
-    // Not currently used for kevent returns error 35 Resource temporarily unavailable
-    // So check file modification time
-    log_write ("Initializing FSEvents\n");
-
-    globals.inotifyFd = kqueue ();
-    log_write ("globals.inotifyFd = %d\n", globals.inotifyFd);
-    */
-#endif
-
   /* command line connections */
 
   char s_tmp[256];
@@ -573,10 +473,6 @@ return (0);
 
   /* start main loop */
     
-#ifndef WIN32
-  //handle_signals ();
-#endif
-
   globals.running = 1;
 
   // Init asyncronous section
@@ -716,7 +612,6 @@ load_settings ()
   
   prefs.tab_alerts = profile_load_int (globals.conf_file, "GUI", "tab_alerts", 1);
   profile_load_string (globals.conf_file, "GUI", "tab_status_changed_color", prefs.tab_status_changed_color, "blue");
-  //profile_load_string (globals.conf_file, "GUI", "tab_status_connecting_color", prefs.tab_status_connecting_color, "#707000");
   profile_load_string (globals.conf_file, "GUI", "tab_status_disconnected_color", prefs.tab_status_disconnected_color, "#707070");
   profile_load_string (globals.conf_file, "GUI", "tab_status_disconnected_alert_color", prefs.tab_status_disconnected_alert_color, "darkred");
   prefs.show_sidebar = profile_load_int (globals.conf_file, "GUI", "show_sidebar", 1);
@@ -745,8 +640,6 @@ load_settings ()
   prefs.ssh_keepalive = profile_load_int (globals.conf_file, "SFTP", "ssh_keepalive", 10);
   prefs.ssh_timeout = profile_load_int (globals.conf_file, "SFTP", "ssh_timeout", 3);
   profile_load_string (globals.conf_file, "SFTP", "sftp_panel_background", prefs.sftp_panel_background, "white");
-  //profile_load_string (globals.conf_file, "SFTP", "last_upload_dir", prefs.last_upload_dir, "");
-  //profile_load_string (globals.conf_file, "SFTP", "last_download_dir", prefs.last_download_dir, "");
 }
 
 void
@@ -758,7 +651,6 @@ save_settings ()
 
   profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "package_version", VERSION);
 
-  //profile_modify_string (globals.conf_file, "general", "emulation_list", prefs.emulation_list);
   profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "tabs_position", prefs.tabs_position);
   profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "search_by", prefs.search_by);
   profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "check_connections", prefs.check_connections);
@@ -799,8 +691,6 @@ save_settings ()
   profile_modify_string (PROFILE_SAVE, globals.conf_file, "SFTP", "sftp_open_file_uri", prefs.sftp_open_file_uri);
   profile_modify_int (PROFILE_SAVE, globals.conf_file, "SFTP", "ssh_timeout", prefs.ssh_timeout);
   profile_modify_string (PROFILE_SAVE, globals.conf_file, "SFTP", "sftp_panel_background", prefs.sftp_panel_background);
-  //profile_modify_string (PROFILE_SAVE, globals.conf_file, "SFTP", "last_upload_dir", prefs.last_upload_dir);
-  //profile_modify_string (PROFILE_SAVE, globals.conf_file, "SFTP", "last_download_dir", prefs.last_download_dir);
 }
 
 void 
