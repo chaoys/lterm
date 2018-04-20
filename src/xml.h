@@ -6,35 +6,33 @@
 
 typedef struct _XMLNode XMLNode;
 
-struct _XMLNode 
-  {
-	  gchar *name;
-	  gchar *value;
-	  gboolean raw_mode;
+struct _XMLNode {
+	gchar *name;
+	gchar *value;
+	gboolean raw_mode;
 
-    XMLNode *next;
-    XMLNode *prev;
-    XMLNode *parent;
-    XMLNode *children;
+	XMLNode *next;
+	XMLNode *prev;
+	XMLNode *parent;
+	XMLNode *children;
 
-    GSList *attributes;
-    gint ref_count;
-  };
+	GSList *attributes;
+	gint ref_count;
+};
 
 typedef struct _XML XML;
 
-struct _XML 
-  {
-	  gpointer user_data;
-	  //GDestroyNotify notify;
-	
-	  XMLNode *cur_root;
-	  XMLNode *cur_node;
-		
-	  //GMarkupParser *m_parser;
-	  GMarkupParseContext *context;
-    GError error;
-  };
+struct _XML {
+	gpointer user_data;
+	//GDestroyNotify notify;
+
+	XMLNode *cur_root;
+	XMLNode *cur_node;
+
+	//GMarkupParser *m_parser;
+	GMarkupParseContext *context;
+	GError error;
+};
 
 const gchar *xml_node_get_value (XMLNode *node);
 void xml_node_set_value (XMLNode *node, const gchar *value);

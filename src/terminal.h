@@ -10,9 +10,9 @@ void session_load ();
 void session_save ();
 char *get_remote_directory_from_vte_title (GtkWidget *vte);
 char *get_remote_directory ();
-int check_log_in_parameter (int auth, char *auth_param, char *param, char *default_param, 
-                        int attempt, unsigned int prot_flags, int required_flags, 
-                        char *label, int query_type, char *log_on_data);
+int check_log_in_parameter (int auth, char *auth_param, char *param, char *default_param,
+                            int attempt, unsigned int prot_flags, int required_flags,
+                            char *label, int query_type, char *log_on_data);
 int asked_for_user (struct ConnectionTab *p_ct, char *log_on_data);
 int asked_for_password (struct ConnectionTab *p_ct, char *log_on_data);
 int check_log_in_state (struct ConnectionTab *p_ct, char *line);

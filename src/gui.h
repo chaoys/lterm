@@ -31,46 +31,44 @@ enum { TAB_CONN_STATUS_DISCONNECTED = 0, TAB_CONN_STATUS_CONNECTING, TAB_CONN_ST
 
 //#define GET_UI_ELEMENT(TYPE, ELEMENT) TYPE *ELEMENT = (TYPE *) gtk_builder_get_object (builder, #ELEMENT);
 
-typedef struct ConnectionTab
-  {
-    struct Connection connection;
-    struct Connection last_connection;
-    struct SSH_Info ssh_info;
+typedef struct ConnectionTab {
+	struct Connection connection;
+	struct Connection last_connection;
+	struct SSH_Info ssh_info;
 
-    int connectionStatus;
-    int enter_key_relogging;
-    unsigned int auth_state;
-    int changes_count;
-    int auth_attempt;
-    int type;
-    unsigned int flags; // logged, changed
-    char *buffer;
-    char md5Buffer[1024];
-    int cx, cy; /* cursor position */
-    int window_resized;
-    int profile_id;
+	int connectionStatus;
+	int enter_key_relogging;
+	unsigned int auth_state;
+	int changes_count;
+	int auth_attempt;
+	int type;
+	unsigned int flags; // logged, changed
+	char *buffer;
+	char md5Buffer[1024];
+	int cx, cy; /* cursor position */
+	int window_resized;
+	int profile_id;
 
-    GtkWidget *hbox_terminal; /* vte + scrollbar */
-    GtkWidget *vte; 
-    GtkWidget *scrollbar;
+	GtkWidget *hbox_terminal; /* vte + scrollbar */
+	GtkWidget *vte;
+	GtkWidget *scrollbar;
 
-    GtkWidget *label; // Text
-    GtkWidget *notebook; // Notebook containing the terminal
+	GtkWidget *label; // Text
+	GtkWidget *notebook; // Notebook containing the terminal
 
-    pid_t pid;
-  } SConnectionTab;
+	pid_t pid;
+} SConnectionTab;
 
-struct QuickLaunchWindow
-  {
-    GtkTreeModel *tree_model;
-    GtkWidget *tree_view;
-    GtkWidget *scrolled_window;
-    GtkWidget *search_by_combo;
-    GtkWidget *copy_button;
-    GtkWidget *vbox;
-    gulong row_inserted_handler;
-    gulong row_deleted_handler;
-  };
+struct QuickLaunchWindow {
+	GtkTreeModel *tree_model;
+	GtkWidget *tree_view;
+	GtkWidget *scrolled_window;
+	GtkWidget *search_by_combo;
+	GtkWidget *copy_button;
+	GtkWidget *vbox;
+	gulong row_inserted_handler;
+	gulong row_deleted_handler;
+};
 
 /* stock objects */
 
@@ -106,19 +104,17 @@ struct QuickLaunchWindow
 #define ITERATION_REFRESH_SFTP_PANEL 4
 #define ITERATION_CLOSE_TAB 5
 
-struct Iteration_Function_Request
-  {
-    int id;
-    void *user_data;
-  };
+struct Iteration_Function_Request {
+	int id;
+	void *user_data;
+};
 
 void ifr_add (int function_id, void *user_data);
 
-struct Match
-  {
-    int tag;
-    char *matched_string;
-  };
+struct Match {
+	int tag;
+	char *matched_string;
+};
 
 void msgbox_error (const char *fmt, ...);
 void msgbox_info (const char *fmt, ...);
@@ -127,11 +123,11 @@ int query_value (char *title, char *labeltext, char *default_value, char *buffer
 int expand_args (struct Connection *p_conn, char *args, char *prefix, char *dest);
 int show_login_mask (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth);
 
-void tabInitConnection(SConnectionTab *pConn);
-char *tabGetConnectionStatusDesc(int status);
-void tabSetConnectionStatus(SConnectionTab *pConn, int status);
-int tabGetConnectionStatus(SConnectionTab *pConn);
-int tabIsConnected(SConnectionTab *pConn);
+void tabInitConnection (SConnectionTab *pConn);
+char *tabGetConnectionStatusDesc (int status);
+void tabSetConnectionStatus (SConnectionTab *pConn, int status);
+int tabGetConnectionStatus (SConnectionTab *pConn);
+int tabIsConnected (SConnectionTab *pConn);
 void tabSetFlag (SConnectionTab *pConn, unsigned int bitmask);
 void tabResetFlag (SConnectionTab *pConn, unsigned int bitmask);
 unsigned int tabGetFlag (SConnectionTab *pConn, unsigned int bitmask);
@@ -161,7 +157,7 @@ void selection_changed_cb (VteTerminal *vteterminal, gpointer user_data);
 void contents_changed_cb (VteTerminal *vteterminal, gpointer user_data);
 void
 terminal_focus_cb (GtkWidget       *widget,
-                gpointer         user_data);
+                   gpointer         user_data);
 
 void connection_log_on_param (struct Connection *p_conn);
 void connection_log_on ();

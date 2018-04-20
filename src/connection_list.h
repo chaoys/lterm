@@ -26,55 +26,53 @@
 #define CONN_AUTH_MODE_KEY 2
 
 typedef struct _SSH_Options {
-  int x11Forwarding;
-  int agentForwarding;
-  int disableStrictKeyChecking;
-  int flagKeepAlive;
-  int keepAliveInterval;
+	int x11Forwarding;
+	int agentForwarding;
+	int disableStrictKeyChecking;
+	int flagKeepAlive;
+	int keepAliveInterval;
 } SSH_Options;
 
-typedef struct Connection
-  {
-    char name[256];
-    char host[256];
-    int port;
-    char protocol[64];
-    //char emulation[64];
-    char last_user[32];
-    char user_options[256];
-    //int auth; // deprecated
-    int auth_mode;
-    char auth_user[32];
-    char auth_password[32];
-    char auth_password_encrypted[64]; /* base 64 encoded */
-    char user[32];
-    char password[32];
-    char password_encrypted[64]; /* base 64 encoded */
-    char directory[256]; /* e.g. samba condivision folder */
-    unsigned int flags;
-    char note[MAX_NOTE_LEN];
-    char sftp_dir[1024];
-    char upload_dir[1024];
-    char download_dir[1024];
-    //int x11Forwarding;
-    char identityFile[1024];
-    //int disableStrictKeyChecking;
-    SSH_Options sshOptions;
-    
-    GPtrArray *directories;
-    //struct Bookmarks history;
+typedef struct Connection {
+	char name[256];
+	char host[256];
+	int port;
+	char protocol[64];
+	//char emulation[64];
+	char last_user[32];
+	char user_options[256];
+	//int auth; // deprecated
+	int auth_mode;
+	char auth_user[32];
+	char auth_password[32];
+	char auth_password_encrypted[64]; /* base 64 encoded */
+	char user[32];
+	char password[32];
+	char password_encrypted[64]; /* base 64 encoded */
+	char directory[256]; /* e.g. samba condivision folder */
+	unsigned int flags;
+	char note[MAX_NOTE_LEN];
+	char sftp_dir[1024];
+	char upload_dir[1024];
+	char download_dir[1024];
+	//int x11Forwarding;
+	char identityFile[1024];
+	//int disableStrictKeyChecking;
+	SSH_Options sshOptions;
 
-    /* reserved */
-    unsigned int warnings;
+	GPtrArray *directories;
+	//struct Bookmarks history;
 
-    struct Connection *next;
-  } SConnection;
+	/* reserved */
+	unsigned int warnings;
 
-struct Connection_List
-  {
-    struct Connection *head;
-    struct Connection *tail;
-  };
+	struct Connection *next;
+} SConnection;
+
+struct Connection_List {
+	struct Connection *head;
+	struct Connection *tail;
+};
 
 void connection_init (SConnection *);
 

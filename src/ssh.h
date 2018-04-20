@@ -2,7 +2,7 @@
 #ifndef _SSH_H
 #define _SSH_H
 
-#include <libssh/libssh.h> 
+#include <libssh/libssh.h>
 #include <libssh/sftp.h>
 #include <time.h>
 
@@ -10,93 +10,87 @@
 #define SSH_ERR_AUTH 2
 #define SSH_ERR_UNKNOWN_AUTH_METHOD 3
 
-struct Directory_Entry
-  {
-    int type;
-    char name[256];
-    long long unsigned int size;
-    long unsigned int mtime;
-    char owner[32];
-    char group[32];
-    uint32_t permissions;   
+struct Directory_Entry {
+	int type;
+	char name[256];
+	long long unsigned int size;
+	long unsigned int mtime;
+	char owner[32];
+	char group[32];
+	uint32_t permissions;
 
-    struct Directory_Entry *next;
-  };
+	struct Directory_Entry *next;
+};
 
-struct Directory_List
-  {
-    struct Directory_Entry *head;
-    struct Directory_Entry *tail;
+struct Directory_List {
+	struct Directory_Entry *head;
+	struct Directory_Entry *tail;
 
-    int show_hidden_files;
-    int count;
-  };
- 
+	int show_hidden_files;
+	int count;
+};
+
 /**
  * struct SSH_Node
  * ssh/sftp information node
  * Shared between tabs connected to the same host and user
- */ 
-struct SSH_Node
-  {
-    ssh_session session;
-    sftp_session sftp;
-    //ssh_channel channel;
-    int auth_methods;
-    char host[32];
-    char user[32];
-    char password[32];
-    int port;
-    
-    int refcount;
-    int valid;
-    time_t last;
-    struct SSH_Node *next;
-  };
-  
+ */
+struct SSH_Node {
+	ssh_session session;
+	sftp_session sftp;
+	//ssh_channel channel;
+	int auth_methods;
+	char host[32];
+	char user[32];
+	char password[32];
+	int port;
+
+	int refcount;
+	int valid;
+	time_t last;
+	struct SSH_Node *next;
+};
+
 /**
  * struct SSH_List
  * list of ssh established connections
- */ 
-struct SSH_List
-  {
-    struct SSH_Node *head;
-    struct SSH_Node *tail;
-  };
+ */
+struct SSH_List {
+	struct SSH_Node *head;
+	struct SSH_Node *tail;
+};
 
 /**
  * struct SSH_Info
  * ssh/sftp informations
  * Every tab holds its own SSH_Info object
  */
-struct SSH_Info
-  {
-    struct SSH_Node *ssh_node;
-    char error_s[512];
-    char home[1024]; /* user home directory */
-    char directory[1024]; /* used in sftp panel */
-    struct Directory_List dirlist;
-    
-    /* toggle flags */
-    int follow_terminal_folder;
-    int filter;
-    char match_string[1024];
-  };
-  
-struct SSH_Auth_Data
-  {
-    char host[32];
-    char user[32];
-    char password[32];
-    int port;
-    int sftp_enabled;
-    int mode;
-    char identityFile[512];
-    
-    int error_code;
-    char error_s[512];
-  };
-  
+struct SSH_Info {
+	struct SSH_Node *ssh_node;
+	char error_s[512];
+	char home[1024]; /* user home directory */
+	char directory[1024]; /* used in sftp panel */
+	struct Directory_List dirlist;
+
+	/* toggle flags */
+	int follow_terminal_folder;
+	int filter;
+	char match_string[1024];
+};
+
+struct SSH_Auth_Data {
+	char host[32];
+	char user[32];
+	char password[32];
+	int port;
+	int sftp_enabled;
+	int mode;
+	char identityFile[512];
+
+	int error_code;
+	char error_s[512];
+};
+
 void ssh_list_init (struct SSH_List *p_ssh_list);
 void ssh_list_release_chain (struct SSH_Node *p_head);
 void ssh_list_release (struct SSH_List *p_ssh_list);

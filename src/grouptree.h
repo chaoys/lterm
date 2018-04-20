@@ -12,19 +12,17 @@
 #define GN_SORT_SUBTREE 1
 #define GN_SORT_FOLDER_FIRST 2
 
-struct GroupNode
-  {
-    int type;
-    char name[256];
-    int expanded;
-    struct GroupNode *parent;
-    struct GroupNode *child[MAX_CHILD_GROUPS];
-  };
+struct GroupNode {
+	int type;
+	char name[256];
+	int expanded;
+	struct GroupNode *parent;
+	struct GroupNode *child[MAX_CHILD_GROUPS];
+};
 
-struct GroupTree
-  {
-    struct GroupNode root;
-  };
+struct GroupTree {
+	struct GroupNode root;
+};
 
 void group_node_set_name (struct GroupNode *p_gn, char *name);
 void group_node_set_type (struct GroupNode *p_gn, int type);

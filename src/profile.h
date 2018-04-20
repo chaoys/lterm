@@ -24,29 +24,28 @@ int profile_delete_section (char *profile_file, char *section);
 /* graphic profile */
 
 struct Profile {
-  int id;
-  char name[256];
-  int font_use_system; /* Use system font for terminal */
-  char font[128];
-  char bg_color[64];
-  char fg_color[64];
-  double alpha;
-  int cursor_shape;
-  int cursor_blinking;
-  int bell_audible;
-  int bell_visible;
-  
-  struct Profile* next;
+	int id;
+	char name[256];
+	int font_use_system; /* Use system font for terminal */
+	char font[128];
+	char bg_color[64];
+	char fg_color[64];
+	double alpha;
+	int cursor_shape;
+	int cursor_blinking;
+	int bell_audible;
+	int bell_visible;
+
+	struct Profile* next;
 };
 
-struct ProfileList
-  {
-    int id_default;
-    
-    struct Profile *head;
-    struct Profile *tail;
-  };
-  
+struct ProfileList {
+	int id_default;
+
+	struct Profile *head;
+	struct Profile *tail;
+};
+
 void profile_list_init (struct ProfileList *p_pl);
 void profile_list_release (struct ProfileList *p_pl);
 struct Profile *profile_get_by_id (struct ProfileList *p_pl, int id);

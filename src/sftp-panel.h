@@ -27,86 +27,86 @@
 #define ACTION_EXECUTE 2
 
 struct CustomMenuItem {
-  //int id;
-  char parent_menu[64];
-  char label[128];
-  unsigned int flags;
-  int action;
-  char command[1024];
-  //struct SSHCommand *next;
+	//int id;
+	char parent_menu[64];
+	char label[128];
+	unsigned int flags;
+	int action;
+	char command[1024];
+	//struct SSHCommand *next;
 };
 
 /* File type */
 struct Type {
-  char id[32];
-  char imagefile[256];
-  GdkPixbuf *image;
+	char id[32];
+	char imagefile[256];
+	GdkPixbuf *image;
 };
 
 /* Info for transfer window */
 
-enum { TR_READY=0, TR_IN_PROGRESS, TR_PAUSED, TR_CANCELLED_USER, TR_CANCELLED_ERRORS, TR_COMPLETED };
+enum { TR_READY = 0, TR_IN_PROGRESS, TR_PAUSED, TR_CANCELLED_USER, TR_CANCELLED_ERRORS, TR_COMPLETED };
 
 typedef struct TransferInfo {
-  struct SSH_Info *p_ssh;
-  int action;
-  gboolean sourceIsDir;
-  char source[1024];
-  char destination[1024];
-  char shortenedFilename[1024];
-  char filename[1024];
-  char destDir[1024];
-  char host[128];
-  //char status[256];
-  uint64_t size;
-  uint64_t worked;
-  time_t start_time;
-  time_t last_update;
-  int state;
-  int result;
-  char errorDesc[2048];
+	struct SSH_Info *p_ssh;
+	int action;
+	gboolean sourceIsDir;
+	char source[1024];
+	char destination[1024];
+	char shortenedFilename[1024];
+	char filename[1024];
+	char destDir[1024];
+	char host[128];
+	//char status[256];
+	uint64_t size;
+	uint64_t worked;
+	time_t start_time;
+	time_t last_update;
+	int state;
+	int result;
+	char errorDesc[2048];
 
-  //GtkTreeIter iter;
-  
+	//GtkTreeIter iter;
+
 } STransferInfo;
 
 /* SFTP Panel */
 
 struct SFTP_Panel {
-  gboolean active;
-  gboolean position_selected_tearoff;
-  gboolean stop;
-  
-  GtkWidget *button_home;
-  GtkWidget *button_go_up;
-  GtkWidget *button_file_new;
-  GtkWidget *button_folder_new;
-  GtkWidget *button_upload;
-  GtkWidget *button_download;
-  GtkWidget *button_refresh;
-  GtkWidget *button_go;
-  GtkWidget *check_follow;
-  GtkWidget *toggle_filter;
-  GtkWidget *entry_sftp_filter;
-  
-  GtkWidget *combo_position;
-  GtkWidget *entry_sftp_position;
-  
-  GtkWidget *label_sftp_status;
-  GtkWidget *spinner;
-  GtkWidget *button_stop;
+	gboolean active;
+	gboolean position_selected_tearoff;
+	gboolean stop;
 
-  //pthread_mutex_t mutexQueue;
-  GList *queue;
+	GtkWidget *button_home;
+	GtkWidget *button_go_up;
+	GtkWidget *button_file_new;
+	GtkWidget *button_folder_new;
+	GtkWidget *button_upload;
+	GtkWidget *button_download;
+	GtkWidget *button_refresh;
+	GtkWidget *button_go;
+	GtkWidget *check_follow;
+	GtkWidget *toggle_filter;
+	GtkWidget *entry_sftp_filter;
+
+	GtkWidget *combo_position;
+	GtkWidget *entry_sftp_position;
+
+	GtkWidget *label_sftp_status;
+	GtkWidget *spinner;
+	GtkWidget *button_stop;
+
+	//pthread_mutex_t mutexQueue;
+	GList *queue;
 };
 
 typedef struct MirrorFile {
-  struct SSH_Node *sshNode;
-  char localDir[2048];
-  char localFile[2048];
-  char remoteFile[2048];
-  int wd; // Watch file descriptor
-  time_t lastSaved;
+	struct SSH_Node *sshNode;
+	char localDir[2048];
+	char localFile[2048];
+	char remoteFile[2048];
+	int wd; // Watch file descriptor
+	time_t lastSaved;
 } SMirrorFile;
 
 void sftp_panel_mirror_dump ();
@@ -114,8 +114,8 @@ void sftp_panel_mirror_dump ();
 #define SFTP_STATUS_IMMEDIATE 1
 #define SFTP_STATUS_IDLE 2
 
-void sftp_set_status_mode (int mode, const char *fmt,...);
-void sftp_set_status (const char *fmt,...);
+void sftp_set_status_mode (int mode, const char *fmt, ...);
+void sftp_set_status (const char *fmt, ...);
 //void sftp_clear_status_mode (int mode);
 void sftp_clear_status ();
 void sftp_spinner_start ();

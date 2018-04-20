@@ -13,23 +13,21 @@
 #define PROT_FLAG_DISCONNECTCLOSE 4
 #define PROT_FLAG_MASK 255
 
-struct Protocol
-  {
-    char name[64];
-    unsigned int type;
-    char command[256];
-    char args[256];
-    int port;
-    unsigned int flags;
+struct Protocol {
+	char name[64];
+	unsigned int type;
+	char command[256];
+	char args[256];
+	int port;
+	unsigned int flags;
 
-    struct Protocol *next;
-  };
+	struct Protocol *next;
+};
 
-struct Protocol_List
-  {
-    struct Protocol *head;
-    struct Protocol *tail;
-  };
+struct Protocol_List {
+	struct Protocol *head;
+	struct Protocol *tail;
+};
 
 struct Protocol *get_protocol (struct Protocol_List *p_pl, char *name);
 void manage_protocols (struct Protocol_List *);
