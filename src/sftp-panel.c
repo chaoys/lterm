@@ -43,15 +43,6 @@
 #include <sys/inotify.h>
 #endif
 
-#ifdef __APPLE__
-#include <sys/types.h>
-#include <sys/event.h>
-#include <sys/time.h>
-#include <signal.h>
-#include <stdio.h>
-#include <unistd.h>
-#endif
-
 extern Globals globals;
 extern Prefs prefs;
 extern GtkWidget *main_window;
@@ -1031,11 +1022,7 @@ sftp_panel_create_mirror_file(struct SSH_Info *pSSH, char *filename)
   g_array_append_val(mirrorFiles, pMirror);
 
   // Launch editor and open local file
-#ifdef __APPLE__
-  sprintf (command, "open -a \"%s\" \"%s\"", prefs.text_editor, pMirror.localFile);
-#else
   sprintf (command, "\"%s\" \"%s\"", prefs.text_editor, pMirror.localFile);
-#endif
     
   log_debug ("command = %s\n", command);
   
@@ -1071,13 +1058,11 @@ sftp_panel_open ()
     
   log_debug ("Editor: %s\n", prefs.text_editor);
   
-#ifndef __APPLE__
   if (!check_command (prefs.text_editor))
     {
       msgbox_error ("Can't find %s", prefs.text_editor);
       return;
     }
-#endif
 
   log_debug ("Getting selected files...\n");
 

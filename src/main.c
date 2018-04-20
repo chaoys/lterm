@@ -46,12 +46,6 @@
 #include "config.h"
 #include "async.h"
 
-#ifdef __APPLE__
-#include <sys/event.h>
-#include <signal.h>
-#include <unistd.h>
-#endif
-
 int switch_local = 0;     /* start with local shell */
 
 Globals globals;
@@ -265,16 +259,6 @@ notifyMessage (char *message)
 {
   log_debug ("%s\n", message);
 
-#ifdef __APPLE__
-  char cmd[4096];
-  int exit_code;
-
-  sprintf (cmd, "osascript -e 'display notification \"%s\" with title \"lterm\"'", message);
-
-  log_write ("Executing: %s\n", cmd);
-  exit_code = system (cmd);
-  log_write ("exit_code = %d\n", exit_code);
-#else  
 	GNotification *notification = g_notification_new ("lterm");
 	g_notification_set_body (notification, message);
 	//GIcon *icon = g_themed_icon_new ("dialog-information");
@@ -282,7 +266,6 @@ notifyMessage (char *message)
 	g_application_send_notification (application, NULL, notification);
 	//g_object_unref (icon);
 	g_object_unref (notification);
-#endif
 }
 
 
@@ -479,25 +462,6 @@ return (0);
   
   log_debug ("globals.home_dir=%s\n", globals.home_dir);
   
-#ifdef __APPLE__
-  log_debug ("Checking if running in a bundle\n");
-  
-  char *_xdg_data_dirs = (char *) getenv ("XDG_DATA_DIRS");
-
-  log_debug ("_xdg_data_dirs=%s\n", _xdg_data_dirs);
-
-  if (_xdg_data_dirs)
-    {
-      if (strstr (_xdg_data_dirs, "Contents/Resources/"))
-        {
-          log_debug ("Modify directories\n");
-          
-          sprintf (globals.img_dir, "%s/lterm/img", _xdg_data_dirs);
-          sprintf (globals.data_dir, "%s/lterm/data", _xdg_data_dirs);
-        }
-    }
-#endif
-
   log_debug ("globals.img_dir=%s\n", globals.img_dir);
   log_debug ("globals.data_dir=%s\n", globals.data_dir);
 
@@ -766,9 +730,6 @@ load_settings ()
   
   if (prefs.text_editor[0] == 0)
     {
-#ifdef __APPLE__
-      strcpy (prefs.text_editor, "TextEdit");
-#else
       switch (get_desktop_environment ()) {
         case DE_GNOME: 
         case DE_CINNAMON: 
@@ -778,7 +739,6 @@ load_settings ()
         case DE_XFCE: strcpy (prefs.text_editor, "mousepad"); break;
         default: strcpy (prefs.text_editor, "gedit"); break;
       }
-#endif
     }
     
   profile_load_string (globals.conf_file, "SFTP", "sftp_open_file_uri", prefs.sftp_open_file_uri, "sftp://%u@%h/%f");

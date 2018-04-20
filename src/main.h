@@ -63,12 +63,7 @@ char * getCurrentFunction ();
 
 #define MAX_RECENT 30
 
-  
-#ifdef __APPLE__
-# define DEFAULT_FIXED_FONT "Monaco 11"
-#else
 # define DEFAULT_FIXED_FONT "Monospace 9"
-#endif
 
 /*
   Struct: _globals

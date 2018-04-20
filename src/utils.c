@@ -35,9 +35,7 @@
 #include <sys/stat.h>
 #include <sys/utsname.h>
 
-#ifndef __APPLE__
 #include <crypt.h>
-#endif
 
 #include "main.h"
 #include "utils.h"
@@ -691,10 +689,6 @@ get_desktop_environment ()
   int de = DE_UNKNOWN;
   char *value;
   
-#ifdef __APPLE__
-  return (DE_MAC_OS_X);
-#endif
-  
   /* try desktop_session value */
   
   if (value = getenv ("DESKTOP_SESSION"))
@@ -993,10 +987,6 @@ get_system (char *sys_name)
   
 #ifdef __linux__
   strcpy (sys_name, "Linux");
-#endif
-  
-#ifdef __APPLE__
-  strcpy (sys_name, "Mac OS X");
 #endif
   
 #if defined WIN32

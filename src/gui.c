@@ -3545,10 +3545,6 @@ go_to_url (char *url)
   
   log_debug("%s\n", url); 
 
-#ifdef __APPLE__
-  sprintf (cmd, "open %s", url);
-  exit_code = system (cmd);
-#else      
   success = gtk_show_uri (NULL, url, GDK_CURRENT_TIME, &error);
   
   if (!success)
@@ -3568,7 +3564,6 @@ go_to_url (char *url)
       if (cmd[0])
         exit_code = system (cmd);
     }
-#endif
 }
 
 void
@@ -5199,10 +5194,6 @@ char_size_changed_cb (VteTerminal *terminal, guint width, guint height, gpointer
   if (prefs.maximize)
     return;
 
-#ifdef __APPLE__
-  return;
-#endif
-
   /* 
    * Here we must detect desktop environment.
    * In KDE and XFCE resizing is not needed (and doesn't works fine!).
@@ -5265,20 +5256,6 @@ key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
     
   //log_debug("keyval=%d\n", event->keyval);
     
-#ifdef __APPLE__
-  /* On Mac OS X pressing Alt_gr+key has a strange behaviour, so detect keys and write the symbol */
-  if (event->state & GDK_MOD1_MASK)
-    {
-      log_debug("ALT pressed with %d\n", event->keyval);
-      
-      if (p_current_connection_tab)
-        {
-          vte_terminal_feed_child (p_current_connection_tab->vte, event->string, -1);
-          rc = TRUE; /* don't propagate signal handling */
-        }
-    }
-#endif
-
   if (event->keyval == keyReturn || event->keyval == keyEnter)
     {
       log_debug ("Enter/Return\n");
