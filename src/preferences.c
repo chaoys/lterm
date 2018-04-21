@@ -288,8 +288,6 @@ show_preferences ()
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (startlocal_check), prefs.startup_local_shell);
 	GtkWidget *startconn_check = GTK_WIDGET (gtk_builder_get_object (builder, "check_connections") );
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (startconn_check), prefs.startup_show_connections);
-	GtkWidget *save_session_check = GTK_WIDGET (gtk_builder_get_object (builder, "check_reload") );
-	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (save_session_check), prefs.save_session);
 	/* tabs */
 	GtkWidget *tabs_pos_combo = GTK_WIDGET (gtk_builder_get_object (builder, "combo_tabs_pos") );
 	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (tabs_pos_combo), _ ("Left") );
@@ -364,13 +362,6 @@ show_preferences ()
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (scroll_on_keystroke_check), prefs.scroll_on_keystroke);
 	GtkWidget *scroll_on_output_check = GTK_WIDGET (gtk_builder_get_object (builder, "check_scrolloutput") );
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (scroll_on_output_check), prefs.scroll_on_output);
-	GtkWidget *radio_ask = GTK_WIDGET (gtk_builder_get_object (builder, "radio_ask") );
-	GtkWidget *radio_dir = GTK_WIDGET (gtk_builder_get_object (builder, "radio_dir") );
-	GtkWidget *entry_download_dir = GTK_WIDGET (gtk_builder_get_object (builder, "entry_download_dir") );
-	g_signal_connect (radio_ask, "toggled", G_CALLBACK (radio_ask_cb), entry_download_dir);
-	g_signal_connect (radio_dir, "toggled", G_CALLBACK (radio_dir_cb), entry_download_dir);
-	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_dir), TRUE);
-	gtk_widget_set_state_flags (entry_download_dir, GTK_STATE_FLAG_NORMAL, TRUE);
 	refresh_profiles_list_store ();
 	gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), notebook);
 	gtk_widget_show_all (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) );
@@ -378,7 +369,6 @@ show_preferences ()
 	if (result == GTK_RESPONSE_OK) {
 		prefs.startup_local_shell = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (startlocal_check) ) ? 1 : 0;
 		prefs.startup_show_connections = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (startconn_check) ) ? 1 : 0;
-		prefs.save_session = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (save_session_check) ) ? 1 : 0;
 		prefs.tabs_position = gtk_combo_box_get_active (GTK_COMBO_BOX (tabs_pos_combo) );
 		prefs.tab_alerts = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (tab_alerts_check) ) ? 1 : 0;
 		strcpy (prefs.local_start_directory, gtk_entry_get_text (GTK_ENTRY (start_directory_entry) ) );

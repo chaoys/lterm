@@ -173,10 +173,6 @@ GtkActionEntry main_menu_items[] = {
 	{ "RegroupAll", MY_STOCK_REGROUP, N_ ("_Regroup all tabs"), NULL, "Regroup all tabs", G_CALLBACK (terminal_regroup_all) },
 	{ "Cluster", MY_STOCK_CLUSTER, N_ ("Send command to cluster"), NULL, "Send command to cluster", G_CALLBACK (terminal_cluster) },
 
-	{ "SessionMenu", NULL, N_ ("_Session") },
-	{ "Load session", "document-open", N_ ("Load session"), NULL, NULL, G_CALLBACK (session_load) },
-	{ "Save session", "document-save", N_ ("Save session"), NULL, NULL, G_CALLBACK (session_save) },
-
 	{ "HelpMenu", NULL, N_ ("_Help") },
 	{ "Home page", "go-home", N_ ("_Home page"), "F1", "Home page", G_CALLBACK (help_home_page) },
 	{ "About", "help-about", N_ ("_About"), NULL, "About", G_CALLBACK (Info) }
@@ -264,10 +260,6 @@ const gchar ui_main_desc[] =
         "      <menuitem action='Cluster' />"
         "    </menu>"
 
-        "    <menu action='SessionMenu'>"
-        "      <menuitem action='Load session' />"
-        "      <menuitem action='Save session' />"
-        "    </menu>"
         "    <menu action='HelpMenu'>"
         "      <menuitem action='Home page' />"
         "      <separator />"
@@ -1169,9 +1161,6 @@ connection_log_on_param (struct Connection *p_conn)
 		refreshTabStatus (p_current_connection_tab);
 	}
 	update_screen_info ();
-	/* update session file */
-	if (prefs.save_session)
-		save_session_file (NULL);
 }
 
 /**
@@ -1264,9 +1253,6 @@ connection_new_terminal_dir (char *directory)
 			strcpy (p_connection_tab->connection.name, prefs.label_local);
 			connection_tab_add (p_connection_tab);
 			p_current_connection_tab = p_connection_tab;
-			/* update session file */
-			if (!prefs.save_session)
-				save_session_file (NULL);
 		} else
 			msgbox_error ("%s", error_msg);
 	}
@@ -1288,9 +1274,6 @@ connection_close_tab ()
 	if (!p_current_connection_tab)
 		return;
 	connection_tab_close (p_current_connection_tab);
-	/* update session file */
-	if (!prefs.save_session)
-		save_session_file (NULL);
 }
 
 void
@@ -1304,8 +1287,6 @@ application_quit ()
 	n = connection_tab_count (CONNECTION_REMOTE) + connection_tab_count (CONNECTION_LOCAL);
 	if (n) {
 		sprintf (message, _ ("There are %d active terminal/s.\nExit anyway?"), n);
-		if (prefs.save_session)
-			strcat (message, "\nCurrent session will be reloaded at next startup.");
 		retcode = msgbox_yes_no (message);
 		if (retcode == GTK_RESPONSE_YES)
 			can_quit = 1;
@@ -2846,9 +2827,6 @@ window_title_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 		char tmpTitle[64];
 		shortenString (title, 25, tmpTitle);
 		gtk_label_set_text (GTK_LABEL (p_ct->label), tmpTitle);
-		/* update session file */
-		if (!prefs.save_session)
-			save_session_file (NULL);
 	}
 	update_title ();
 }
@@ -3314,8 +3292,7 @@ open_connection (char *connection)
 			connection_log_on_param (&c);
 		else
 			msgbox_error ("can't open connection %s\nError id: %d", connection_string, rc);
-	} else
-		load_session_file (connection);
+	}
 }
 
 void

@@ -76,7 +76,6 @@ struct _globals {
 	char serverlist[256];             /* Server list file (deprecated) */
 	char connections_xml[256];    /* Server list file (xml format)*/
 	char conf_file[256];
-	char session_file[256];
 	char log_file[256];
 	char profiles_file[256];
 	char protocols_file[256];
@@ -131,7 +130,6 @@ struct _prefs {
 	char font_quick_launch_window [128];
 	char font_fixed [128];
 	int search_by;
-	int save_session;
 	int checkpoint_interval;
 
 	int ssh_keepalive;

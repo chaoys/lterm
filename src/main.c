@@ -319,7 +319,6 @@ main (int argc, char *argv[])
 	sprintf (globals.app_dir, "%s/.%s", globals.home_dir, PACKAGE_NAME);
 	sprintf (globals.serverlist, "%s/serverlist", globals.app_dir); /* deprecated */
 	sprintf (globals.connections_xml, "%s/connections.xml", globals.app_dir);
-	sprintf (globals.session_file, "%s/session.xml", globals.app_dir);
 	sprintf (globals.log_file, "%s/lterm.log", globals.app_dir);
 	sprintf (globals.profiles_file, "%s/profiles.xml", globals.app_dir);
 	sprintf (globals.protocols_file, "%s/protocols.xml", globals.app_dir);
@@ -382,9 +381,6 @@ main (int argc, char *argv[])
 			list_get_nth (globals.start_connections, i, '#', s_tmp);
 			open_connection (s_tmp);
 		}
-	} else {
-		if (prefs.save_session)
-			load_session_file (NULL);
 	}
 	/* local shell */
 	if (prefs.startup_local_shell)
@@ -398,8 +394,6 @@ main (int argc, char *argv[])
 	while (globals.running) {
 		lterm_iteration ();
 	}
-	log_write ("Saving session...\n");
-	save_session_file (NULL); /* update session file */
 	log_write ("Saving connections...\n");
 	save_connections_to_file_xml (globals.connections_xml);
 	log_write ("Saving protocols...\n");
@@ -448,7 +442,6 @@ load_settings ()
 	profile_load_string (globals.conf_file, "general", "warnings_color", prefs.warnings_color, "orange");
 	profile_load_string (globals.conf_file, "general", "warnings_error_color", prefs.warnings_error_color, "red");
 	profile_load_string (globals.conf_file, "general", "local_start_directory", prefs.local_start_directory, "");
-	prefs.save_session = profile_load_int (globals.conf_file, "general", "save_session", 0);
 	prefs.checkpoint_interval = profile_load_int (globals.conf_file, "general", "checkpoint_interval", 5);
 	profile_load_string (globals.conf_file, "general", "font_fixed", prefs.font_fixed, DEFAULT_FIXED_FONT);
 	profile_load_string (globals.conf_file, "general", "tempDir", prefs.tempDir, globals.app_dir/*"/tmp"*/);
@@ -491,7 +484,6 @@ save_settings ()
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "check_connections", prefs.check_connections);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "warnings_color", prefs.warnings_color);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "local_start_directory", prefs.local_start_directory);
-	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "save_session", prefs.save_session);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "checkpoint_interval", prefs.checkpoint_interval);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "font_fixed", prefs.font_fixed);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "tempDir", prefs.tempDir);
@@ -597,8 +589,7 @@ help ()
 	get_version (version);
 	printf ("\n%s version %s\n", PACKAGE, version);
 	printf (/* "\n" */
-	        "Usage : %s [options] [session-file]\n"
-	        "        %s [options] conn:[user[/password]]@connection-name\n"
+	        "Usage : %s [options] conn:[user[/password]]@connection-name\n"
 	        "Options:\n"
 	        "  -v            : show version\n"
 	        "  -h --help     : help\n",

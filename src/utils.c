@@ -536,19 +536,6 @@ splitString (char *str, char *delimiters, int skipNulls, char *quotes, int trail
 }
 
 
-/*
-char *
-get_desktop ()
-{
-  if (getenv ("GNOME_KEYRING_CONTROL"))
-    return "GNOME";
-  else if (getenv ("KDE_FULL_SESSION"))
-    return "KDE";
-  else
-    return "OTHER";
-}
-*/
-
 int
 get_desktop_environment ()
 {
