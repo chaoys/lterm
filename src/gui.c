@@ -67,8 +67,6 @@
 #define USERPASS USERCHARS_CLASS "+(?:" PASSCHARS_CLASS "+)?"
 #define URLPATH   "(?:(/"PATHCHARS_CLASS"+(?:[(]"PATHCHARS_CLASS"*[)])*"PATHCHARS_CLASS"*)*"PATHTERM_CLASS")?"
 
-GRegex *ip_regexpr;
-
 extern Globals globals;
 extern Prefs prefs;
 extern struct Protocol_List g_prot_list;
@@ -992,11 +990,6 @@ connection_tab_new ()
 	g_signal_connect (connection_tab->vte, "grab-focus", G_CALLBACK (terminal_focus_cb), connection_tab);
 	g_signal_connect_after (connection_tab->vte, "query-tooltip", G_CALLBACK (query_tooltip_cb), NULL);
 	gtk_widget_set_has_tooltip (connection_tab->vte, TRUE);
-	int tag;
-	/*tag = vte_terminal_match_add_gregex (VTE_TERMINAL(connection_tab->vte), url_regexpr, 0);
-	vte_terminal_match_set_cursor_type (VTE_TERMINAL(connection_tab->vte), tag, GDK_HAND2);*/
-	tag = vte_terminal_match_add_gregex (VTE_TERMINAL (connection_tab->vte), ip_regexpr, 0);
-	vte_terminal_match_set_cursor_type (VTE_TERMINAL (connection_tab->vte), tag, GDK_HAND2);
 	/*
 	  connection_tab->connected = 0;
 	  connection_tab->logged = 0;
@@ -3757,13 +3750,6 @@ start_gtk (int argc, char **argv)
 	/* Ensure that buttons images will be shown */
 	GtkSettings *default_settings = gtk_settings_get_default ();
 	g_object_set (default_settings, "gtk-button-images", TRUE, NULL);
-	GError *error = NULL;
-	//url_regexpr = g_regex_new ("(?:www|ftp)" HOSTCHARS_CLASS "*\\." HOST PORT URLPATH, G_REGEX_OPTIMIZE, 0, &error);
-	ip_regexpr = g_regex_new ("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}", G_REGEX_OPTIMIZE, 0, &error);
-	if (error) {
-		log_write ("%s", error->message);
-		g_error_free (error);
-	}
 	sftp_spinner_stop ();
 	sftp_end ();
 }
