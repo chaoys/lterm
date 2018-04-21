@@ -91,7 +91,6 @@ GtkWidget *menubar, *main_toolbar;
 GtkActionGroup *action_group;
 GtkWidget *search_entry;
 GtkEntryCompletion *completion;
-GtkWidget *toolbar_recent_menu;
 GtkWidget *statusbar, *sb_msg, *sb_protocol, *sb_transfer, *sb_enc;       /* statusbar */
 GtkWidget *notebook;
 GtkWidget *notebook_sidebar;
@@ -106,14 +105,6 @@ GdkScreen *g_screen;
 GList *connection_tab_list;
 struct ConnectionTab *p_current_connection_tab;
 struct QuickLaunchWindow g_quick_launch_window;
-
-GList *g_recent_connections_list; /* mantain a list of connection structs */
-GList *g_recent_sessions_list;
-GtkActionEntry recent_entries[MAX_RECENT];
-GtkActionGroup *recents_action_group;
-GtkRecentManager *g_recent_manager;
-int recents_handler_id;
-int recents_menu_ui_id;
 
 GtkActionGroup *profile_action_group;
 int profile_menu_ui_id;
@@ -142,7 +133,6 @@ GArray *tabSelectionArray;
 GtkActionEntry main_menu_items[] = {
 	{ "ConnectionMenu", NULL, N_ ("_Connection") },
 	{ "Log on", "_Connect", N_ ("Log _on"), "<ctrl>L", "Log on", G_CALLBACK (connection_log_on) },
-	{ "LogOnRecent", NULL, N_ ("Log on _recent") }, /* not used at the moment */
 	{ "Log off", NULL, N_ ("Log o_ff"), NULL, NULL, G_CALLBACK (connection_log_off) },
 	{ "Duplicate", MY_STOCK_DUPLICATE, N_ ("_Duplicate"), "<shift><ctrl>D", "Duplicate connection", G_CALLBACK (connection_duplicate) },
 	{ "Edit protocols", NULL, N_ ("_Edit protocols"), NULL, NULL, G_CALLBACK (connection_edit_protocols) },
@@ -192,7 +182,6 @@ GtkActionEntry main_menu_items[] = {
 	{ "SessionMenu", NULL, N_ ("_Session") },
 	{ "Load session", "document-open", N_ ("Load session"), NULL, NULL, G_CALLBACK (session_load) },
 	{ "Save session", "document-save", N_ ("Save session"), NULL, NULL, G_CALLBACK (session_save) },
-	{ "SessionRecent", NULL, N_ ("Session _recent") },
 
 	{ "HelpMenu", NULL, N_ ("_Help") },
 	{ "Home page", "go-home", N_ ("_Home page"), "F1", "Home page", G_CALLBACK (help_home_page) },
@@ -215,7 +204,6 @@ const gchar ui_main_desc[] =
         "  <menubar name='MainMenu'>"
         "    <menu action='ConnectionMenu'>"
         "      <menuitem action='Log on' />"
-        //"      <menu action='LogOnRecent' />" /* filled later */
         "      <menuitem action='Log off' />"
         "      <menuitem action='Duplicate' />"
         "      <separator />"
@@ -287,10 +275,6 @@ const gchar ui_main_desc[] =
         "    <menu action='SessionMenu'>"
         "      <menuitem action='Load session' />"
         "      <menuitem action='Save session' />"
-        "      <separator />"
-        "      <placeholder name='SessionRecentsPlaceholder'>"
-        "        <separator/>"
-        "      </placeholder>"
         "    </menu>"
         "    <menu action='HelpMenu'>"
         "      <menuitem action='Home page' />"
@@ -1373,64 +1357,6 @@ application_quit ()
 	}
 }
 
-void
-open_recent_connection_from_info (GtkRecentInfo *info)
-{
-	GList *item;
-	struct Connection *p_conn;
-	char display_name[1024];
-	char s_tmp[256];
-	strcpy (display_name, gtk_recent_info_get_display_name (info) );
-	log_write ("Selected recent connection: %s\n", display_name);
-	/* Find the connection */
-	item = g_list_first (g_recent_connections_list);
-	while (item) {
-		p_conn = (struct Connection *) item->data;
-		sprintf (s_tmp, "%s@%s[%s]", p_conn->user, p_conn->name, p_conn->protocol);
-		log_debug ("%s vs %s\n", display_name, s_tmp);
-		if (!strcmp (s_tmp, display_name) )
-			break;
-		item = g_list_next (item);
-	}
-	if (item) {
-		log_write ("Found recent connetcion: %s@%s[%s]\n", p_conn->user, p_conn->name, p_conn->protocol);
-		connection_log_on_param (p_conn);
-	} else
-		log_write ("Recent connection not found.\n");
-	g_free (info);
-}
-
-void
-open_recent_session_from_info (GtkRecentInfo *info)
-{
-	GList *item;
-	struct Connection *p_conn;
-	char filename[1024];
-	char s_tmp[256];
-	strcpy (filename, gtk_recent_info_get_display_name (info) );
-	log_debug ("%s\n", filename);
-	load_session_file (filename);
-	g_free (info);
-}
-
-void
-session_recent_cb (GtkAction *action, gpointer user_data)
-{
-	int i;
-	char s_tmp[256];
-	GList *item;
-	struct Connection *p_conn;
-	GtkRecentInfo *info;
-#ifdef DEBUG
-	//printf ("connection_recent_cb() : %s\n", (char *) user_data);
-#endif
-	info = g_object_get_data (G_OBJECT (action), "gtk-recent-info");
-#ifdef DEBUG
-	printf ("session_recent_cb() : %s\n", gtk_recent_info_get_display_name (info) );
-#endif
-	open_recent_session_from_info (info);
-}
-
 gchar *
 utils_escape_underscores (const gchar* text, gssize length)
 {
@@ -1459,238 +1385,12 @@ utils_escape_underscores (const gchar* text, gssize length)
 	return g_string_free (str, FALSE);
 }
 
-void
-clean_recents ()
-{
-	FILE *fp;
-	GList *l, *items;
-	log_write ("\n");
-	/* remove items from recent manager */
-	items = gtk_recent_manager_get_items (g_recent_manager);
-	for (l = items; l != NULL; l = l->next) {
-		GtkRecentInfo *info = l->data;
-		if (gtk_recent_info_has_group (info, "lterm") ) {
-			log_debug ("%s\n", gtk_recent_info_get_uri (info) );
-			gtk_recent_manager_remove_item (g_recent_manager, gtk_recent_info_get_uri (info), NULL);
-		}
-	}
-	/* remove from internal list */
-	g_list_free (g_recent_connections_list);
-	g_recent_connections_list = 0;
-	/* reset recent-file */
-	fp = fopen (globals.recent_connections_file, "w");
-	fclose (fp);
-}
-
-void
-update_recent_sessions_menu ()
-{
-	GtkRecentManager *recent_manager;
-	GList *actions, *l, *items;
-	GList *filtered_items = NULL;
-	gint i;
-	/* clean */
-	if (recents_menu_ui_id != 0)
-		gtk_ui_manager_remove_ui (ui_manager, recents_menu_ui_id);
-	actions = gtk_action_group_list_actions (recents_action_group);
-	for (l = actions; l != NULL; l = l->next) {
-		g_signal_handlers_disconnect_by_func (GTK_ACTION (l->data), G_CALLBACK (session_recent_cb), (gpointer) recent_entries[i].name);
-		gtk_action_group_remove_action (recents_action_group, GTK_ACTION (l->data) );
-	}
-	g_list_free (actions);
-	/* create */
-	recents_menu_ui_id = gtk_ui_manager_new_merge_id (ui_manager);
-	//recent_manager =  gtk_recent_manager_get_default ();
-	recent_manager =  g_recent_manager;
-	items = gtk_recent_manager_get_items (recent_manager);
-	/* filter */
-	for (l = items; l != NULL; l = l->next) {
-		GtkRecentInfo *info = l->data;
-		if (!gtk_recent_info_has_group (info, "lterm-session") )
-			continue;
-		filtered_items = g_list_prepend (filtered_items, info);
-	}
-	i = 0;
-	l = g_list_first (filtered_items);
-	while (l && i < prefs.max_recent_connections) {
-		gchar *action_name;
-		const gchar *display_name;
-		gchar *escaped;
-		gchar *label;
-		gchar *uri;
-		gchar *ruri;
-		gchar *tip;
-		GtkAction *action;
-		GtkRecentInfo *info = l->data;
-		GFile *location;
-		char s_tmp[256];
-		action_name = g_strdup_printf ("recent-info-%d", i);
-		display_name = gtk_recent_info_get_display_name (info);
-		escaped = utils_escape_underscores (display_name, -1);
-		label = g_strdup_printf ("%d. %s", i + 1, escaped);
-		log_debug ("%s\n", label);
-		g_free (escaped);
-		action = gtk_action_new (action_name, label, NULL, NULL);
-		g_object_set_data_full (G_OBJECT (action), "gtk-recent-info", gtk_recent_info_ref (info), (GDestroyNotify) gtk_recent_info_unref);
-		g_signal_connect (action, "activate", G_CALLBACK (session_recent_cb), NULL /*recent_entries[i].name*/);
-		gtk_action_group_add_action (recents_action_group, action);
-		g_object_unref (action);
-		gtk_ui_manager_add_ui (ui_manager,
-		                       recents_menu_ui_id,
-		                       "/MainMenu/SessionMenu/SessionRecentsPlaceholder",
-		                       action_name,
-		                       action_name,
-		                       GTK_UI_MANAGER_MENUITEM,
-		                       FALSE);
-		g_free (action_name);
-		g_free (label);
-		//g_free (tip); /* not allocated */
-		i ++;
-		l = g_list_next (l);
-	}
-	g_list_free (filtered_items);
-	//g_list_free_full (items, (GDestroyNotify) gtk_recent_info_unref);
-}
-
-/**
- * get_recent_connection_item()
- * Returns the g_list element of the recent list
- */
-GList *
-get_recent_connection_item (char *user, char *name, char *protocol)
-{
-	GList *item;
-	struct Connection *p_conn = NULL;
-	item = g_list_first (g_recent_connections_list);
-	while (item) {
-		p_conn = (struct Connection *) item->data;
-		if (!strcmp (user, p_conn->user) && !strcmp (name, p_conn->name) && !strcmp (protocol, p_conn->protocol) )
-			return (item);
-		item = g_list_next (item);
-	}
-	return (NULL);
-}
-
-/**
- * get_recent_connection()
- * Returns a pointer to the found connection
- */
-struct Connection *
-get_recent_connection (char *user, char *name, char *protocol)
-{
-	GList *item = get_recent_connection_item (user, name, protocol);
-	return (item != NULL ? (struct Connection *) item->data : NULL);
-}
-
-void
-add_recent_connection (struct Connection *p_conn)
-{
-	GList *item;
-	struct Connection *p_conn_recent;
-	GtkRecentManager *recent_manager;
-	GtkRecentData *recent_data;
-	char s_tmp[256];
-	int found = 0;
-	log_debug ("\n");
-	static gchar *groups[2] = {
-		"lterm",
-		NULL
-	};
-	// If already present, remove it before inserting
-	item = get_recent_connection_item (p_conn->user, p_conn->name, p_conn->protocol);
-	if (item) {
-		log_debug ("Removing %s@%s\n", p_conn->user, p_conn->name);
-		g_recent_connections_list = g_list_remove (g_recent_connections_list, item->data);
-	}
-	// Add connection
-	g_recent_connections_list = g_list_append (g_recent_connections_list, p_conn);
-	/* update the recent manager */
-	//recent_manager =  gtk_recent_manager_get_default ();
-	recent_manager =  g_recent_manager;
-	recent_data = g_slice_new (GtkRecentData);
-	sprintf (s_tmp, "%s@%s[%s]", p_conn->user, p_conn->name, p_conn->protocol);
-	recent_data->display_name = g_strdup (s_tmp);
-	recent_data->description = g_strdup ("lterm connection string" /*p_conn->name*/);
-	recent_data->mime_type = (gchar *) "application/lterm-connection";
-	recent_data->app_name = (gchar *) g_get_application_name ();
-	recent_data->app_exec = g_strjoin (" ", g_get_prgname (), g_strconcat ("conn:", recent_data->display_name, NULL), NULL);
-	recent_data->groups = groups;
-	recent_data->is_private = FALSE;
-	gtk_recent_manager_add_full (recent_manager, recent_data->display_name, recent_data);
-	log_debug ("Added %s\n", recent_data->display_name);
-	g_free (recent_data->app_exec);
-	g_slice_free (GtkRecentData, recent_data);
-	//update_recent_connections_menu ();
-}
-
-void
-add_recent_session (char *filename)
-{
-	char uri[1024];
-	GtkRecentManager *recent_manager;
-	GtkRecentData *recent_data;
-	static gchar *groups[2] = {
-		"lterm-session",
-		NULL
-	};
-	if (filename == 0)
-		return;
-	/* update the recent manager */
-	//recent_manager =  gtk_recent_manager_get_default ();
-	recent_manager =  g_recent_manager;
-	recent_data = g_slice_new (GtkRecentData);
-	recent_data->display_name = g_strdup (filename);
-	recent_data->description = g_strdup ("lterm sessison file");
-	recent_data->mime_type = (gchar *) "application/lterm-session";
-	recent_data->app_name = g_strdup ("lterm"); //(gchar *) g_get_application_name ();
-	recent_data->app_exec = g_strjoin (" ", g_get_prgname (), "%F", NULL);
-	recent_data->groups = groups;
-	recent_data->is_private = FALSE;
-	sprintf (uri, "file://%s", filename);
-	gtk_recent_manager_add_full (recent_manager, uri, recent_data);
-	log_debug ("Added %s\n", recent_data->display_name);
-	g_free (recent_data->app_exec);
-	g_slice_free (GtkRecentData, recent_data);
-	update_recent_sessions_menu ();
-}
-
 static void
-recent_chooser_item_activated (GtkRecentChooser *chooser)
-{
-	GList *item;
-	GtkRecentInfo *info;
-	struct Connection *p_conn;
-	char display_name[1024];
-	char s_tmp[256];
-	log_debug ("\n");
-	info = gtk_recent_chooser_get_current_item (chooser);
-	open_recent_connection_from_info (info);
-}
-
-static GtkWidget *
 setup_toolbar_connect_button (GtkWidget *toolbar)
 {
-	GtkRecentManager *recent_manager;
-	GtkRecentFilter *filter;
-	GtkWidget *toolbar_recent_menu;
 	GtkToolItem *connect_button;
 	GtkAction *action;
 	log_debug ("\n");
-	//recent_manager = gtk_recent_manager_get_default ();
-	recent_manager = g_recent_manager;
-	/* recent files menu tool button */
-	toolbar_recent_menu = gtk_recent_chooser_menu_new_for_manager (recent_manager);
-	gtk_recent_chooser_set_local_only (GTK_RECENT_CHOOSER (toolbar_recent_menu), FALSE);
-	gtk_recent_chooser_set_sort_type (GTK_RECENT_CHOOSER (toolbar_recent_menu), GTK_RECENT_SORT_MRU);
-	gtk_recent_chooser_set_limit (GTK_RECENT_CHOOSER (toolbar_recent_menu), prefs.max_recent_connections);
-	gtk_recent_chooser_set_show_icons (GTK_RECENT_CHOOSER (toolbar_recent_menu), FALSE);
-	gtk_recent_chooser_menu_set_show_numbers (GTK_RECENT_CHOOSER_MENU (toolbar_recent_menu), FALSE);
-	gtk_recent_chooser_set_show_private (GTK_RECENT_CHOOSER (toolbar_recent_menu), TRUE);
-	filter = gtk_recent_filter_new ();
-	gtk_recent_filter_add_group (filter, "lterm");
-	gtk_recent_chooser_set_filter (GTK_RECENT_CHOOSER (toolbar_recent_menu), filter);
-	g_signal_connect (toolbar_recent_menu, "item_activated", G_CALLBACK (recent_chooser_item_activated), NULL);
-	/* add the custom Connect button to the toolbar */
 #if (GTK_CHECK_VERSION(3,10,0) == 1)
 	GtkWidget *image = gtk_image_new_from_icon_name ("gtk-connect", GTK_ICON_SIZE_SMALL_TOOLBAR);
 	connect_button = gtk_menu_tool_button_new (image, _ ("Connect") );
@@ -1698,48 +1398,9 @@ setup_toolbar_connect_button (GtkWidget *toolbar)
 	connect_button = gtk_menu_tool_button_new_from_stock (GTK_STOCK_CONNECT);
 #endif
 	g_signal_connect (G_OBJECT (connect_button), "clicked", G_CALLBACK (connection_log_on), NULL);
-	gtk_menu_tool_button_set_menu (GTK_MENU_TOOL_BUTTON (connect_button), toolbar_recent_menu);
-	//gtk_recent_chooser_menu_set_show_numbers (GTK_RECENT_CHOOSER (toolbar_recent_menu), TRUE);
 	gtk_widget_show (GTK_WIDGET (connect_button) );
 	gtk_tool_item_set_tooltip_text (connect_button, _ ("Log on") );
-	gtk_menu_tool_button_set_arrow_tooltip_text (GTK_MENU_TOOL_BUTTON (connect_button), _ ("Log on recent") );
-	//action = gtk_action_group_get_action (window->priv->always_sensitive_action_group, "FileOpen");
-	//g_object_set (action, "is_important", TRUE, "short_label", _("Open"), NULL);
-	action = gtk_action_group_get_action (recents_action_group, "SessionRecent");
-	gtk_activatable_set_related_action (GTK_ACTIVATABLE (connect_button), action);
 	gtk_toolbar_insert (GTK_TOOLBAR (toolbar), connect_button, 0);
-	return toolbar_recent_menu;
-}
-
-int
-load_recent_connections ()
-{
-	int rc;
-	GList *item;
-	struct Connection_List cl;
-	struct Connection *c;
-	log_debug ("\n");
-	log_write ("Loading recents: %s\n", globals.recent_connections_file);
-	g_recent_connections_list = load_connection_list_from_file_xml (globals.recent_connections_file);
-	log_write ("Recents loaded: %d\n", g_list_length (g_recent_connections_list) );
-	g_recent_connections_list = g_list_reverse (g_recent_connections_list);
-	return 0;
-}
-
-int
-save_recent_connections ()
-{
-	struct Connection conn;
-	struct Connection *p_conn;
-	struct Connection_List cl;
-	char *p_enc;
-	char *p_enc_b64;
-	char name_tmp[256];
-	int len, rc = 0;
-	int i;
-	GList *item;
-	rc = save_connections_to_file_xml_from_glist (g_recent_connections_list, globals.recent_connections_file);
-	return 0;
 }
 
 GtkWidget *
@@ -2350,7 +2011,6 @@ sftp_upload_files ()
 	log_debug ("Destination: %s\n", p_current_connection_tab->connection.name);
 	/* Get pointer to the entry in the main list, so user directory can be saved */
 	p_conn = get_connection_by_name (p_current_connection_tab->connection.name);
-	/* If not found (it appens when opening a recent connection which is not the list any more) use the copy */
 	if (p_conn == NULL) {
 		log_write ("Connection not found: %s. Using active copy.\n", p_current_connection_tab->connection.name);
 		p_conn = & (p_current_connection_tab->connection);
@@ -2733,15 +2393,6 @@ create_stock_objects ()
 	gtk_icon_factory_add_default (factory);
 }
 
-static void
-recent_manager_changed (GtkRecentManager *manager)
-{
-	log_debug ("Update recent sessions menu\n");
-	/* regenerate the menu when the model changes */
-	update_recent_sessions_menu ();
-	log_debug ("Done\n");
-}
-
 void
 refresh_profile_menu ()
 {
@@ -2754,7 +2405,6 @@ refresh_profile_menu ()
 		gtk_ui_manager_remove_ui (ui_manager, profile_menu_ui_id);
 	actions = gtk_action_group_list_actions (profile_action_group);
 	for (l = actions; l != NULL; l = l->next) {
-		//g_signal_handlers_disconnect_by_func (GTK_ACTION (l->data), G_CALLBACK (profile_radio_action_cb), recent_entries[i].name);
 		gtk_action_group_remove_action (profile_action_group, GTK_ACTION (l->data) );
 	}
 	g_list_free (actions);
@@ -2790,10 +2440,8 @@ void
 get_main_menu ()
 {
 	GtkAccelGroup *accel_group;
-	GtkRecentManager *recent_manager;
 	int i, n_enc;
 	char enc_desc[10000], item_s[256], s_tmp[256];
-	char recent_connections_desc[10000];
 	/* build character encoding menu with actions */
 	n_enc = sizeof (enc_array) / sizeof (struct EncodingEntry);
 	GtkRadioActionEntry radio_enc_entries[n_enc];
@@ -2828,17 +2476,6 @@ get_main_menu ()
 	//g_object_set_data (G_OBJECT (widget), "ui-manager", ui_manager);
 	menubar = gtk_ui_manager_get_widget (ui_manager, "/MainMenu");
 	/* gtk_ui_manager_set_add_tearoffs (ui_manager, TRUE); */
-	/* init entries for recent connections */
-	for (i = 0; i < MAX_RECENT; i++) {
-		sprintf (s_tmp, "recent_%d", i);
-		recent_entries[i].name = g_strdup (s_tmp);
-	}
-	//refresh_profile_menu ();
-	/* create action group for recent files */
-	recents_action_group = gtk_action_group_new ("SessionRecent");
-	gtk_action_group_set_translation_domain (recents_action_group, NULL);
-	gtk_ui_manager_insert_action_group (ui_manager, recents_action_group, 0);
-	g_object_unref (recents_action_group);
 	/* create action group for profiles */
 	profile_action_group = gtk_action_group_new ("ProfileActions");
 	gtk_action_group_set_translation_domain (profile_action_group, NULL);
@@ -2974,7 +2611,7 @@ add_toolbar (GtkWidget *box)
 		gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toggle), TRUE);
 		//gtk_widget_show (main_toolbar);
 	}
-	toolbar_recent_menu = setup_toolbar_connect_button (main_toolbar);
+	setup_toolbar_connect_button (main_toolbar);
 }
 
 /**
@@ -4012,8 +3649,6 @@ start_gtk (int argc, char **argv)
 	//gtk_set_locale ();
 	connection_tab_list = NULL;
 	p_current_connection_tab = NULL;
-	g_recent_connections_list = NULL;
-	g_recent_sessions_list = NULL;
 	gtk_init (&argc, &argv);
 	log_write ("Creating main window...\n");
 	main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
@@ -4036,14 +3671,6 @@ start_gtk (int argc, char **argv)
 	gtk_widget_show (menubar);
 	log_write ("Creating accelerators...\n");
 	create_accelerators ();
-	/* Load recent connections and update menu */
-	log_write ("Getting recent manager...\n");
-	g_recent_manager = gtk_recent_manager_get_default ();
-	log_write ("Loading recent connections...\n");
-	load_recent_connections ();
-	recents_handler_id = g_signal_connect (g_recent_manager, "changed", G_CALLBACK (recent_manager_changed), NULL);
-	log_write ("Updating recent sessions menu...\n");
-	update_recent_sessions_menu ();
 	refresh_profile_menu ();
 	/* Toolbar */
 	log_write ("Creating toolbar...\n");
@@ -4114,7 +3741,6 @@ start_gtk (int argc, char **argv)
 	gtk_widget_show (main_window);
 	//gtk_window_present (GTK_WINDOW (main_window));
 	if (globals.upgraded) {
-		clean_recents ();
 		profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "package_version", VERSION);
 		msgbox_info ("Congratulations, you just upgraded to version %s", VERSION);
 		if (!cmpver (VERSION, "1.4.1") ) {

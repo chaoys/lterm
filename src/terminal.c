@@ -106,9 +106,6 @@ terminal_connect_ssh (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_
 	} else {
 		log_write ("ssh: %d %s\n", login_rc, login_rc == 0 ? "" : p_conn_tab->ssh_info.error_s);
 	}
-	if (login_rc == 0) {
-		add_recent_connection (& (p_conn_tab->connection) );
-	}
 	return (login_rc);
 }
 
@@ -563,8 +560,6 @@ check_log_in_state (struct ConnectionTab *p_ct, char *line)
 				}
 			} else if (p_ct->changes_count > strlen ("login:") ) {
 				log_debug ("authentication ok %d > %d\n", p_ct->changes_count, (int) strlen ("login:") );
-				if (p_ct->ssh_info.ssh_node == NULL)
-					add_recent_connection (& (p_ct->connection) );
 				//p_ct->logged = 1;
 				tabSetFlag (p_ct, TAB_LOGGED);
 				feed_child = 0;
@@ -639,7 +634,6 @@ load_session_file (char *filename)
 			connection_log_on_param (c);
 		item = g_list_next (item);
 	}
-	add_recent_session (filename);
 	return (0);
 }
 

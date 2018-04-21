@@ -313,8 +313,6 @@ main (int argc, char *argv[])
 	sprintf (globals.log_file, "%s/lterm.log", globals.app_dir);
 	sprintf (globals.profiles_file, "%s/profiles.xml", globals.app_dir);
 	sprintf (globals.protocols_file, "%s/protocols.xml", globals.app_dir);
-	sprintf (globals.recent_connections_file, "%s/recents.xml", globals.app_dir);
-	sprintf (globals.recent_sessions_file, "%s/recent_sessions", globals.app_dir);
 	sprintf (globals.conf_file, "%s/%s.conf", globals.app_dir, PACKAGE_NAME);
 	globals.connected = CONNECTION_NONE;
 	globals.upgraded = 0;
@@ -404,8 +402,6 @@ main (int argc, char *argv[])
 	}
 	log_write ("Saving session...\n");
 	save_session_file (NULL); /* update session file */
-	log_write ("Saving recent connections...\n");
-	save_recent_connections ();
 	log_write ("Saving connections...\n");
 	save_connections_to_file_xml (globals.connections_xml);
 	log_write ("Saving protocols...\n");
@@ -457,8 +453,6 @@ load_settings ()
 	profile_load_string (globals.conf_file, "general", "warnings_error_color", prefs.warnings_error_color, "red");
 	profile_load_string (globals.conf_file, "general", "local_start_directory", prefs.local_start_directory, "");
 	prefs.save_session = profile_load_int (globals.conf_file, "general", "save_session", 0);
-	prefs.max_recent_connections = profile_load_int (globals.conf_file, "general", "max_recent_connections", 10);
-	prefs.max_recent_sessions = profile_load_int (globals.conf_file, "general", "max_recent_sessions", 10);
 	prefs.checkpoint_interval = profile_load_int (globals.conf_file, "general", "checkpoint_interval", 5);
 	profile_load_string (globals.conf_file, "general", "font_fixed", prefs.font_fixed, DEFAULT_FIXED_FONT);
 	prefs.hyperlink_tooltip_enabled = profile_load_int (globals.conf_file, "general", "hyperlink_tooltip_enabled", 1);
@@ -529,8 +523,6 @@ save_settings ()
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "warnings_color", prefs.warnings_color);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "local_start_directory", prefs.local_start_directory);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "save_session", prefs.save_session);
-	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "max_recent_connections", prefs.max_recent_connections);
-	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "max_recent_sessions", prefs.max_recent_sessions);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "checkpoint_interval", prefs.checkpoint_interval);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "font_fixed", prefs.font_fixed);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "hyperlink_tooltip_enabled", prefs.hyperlink_tooltip_enabled);

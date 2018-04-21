@@ -236,9 +236,6 @@ int connection_tab_getcwd (struct ConnectionTab *p_ct, char *directory);
 void apply_profile (struct ConnectionTab *p_ct, int profile_id);
 void update_all_profiles ();
 
-void add_recent_session (char *filename);
-void add_recent_connection (struct Connection *p_conn);
-
 void sftp_upload_files ();
 void sftp_download_files ();
 

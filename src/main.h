@@ -61,8 +61,6 @@ char * getCurrentFunction ();
 #define CONNECTION_LOCAL 1
 #define CONNECTION_REMOTE 2
 
-#define MAX_RECENT 30
-
 # define DEFAULT_FIXED_FONT "Monospace 9"
 
 /*
@@ -87,8 +85,6 @@ struct _globals {
 	char system_font[256];
 	int upgraded; /* 1 if just upgraded package */
 	char start_connections[256]; /* list of files and connections to be opened at startup */
-	char recent_connections_file[256];
-	char recent_sessions_file[256];
 	struct SSH_List ssh_list;
 	char find_expr[256];
 	int inotifyFd; // For Inotify and FSEvents
@@ -136,8 +132,6 @@ struct _prefs {
 	char font_fixed [128];
 	int search_by;
 	int save_session;
-	int max_recent_connections;
-	int max_recent_sessions;
 	int checkpoint_interval;
 
 	int sftp_buffer;
@@ -172,8 +166,5 @@ void addIdleGTKMainIteration ();
 void update_main_window_title ();
 void update_statusbar ();
 int cmpver (char *v1, char *v2);
-
-//void recent_add (char *);
-
 
 #endif
