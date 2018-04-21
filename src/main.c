@@ -43,7 +43,21 @@
 #include "ssh.h"
 #include "utils.h"
 #include "config.h"
-#include "async.h"
+
+// Access to ssh operations
+pthread_mutex_t mutexSSH = PTHREAD_MUTEX_INITIALIZER;
+
+void
+lockSSH (char *caller, gboolean flagLock)
+{
+	if (flagLock) {
+		log_debug ("[%s] locking SSH mutex...\n", caller);
+		pthread_mutex_lock (&mutexSSH);
+	} else {
+		log_debug ("[%s] unlocking SSH mutex...\n", caller);
+		pthread_mutex_unlock (&mutexSSH);
+	}
+}
 
 int switch_local = 0;     /* start with local shell */
 
@@ -380,18 +394,6 @@ main (int argc, char *argv[])
 		connection_log_on ();
 	/* start main loop */
 	globals.running = 1;
-	// Init asyncronous section
-	asyncInit();
-	// Start async loop
-	GThread   *thread;
-	//GError    *error = NULL;
-	//thread = g_thread_create (async_lterm_loop, NULL, FALSE, &error );
-	thread = g_thread_new ("async-loop", async_lterm_loop, NULL);
-	if (!thread) {
-		//msgbox_error ("Can't start async loop:\n%s\n", error->message );
-		msgbox_error ("Can't start async loop\n");
-		exit (1);
-	}
 	log_write ("Starting main loop\n");
 	while (globals.running) {
 		lterm_iteration ();

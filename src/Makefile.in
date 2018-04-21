@@ -102,7 +102,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am_lterm_OBJECTS = connection.$(OBJEXT) gui.$(OBJEXT) main.$(OBJEXT) \
 	preferences.$(OBJEXT) profile.$(OBJEXT) protocol.$(OBJEXT) \
 	utils.$(OBJEXT) grouptree.$(OBJEXT) connection_list.$(OBJEXT) \
-	xml.$(OBJEXT) ssh.$(OBJEXT) terminal.$(OBJEXT) async.$(OBJEXT)
+	xml.$(OBJEXT) ssh.$(OBJEXT) terminal.$(OBJEXT)
 lterm_OBJECTS = $(am_lterm_OBJECTS)
 lterm_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -274,8 +274,7 @@ lterm_SOURCES = \
   connection_list.h connection_list.c \
   xml.h xml.c \
   ssh.c ssh.h \
-  terminal.h terminal.c \
-  async.h async.c
+  terminal.h terminal.c
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -379,7 +378,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/async.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/connection.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/connection_list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/grouptree.Po@am__quote@

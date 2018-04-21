@@ -162,8 +162,6 @@ ssh_node_connect (struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth)
 	struct SSH_Node node, *p_node = NULL;
 	GError *error = NULL;
 	int rc, valid = 0;
-	////////////////////////////////
-	//lockSSH (__func__, TRUE);
 	memset (&node, 0, sizeof (struct SSH_Node) );
 	if (p_node = ssh_list_search (p_ssh_list, p_auth->host, p_auth->user) ) {
 		log_write ("Found ssh node for %s@%s\n", p_auth->user, p_auth->host);
@@ -274,8 +272,6 @@ l_auth:
 	p_node->refcount = node.refcount + 1;
 	p_node->valid = 1;
 	ssh_node_update_time (p_node);
-	//lockSSH (__func__, FALSE);
-	////////////////////////////////
 	return (p_node);
 }
 
@@ -337,8 +333,6 @@ ssh_node_open_channel (struct SSH_Node *p_node)
 {
 	ssh_channel channel;
 	int rc;
-	////////////////////////////////
-	//lockSSH (__func__, TRUE);
 	log_write ("Opening channel on %s@%s\n", p_node->user, p_node->host);
 	if ( (channel = ssh_channel_new (p_node->session) ) == NULL) {
 		ssh_node_set_validity (p_node, 0);
@@ -367,8 +361,6 @@ ssh_node_open_channel (struct SSH_Node *p_node)
 		ssh_node_set_validity (p_node, 0);
 		return (NULL);
 	}
-	//lockSSH (__func__, FALSE);
-	////////////////////////////////
 	return (channel);
 }
 
@@ -406,96 +398,6 @@ lt_ssh_init (struct SSH_Info *p_ssh)
 {
 	memset (p_ssh, 0, sizeof (struct SSH_Info) );
 }
-/*
-int
-lt_ssh_connect_old (struct SSH_Info *p_ssh)
-{
-  int rc;
-
-  // Open session and set options
-  p_ssh->ssh_node->session = ssh_new ();
-
-  if (p_ssh->ssh_node->session == NULL)
-    return (1);
-
-  ssh_options_set (p_ssh->ssh_node->session, SSH_OPTIONS_HOST, p_ssh->host);
-  ssh_options_set (p_ssh->ssh_node->session, SSH_OPTIONS_USER, p_ssh->user);
-  ssh_options_set (p_ssh->ssh_node->session, SSH_OPTIONS_PORT, &(p_ssh->port));
-
-  // Connect to server
-  rc = ssh_connect (p_ssh->ssh_node->session);
-
-  if (rc != SSH_OK)
-    {
-      sprintf(p_ssh->error_s, "%s", ssh_get_error (p_ssh->ssh_node->session));
-      ssh_free (p_ssh->ssh_node->session);
-      p_ssh->ssh_node->session = NULL;
-      return (SSH_ERR_CONNECT);
-    }
-
-  // Verify the server's identity
-  \*
-  if (verify_knownhost (my_ssh_session) < 0)
-    {
-      ssh_disconnect (my_ssh_session);
-      ssh_free (my_ssh_session);
-      exit(-1);
-    }
-  *\
-
-  // Authenticate ourselves
-
-  \* get authentication methods *\
-  p_ssh->auth_methods = ssh_userauth_list (p_ssh->ssh_node->session, NULL);
-
-  if (p_ssh->auth_methods & SSH_AUTH_METHOD_PASSWORD)
-    {
-      rc = ssh_userauth_password (p_ssh->ssh_node->session, NULL, p_ssh->password);
-
-      log_debug ("auth method password: rc=%d\n", rc);
-    }
-  else if (p_ssh->auth_methods & SSH_AUTH_METHOD_INTERACTIVE)
-    {
-      rc = ssh_userauth_kbdint (p_ssh->ssh_node->session, NULL, NULL);
-
-      log_debug ("auth method interactive: ssh_userauth_kbdint() returns %d\n", rc);
-
-      if (rc == SSH_AUTH_INFO)
-        {
-          ssh_userauth_kbdint_setanswer (p_ssh->ssh_node->session, 0, p_ssh->password);
-
-          rc = ssh_userauth_kbdint (p_ssh->ssh_node->session, NULL, NULL);
-
-          log_debug ("auth method interactive: ssh_userauth_kbdint() returns %d\n", rc);
-        }
-      else
-        rc = SSH_AUTH_ERROR;
-
-      log_debug ("auth method interactive: rc=%d\n", rc);
-    }
-  else
-    {
-      sprintf (p_ssh->error_s, "unknown authentication method for server %s\n", p_ssh->host);
-      ssh_disconnect (p_ssh->ssh_node->session);
-      ssh_free (p_ssh->ssh_node->session);
-      p_ssh->ssh_node->session = NULL;
-      return (SSH_ERR_AUTH);
-    }
-
-  if (rc != SSH_AUTH_SUCCESS)
-    {
-      sprintf (p_ssh->error_s, "%s", ssh_get_error (p_ssh->ssh_node->session));
-      ssh_disconnect (p_ssh->ssh_node->session);
-      ssh_free (p_ssh->ssh_node->session);
-      p_ssh->ssh_node->session = NULL;
-      return (SSH_ERR_AUTH);
-    }
-
-  lt_ssh_getenv (p_ssh, "HOME", p_ssh->home);
-
-  return (0);
-}
-*/
 int
 lt_ssh_connect (struct SSH_Info *p_ssh, struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth)
 {
@@ -558,8 +460,6 @@ lt_ssh_getenv (struct SSH_Info *p_ssh, char *variable, char *value)
 	int rc;
 	char buffer[256];
 	unsigned int nbytes;
-	////////////////////////////////
-	//lockSSH (__func__, TRUE);
 	if ( (channel = ssh_node_open_channel (p_ssh->ssh_node) ) == NULL)
 		return (1);
 	sprintf (stmt, "echo ${%s}", variable);
@@ -596,8 +496,6 @@ lt_ssh_getenv (struct SSH_Info *p_ssh, char *variable, char *value)
 	ssh_channel_close (channel);
 	ssh_channel_free (channel);
 	ssh_node_update_time (p_ssh->ssh_node);
-	//lockSSH (__func__, FALSE);
-	////////////////////////////////
 	return (0);
 }
 int

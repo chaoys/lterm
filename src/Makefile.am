@@ -14,5 +14,4 @@ lterm_SOURCES = \
   connection_list.h connection_list.c \
   xml.h xml.c \
   ssh.c ssh.h \
-  terminal.h terminal.c \
-  async.h async.c
+  terminal.h terminal.c
