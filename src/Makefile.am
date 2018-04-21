@@ -13,8 +13,6 @@ lterm_SOURCES = \
   grouptree.h grouptree.c \
   connection_list.h connection_list.c \
   xml.h xml.c \
-  sftp-panel.c sftp-panel.h \
   ssh.c ssh.h \
   terminal.h terminal.c \
-  async.h async.c \
-  transfer_window.h transfer_window.c
+  async.h async.c

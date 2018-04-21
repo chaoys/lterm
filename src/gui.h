@@ -101,7 +101,6 @@ struct QuickLaunchWindow {
 #define ITERATION_REBUILD_TREE_STORE 1
 #define ITERATION_REFRESH_TREE_VIEW 2
 #define ITERATION_REFRESH_QUICK_LAUCH_TREE_VIEW 3
-#define ITERATION_REFRESH_SFTP_PANEL 4
 #define ITERATION_CLOSE_TAB 5
 
 struct Iteration_Function_Request {
@@ -179,7 +178,6 @@ void edit_current_profile ();
 void edit_select_all ();
 void show_preferences ();
 
-//void view_transfer_window ();
 void view_toolbar ();
 void view_statusbar ();
 void view_sidebar ();
@@ -189,10 +187,6 @@ void view_go_forward ();
 void zoom_in ();
 void zoom_out ();
 void zoom_100 ();
-
-void hyperlink_connect_host ();
-void hyperlink_edit_host ();
-void hyperlink_add_host ();
 
 void terminal_reset ();
 void terminal_detach_right();
@@ -207,9 +201,6 @@ void apply_profile ();
 
 void session_load ();
 void session_save ();
-
-void sftp_upload_files ();
-void sftp_download_files ();
 
 void help_home_page ();
 void Info ();
@@ -235,9 +226,6 @@ int connection_tab_getcwd (struct ConnectionTab *p_ct, char *directory);
 
 void apply_profile (struct ConnectionTab *p_ct, int profile_id);
 void update_all_profiles ();
-
-void sftp_upload_files ();
-void sftp_download_files ();
 
 void sb_msg_push (char *);
 

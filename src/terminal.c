@@ -161,13 +161,8 @@ log_on (struct ConnectionTab *p_conn_tab)
 				strcpy (p_conn_tab->connection.password, auth.password);
 			} else {
 				rc = 0;
-				auth.sftp_enabled = 1;
 			}
 			if (rc == 0) {
-				if (auth.sftp_enabled) {
-					log_write ("SFTP enabled\n");
-					login_rc = terminal_connect_ssh (p_conn_tab, &auth);
-				}
 			} else { /* cancel */
 				tabSetConnectionStatus (p_conn_tab, TAB_CONN_STATUS_DISCONNECTED);
 				return (1);
@@ -185,7 +180,7 @@ log_on (struct ConnectionTab *p_conn_tab)
 				log_write ("Prompt username and password\n");
 				rc = show_login_mask (p_conn_tab, &auth);
 				log_debug ("show_login_mask() returns %d\n", rc);
-				if (rc == 0 && !auth.sftp_enabled) {
+				if (rc == 0) {
 					strcpy (p_conn_tab->connection.user, auth.user);
 					strcpy (p_conn_tab->connection.password, auth.password);
 					rc = 0;
@@ -299,11 +294,6 @@ log_on (struct ConnectionTab *p_conn_tab)
 		//p_conn_tab->connected = 1;
 		tabSetConnectionStatus (p_conn_tab, TAB_CONN_STATUS_CONNECTED);
 		p_conn_tab->type = CONNECTION_REMOTE;
-		/*if (lt_ssh_is_connected (&p_conn_tab->ssh_info))
-		  {
-		    sftp_refresh_directory_list (&p_conn_tab->ssh_info);
-		    //refresh_sftp_panel (&p_conn_tab->ssh_info);
-		  }*/
 		rc = 0;
 	} else {
 		tabSetConnectionStatus (p_conn_tab, TAB_CONN_STATUS_DISCONNECTED);

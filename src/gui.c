@@ -39,10 +39,8 @@
 #include "config.h"
 #include "gui.h"
 #include "utils.h"
-#include "sftp-panel.h"
 #include "terminal.h"
 #include "connection_list.h"
-#include "transfer_window.h"
 
 #include <gdk/gdkx.h>
 
@@ -73,7 +71,6 @@ extern struct Protocol_List g_prot_list;
 extern struct Connection_List conn_list;
 extern struct ProfileList g_profile_list;
 extern struct GroupTree g_groups;
-extern struct SFTP_Panel sftp_panel;
 
 //char *auth_state_desc[] = { "AUTH_STATE_NOT_LOGGED", "AUTH_STATE_GOT_USER", "AUTH_STATE_GOT_PASSWORD", "AUTH_STATE_LOGGED" };
 
@@ -159,7 +156,6 @@ GtkActionEntry main_menu_items[] = {
 	{ "Preferences", MY_STOCK_PREFERENCES, N_ ("P_references"), NULL, "Preferences", G_CALLBACK (show_preferences) },
 
 	{ "ViewMenu", NULL, N_ ("_View") },
-	{ "TransferWindow", MY_STOCK_TRANSFERS, N_ ("_Transfer window"), NULL, "Transfer window", G_CALLBACK (view_transfer_window) },
 	{ "Fullscreen", "view-fullscreen", N_ ("_Fullscreen"), "F11", "Fullscreen", G_CALLBACK (view_fullscreen) },
 	{ "Go back", "go-previous", N_ ("Go _back"), "<ctrl>Left", "Go back", G_CALLBACK (view_go_back) },
 	{ "Go forward", "go-next", N_ ("Go _forward"), "<ctrl>Right", "Go forward", G_CALLBACK (view_go_forward) },
@@ -241,8 +237,6 @@ const gchar ui_main_desc[] =
         "      <menuitem action='Preferences' />"
         "    </menu>"
         "    <menu action='ViewMenu'>"
-        "      <menuitem action='TransferWindow' />"
-        "      <separator />"
         "      <menuitem action='Toolbar' />"
         "      <menuitem action='Statusbar' />"
         "      <menuitem action='Sidebar' />"
@@ -303,8 +297,6 @@ const gchar ui_main_desc[] =
         "    <separator />"
         "    <toolitem action='Sidebar'/>"
         "    <separator />"
-        "    <toolitem action='TransferWindow'/>"
-        "    <separator />"
         "    <toolitem action='Preferences'/>"
         "    <toolitem action='Zoom 100'/>"
         "    <toolitem action='About'/>"
@@ -320,11 +312,7 @@ GtkActionEntry popup_menu_items[] = {
 	{ "Paste", "_Paste", N_ ("_Paste"), "<shift><ctrl>V", NULL, G_CALLBACK (edit_paste) },
 	{ "Copy and paste", NULL, N_ ("C_opy and paste"), NULL, NULL, G_CALLBACK (edit_copy_and_paste) },
 	{ "PasteHost", NULL, N_ ("Paste host") },
-	//{ "Download files", NULL, N_("Download"), NULL, NULL, G_CALLBACK (sftp_download_files) },
 	{ "Select all", NULL, N_ ("_Select all"), NULL, NULL, G_CALLBACK (edit_select_all) },
-	{ "ConnectHost", "_Connect", N_ ("Connect to this host"), NULL, NULL, G_CALLBACK (hyperlink_connect_host) },
-	{ "EditHost", "gtk-edit", N_ ("Edit this host"), NULL, NULL, G_CALLBACK (hyperlink_edit_host) },
-	{ "AddHost", "list-add", N_ ("Bookmark this host"), NULL, NULL, G_CALLBACK (hyperlink_add_host) }
 };
 
 const gchar *ui_popup_desc =
@@ -498,7 +486,6 @@ segv_handler (int signum)
 	              "Take a look on the website about what to do in cases like this.",
 	              signum);
 	log_write ("Removing all watch file descriptors...\n");
-	sftp_panel_mirror_file_clear (NULL, 1);
 	signal (signum, SIG_DFL);
 	kill (getpid(), signum);
 }
@@ -777,7 +764,6 @@ show_login_mask (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth)
 	GtkWidget *label_ip = GTK_WIDGET (gtk_builder_get_object (builder, "label_ip") );
 	GtkWidget *entry_user = GTK_WIDGET (gtk_builder_get_object (builder, "entry_user") );
 	GtkWidget *entry_password = GTK_WIDGET (gtk_builder_get_object (builder, "entry_password") );
-	GtkWidget *check_enable_sftp = GTK_WIDGET (gtk_builder_get_object (builder, "check_enable_sftp") );
 	gtk_label_set_text (GTK_LABEL (label_name), p_conn_tab->connection.name);
 	gtk_label_set_text (GTK_LABEL (label_ip), p_conn_tab->connection.host);
 	gtk_image_set_from_file (GTK_IMAGE (image_auth), image_auth_filename);
@@ -811,7 +797,6 @@ run_dialog:
 		strcpy (p_auth->password, gtk_entry_get_text (GTK_ENTRY (entry_password) ) );
 		strcpy (p_auth->host, p_conn_tab->connection.host);
 		p_auth->port = p_conn_tab->connection.port;
-		p_auth->sftp_enabled = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_enable_sftp) ) ? 1 : 0;
 		rc = 0;
 	} else {
 		rc = -1;
@@ -904,7 +889,6 @@ connection_tab_close (struct ConnectionTab *p_ct)
 			close (vte_pty_get_fd (vte_terminal_get_pty (VTE_TERMINAL (p_ct->vte))));*/
 			//vte_pty_close (vte_terminal_get_pty (VTE_TERMINAL (p_ct->vte))); // Dangerous!
 			lt_ssh_disconnect (&p_ct->ssh_info);
-			//refresh_sftp_panel (&p_ct->ssh_info);
 		}
 		page = gtk_notebook_page_num (GTK_NOTEBOOK (p_ct->notebook), p_ct->hbox_terminal);
 		log_write ("page = %d\n", page);
@@ -941,8 +925,6 @@ query_tooltip_cb (GtkWidget  *widget,
 	GtkBorder *inner_border = NULL;
 	struct Connection *p_conn;
 	char s[1024];
-	if (!prefs.hyperlink_tooltip_enabled)
-		return FALSE;
 	/* Get matched text */
 	//gtk_widget_style_get (widget, "inner-border", &inner_border, NULL);
 	col = (x - (inner_border ? inner_border->left : 0) ) / vte_terminal_get_char_width (VTE_TERMINAL (widget) );
@@ -1183,20 +1165,6 @@ connection_log_on_param (struct Connection *p_conn)
 		log_write ("Log on...\n");
 		retcode = log_on (p_connection_tab);
 		log_debug ("log_on() returns %d\n", retcode);
-		if (retcode == 0) {
-			/*
-			log_debug ("user=%s last_user=%s\n", p_connection_tab->connection.user, p_connection_tab->connection.last_user);
-
-			connection_tab_add (p_connection_tab);
-			p_current_connection_tab = p_connection_tab;
-			connection_tab_set_status (p_current_connection_tab, TAB_STATUS_NORMAL);
-			*/
-			if (lt_ssh_is_connected (&p_current_connection_tab->ssh_info) ) {
-				sftp_refresh_directory_list (&p_current_connection_tab->ssh_info);
-				refresh_sftp_panel (&p_current_connection_tab->ssh_info);
-				refresh_panel_history ();
-			}
-		}
 		//connection_tab_set_status (p_current_connection_tab, TAB_STATUS_NORMAL);
 		refreshTabStatus (p_current_connection_tab);
 	}
@@ -1227,7 +1195,6 @@ connection_log_off ()
 		//close (vte_terminal_get_pty (VTE_TERMINAL (p_current_connection_tab->vte)));
 		kill (p_current_connection_tab->pid, SIGTERM);
 		lt_ssh_disconnect (&p_current_connection_tab->ssh_info);
-		refresh_sftp_panel (&p_current_connection_tab->ssh_info);
 		log_write ("Terminal closed\n");
 		//vte_terminal_set_pty (VTE_TERMINAL (vte), 0);
 		/*
@@ -1590,13 +1557,7 @@ show_sidebar (gboolean show)
 	set_window_resized_all (1);
 	if (show) {
 		gtk_widget_show_all (notebook_sidebar);
-		sftp_spinner_stop (); // Hide spinner
-		sftp_end (); // Hide stop button
 		prefs.show_sidebar = 1;
-		if (p_current_connection_tab) {
-			sftp_panel_show_filter ( (gboolean) p_current_connection_tab->ssh_info.filter);
-		} else
-			sftp_panel_show_filter (FALSE);
 		/* grab focus */
 		gtk_widget_grab_focus (notebook_sidebar);
 	} else {
@@ -1987,63 +1948,6 @@ terminal_cluster ()
 }
 
 void
-sftp_upload_files ()
-{
-	GtkWidget *dialog;
-	GSList *files = NULL;
-	gint result;
-	char title[256], remote_directory[1024] = "";
-	char *s_tmp;
-	struct Connection *p_conn;
-	if (p_current_connection_tab == NULL)
-		return;
-	if (p_current_connection_tab->type != CONNECTION_REMOTE
-	    || p_current_connection_tab->ssh_info.ssh_node == NULL
-	    || p_current_connection_tab->ssh_info.ssh_node->sftp == NULL)
-		return;
-	log_debug ("Destination: %s\n", p_current_connection_tab->connection.name);
-	/* Get pointer to the entry in the main list, so user directory can be saved */
-	p_conn = get_connection_by_name (p_current_connection_tab->connection.name);
-	if (p_conn == NULL) {
-		log_write ("Connection not found: %s. Using active copy.\n", p_current_connection_tab->connection.name);
-		p_conn = & (p_current_connection_tab->connection);
-	}
-	sprintf (title, _ ("Upload to %s (%s)"), p_current_connection_tab->connection.name, p_current_connection_tab->connection.host);
-	GtkFileFilter *filter_all = gtk_file_filter_new ();
-	gtk_file_filter_set_name (filter_all, _ ("All files") );
-	gtk_file_filter_add_pattern (filter_all, "*");
-	dialog = gtk_file_chooser_dialog_new (title, GTK_WINDOW (main_window),
-	                                      GTK_FILE_CHOOSER_ACTION_OPEN,
-	                                      "_Cancel", GTK_RESPONSE_CANCEL,
-	                                      "_Open", GTK_RESPONSE_ACCEPT,
-	                                      NULL);
-	if (/*prefs.last_*/p_conn->upload_dir[0])
-		gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), /*prefs.last_*/p_conn->upload_dir);
-	gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (dialog), TRUE);
-	gtk_file_chooser_set_select_multiple (GTK_FILE_CHOOSER (dialog), TRUE);
-l_upl_dialog:
-	result = gtk_dialog_run (GTK_DIALOG (dialog) );
-	if (result == GTK_RESPONSE_ACCEPT) {
-		files = gtk_file_chooser_get_uris (GTK_FILE_CHOOSER (dialog) );
-		gchar *current_folder = gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (dialog) );
-		if (current_folder)
-			strcpy (p_conn->upload_dir, gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (dialog) ) );
-	}
-	gtk_widget_destroy (dialog);
-	if (result == GTK_RESPONSE_ACCEPT && files) {
-		if (p_conn = cl_get_by_name (&conn_list, p_current_connection_tab->connection.name) )
-			strcpy (p_conn->sftp_dir, remote_directory);
-		//result = transfer_sftp (SFTP_ACTION_UPLOAD, files, &p_current_connection_tab->ssh_info, NULL); // deprecated
-		result = sftp_queue_add (SFTP_ACTION_UPLOAD, files, &p_current_connection_tab->ssh_info, NULL);
-		//if (result)
-		//  msgbox_error (transfer_get_error ());
-		g_slist_free (files);
-		//sftp_refresh_directory_list (&p_current_connection_tab->ssh_info);
-		//refresh_sftp_panel (&p_current_connection_tab->ssh_info);
-	}
-}
-
-void
 clipboard_cb (GtkClipboard *clipboard, const gchar *text, gpointer data)
 {
 	if (text == NULL)
@@ -2069,67 +1973,6 @@ get_terminal_selection (VteTerminal *terminal)
 	} else
 		g_vte_selected_text = NULL;
 	return (g_vte_selected_text);
-}
-
-void
-sftp_download_files ()
-{
-	GtkWidget *dialog = NULL;
-	GSList *files = NULL;
-	gint result;
-	char *local_directory = NULL, *s_tmp;
-	char pattern[1024], remote_directory[1024] = "";
-	struct Connection *p_conn;
-	if (p_current_connection_tab == NULL)
-		return;
-	if (p_current_connection_tab->type != CONNECTION_REMOTE
-	    || p_current_connection_tab->ssh_info.ssh_node == NULL
-	    || p_current_connection_tab->ssh_info.ssh_node->sftp == NULL
-	   )
-		return;
-	if (sftp_panel_count_selected_rows () == 0)
-		return;
-	/* Get pointer to the entry in the main list, so user directory can be saved */
-	p_conn = get_connection_by_name (p_current_connection_tab->connection.name);
-	/* If not found (it appens when opening a recent connection which is not the list any more) use the copy */
-	if (p_conn == NULL) {
-		log_write ("Not found: %s. Using copy.", p_current_connection_tab->connection.name);
-		p_conn = & (p_current_connection_tab->connection);
-	}
-	if (prefs.flag_ask_download) {
-		dialog = gtk_file_chooser_dialog_new (_ ("Select folder for download"), GTK_WINDOW (main_window),
-		                                      GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER /*GTK_FILE_CHOOSER_ACTION_SAVE*/,
-		                                      "_Cancel", GTK_RESPONSE_CANCEL,
-		                                      "_Save", GTK_RESPONSE_ACCEPT,
-		                                      NULL);
-		gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
-		if (prefs.download_dir[0])
-			gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), prefs.download_dir);
-		else {
-			if (/*prefs.last_*/p_conn->download_dir[0])
-				gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), /*prefs.last_*/p_conn->download_dir);
-		}
-l_dwl_dialog:
-		result = gtk_dialog_run (GTK_DIALOG (dialog) );
-		if (result == GTK_RESPONSE_ACCEPT) {
-			local_directory = gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (dialog) );
-		}
-		if (dialog)
-			gtk_widget_destroy (dialog);
-	} else {
-		local_directory = (char *) malloc (sizeof (prefs.download_dir) );
-		memcpy (local_directory, prefs.download_dir, strlen (prefs.download_dir) + 1);
-	}
-	if (result == GTK_RESPONSE_ACCEPT && local_directory) {
-		files = sftp_panel_get_selected_files ();
-		//result = transfer_sftp (SFTP_ACTION_DOWNLOAD, files, &p_current_connection_tab->ssh_info, local_directory); // deprecated
-		result = sftp_queue_add (SFTP_ACTION_DOWNLOAD, files, &p_current_connection_tab->ssh_info, local_directory);
-		log_debug ("result = %d\n", result);
-		//if (result)
-		//  msgbox_error (transfer_get_error ());
-		strcpy (/*prefs.last_*/p_conn->download_dir, local_directory);
-		g_free (local_directory);
-	}
 }
 
 void
@@ -2275,23 +2118,6 @@ Debug ()
 		         x, y);
 		log_debug ("%s\n", buffer);
 	}
-	// Transfers dump
-	if (sftp_panel.queue) {
-		STransferInfo *pTi;
-		log_debug ("Transfers:\n");
-		lockSFTPQueue (__func__, TRUE);
-		for (i = 0; i < g_list_length (sftp_panel.queue); i++) {
-			pTi = (STransferInfo *) g_list_nth (sftp_panel.queue, i)->data;
-			log_debug ("[%d] %s %s %s\n",
-			           i,
-			           pTi->action == SFTP_ACTION_UPLOAD ? "up" : "down",
-			           getTransferStatusDesc (pTi->state),
-			           pTi->shortenedFilename
-			          );
-		}
-		lockSFTPQueue (__func__, FALSE);
-	}
-	sftp_panel_mirror_dump ();
 	log_debug ("[end]\n");
 }
 #endif
@@ -2754,34 +2580,11 @@ update_statusbar ()
 	//log_debug("set %s %s %s\n", s, encoding, protocol);
 	//log_debug ("Pushing msg...\n");
 	gtk_statusbar_push (GTK_STATUSBAR (sb_msg), 0, s);
-	/*
-	  int nUp, nDown;
-	  char transferReport[256];
-
-	  sftp_queue_count (&nUp, &nDown);
-	  sprintf (transferReport, "Uploads: %d, Downloads: %d", nUp, nDown);
-
-	  gtk_statusbar_push (GTK_STATUSBAR (sb_transfer), 0, transferReport);
-	*/
 	//log_debug ("Pushing encoding...\n");
 	gtk_statusbar_push (GTK_STATUSBAR (sb_enc), 0, encoding);
 	//log_debug ("Pushing protocol...\n");
 	gtk_statusbar_push (GTK_STATUSBAR (sb_protocol), 0, protocol);
 	//log_debug("End\n");
-}
-
-gboolean
-update_statusbar_upload_download ()
-{
-	int nUp, nDown;
-	char transferReport[256];
-	log_debug ("Getting number of uploads and downloads...\n");
-	sftp_queue_count (&nUp, &nDown);
-	sprintf (transferReport, "Uploads: %d, Downloads: %d", nUp, nDown);
-	log_debug ("%s\n", transferReport);
-	gtk_statusbar_pop (GTK_STATUSBAR (sb_transfer), 0);
-	gtk_statusbar_push (GTK_STATUSBAR (sb_transfer), 0, transferReport);
-	return (G_SOURCE_REMOVE);
 }
 
 /**
@@ -2792,47 +2595,6 @@ update_screen_info ()
 {
 	update_title ();
 	update_statusbar ();
-}
-
-void
-hyperlink_connect_host ()
-{
-	struct Connection *p_conn;
-	log_debug ("g_match.matched_string=%s\n", g_match.matched_string);
-	if (g_match.matched_string == NULL) return;
-	p_conn = get_connection_by_host (g_match.matched_string);
-	if (p_conn)
-		connection_log_on_param (p_conn);
-}
-
-void
-hyperlink_edit_host ()
-{
-	struct Connection *p_conn = NULL;
-	struct GroupNode *p_node = NULL;
-	log_debug ("g_match.matched_string=%s\n", g_match.matched_string);
-	if (g_match.matched_string == NULL) return;
-	p_conn = get_connection_by_host (g_match.matched_string);
-	if (p_conn)
-		p_node = group_node_find (group_tree_get_root (&g_groups), p_conn->name);
-	if (p_node)
-		p_node = add_update_connection (p_node, NULL);
-}
-
-void
-hyperlink_add_host ()
-{
-	struct Connection conn;
-	struct GroupNode *p_node;
-	log_debug ("g_match.matched_string=%s\n", g_match.matched_string);
-	if (g_match.matched_string == NULL) return;
-	memset (&conn, 0, sizeof (struct Connection) );
-	strcpy (conn.name, g_match.matched_string);
-	strcpy (conn.host, g_match.matched_string);
-	strcpy (conn.protocol, "ssh");
-	conn.port = 22;
-	//strcpy (conn.emulation, "xterm");
-	p_node = add_update_connection (NULL, &conn);
 }
 
 void
@@ -2986,10 +2748,6 @@ child_exited_cb (VteTerminal *vteterminal,
 		refreshTabStatus (p_ct);
 		log_debug ("Disconnecting\n");
 		lt_ssh_disconnect (&p_ct->ssh_info);
-		if (p_current_connection_tab == p_ct) {
-			log_debug ("Refreshing panel\n");
-			refresh_sftp_panel (&p_ct->ssh_info);
-		}
 		log_debug ("Checking protocol settings\n");
 		p_prot = get_protocol (&g_prot_list, p_ct->connection.protocol);
 		if (p_prot->flags & PROT_FLAG_DISCONNECTCLOSE)
@@ -3019,19 +2777,11 @@ eof_cb (VteTerminal *vteterminal, gpointer user_data)
 	p_ct = (struct ConnectionTab *) user_data;
 	log_write ("[%s] : %s\n", __func__, p_ct->connection.name);
 	connection_copy (&p_ct->last_connection, &p_ct->connection);
-	/*
-	  p_ct->connected = 0;
-	  p_ct->logged = 0;
-	  p_ct->auth_state = AUTH_STATE_NOT_LOGGED;
-	*/
 	tabInitConnection (p_ct);
 	update_screen_info ();
 	//connection_tab_set_status (p_ct, TAB_STATUS_DISCONNECTED);
 	refreshTabStatus (p_ct);
 	lt_ssh_disconnect (&p_ct->ssh_info);
-	if (p_current_connection_tab == p_ct)
-		refresh_sftp_panel (&p_ct->ssh_info);
-	//vte_terminal_feed (VTE_TERMINAL(p_ct->vte), "\n\rDisconnected. Hit enter to reconnect.\n\r", -1);
 }
 
 /**
@@ -3051,7 +2801,6 @@ button_press_event_cb (GtkWidget *widget, GdkEventButton *event, gpointer userda
 	GtkBorder *inner_border = NULL;
 	struct Connection *p_conn;
 	/* Get matched text */
-	//gtk_widget_style_get (widget, "inner-border", &inner_border, NULL);
 	col = (event->x - (inner_border ? inner_border->left : 0) ) / vte_terminal_get_char_width (vte);
 	row = (event->y - (inner_border ? inner_border->top : 0) ) / vte_terminal_get_char_height (vte);
 	//gtk_border_free (inner_border);
@@ -3070,15 +2819,6 @@ button_press_event_cb (GtkWidget *widget, GdkEventButton *event, gpointer userda
 			else
 				terminal_popup_menu (event);
 			return TRUE;
-		} else if (event->button == 1) {
-			//log_write ("Left button pressed\n");
-			if (prefs.hyperlink_click_enabled && g_match.matched_string) {
-				if (p_conn = get_connection_by_host (g_match.matched_string) )
-					hyperlink_connect_host ();
-				else
-					hyperlink_add_host ();
-				return TRUE;
-			}
 		}
 	}
 	return FALSE;
@@ -3109,11 +2849,6 @@ window_title_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 		/* update session file */
 		if (!prefs.save_session)
 			save_session_file (NULL);
-	} else {
-		if (lt_ssh_is_connected (&p_ct->ssh_info) ) {
-			if (p_ct->ssh_info.follow_terminal_folder)
-				follow_terminal_folder ();
-		}
 	}
 	update_title ();
 }
@@ -3388,10 +3123,6 @@ key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 			//connection_tab_set_status (p_current_connection_tab, TAB_STATUS_NORMAL);
 			refreshTabStatus (p_current_connection_tab);
 			update_screen_info ();
-			if (lt_ssh_is_connected (&p_current_connection_tab->ssh_info) ) {
-				sftp_refresh_directory_list (&p_current_connection_tab->ssh_info);
-				refresh_sftp_panel (&p_current_connection_tab->ssh_info);
-			}
 		}
 	}
 	log_debug ("end\n");
@@ -3418,10 +3149,6 @@ update_by_tab (struct ConnectionTab *pTab)
 	//connection_tab_set_status (pTab, TAB_STATUS_NORMAL);
 	refreshTabStatus (pTab);
 	select_current_profile_menu_item (pTab);
-	log_debug ("Refresh directory\n");
-	refresh_sftp_panel (&p_current_connection_tab->ssh_info);
-	log_debug ("Refresh history\n");
-	refresh_panel_history ();
 	log_debug ("Completed\n");
 }
 
@@ -3437,19 +3164,6 @@ notebook_switch_page_cb (GtkNotebook *notebook, GtkWidget *page, gint page_num, 
 	child = gtk_notebook_get_nth_page (notebook, page_num);
 	p_current_connection_tab = get_connection_tab_from_child (child); /* try with g_list_find () */
 	log_write ("Page name: %s\n", p_current_connection_tab->connection.name);
-	/*
-	  update_screen_info ();
-
-	  connection_tab_set_status (p_current_connection_tab, TAB_STATUS_NORMAL);
-
-	  select_current_profile_menu_item (p_current_connection_tab);
-
-	  log_debug ("Refresh directory for page %d\n", page_num);
-	  refresh_sftp_panel (&p_current_connection_tab->ssh_info);
-	  refresh_panel_history ();
-
-	  log_debug ("Completed for page %d\n", page_num);
-	*/
 	update_by_tab (p_current_connection_tab);
 	switch_tab_enabled = TRUE;
 }
@@ -3682,13 +3396,8 @@ start_gtk (int argc, char **argv)
 	/* quick launch window */
 	log_write ("Creating quick launch window...\n");
 	create_quick_launch_window (&g_quick_launch_window);
-	/* sftp panel */
-	log_write ("Creating sftp panel...\n");
-	GtkWidget *vbox_sftp = create_sftp_panel ();
 	gtk_notebook_append_page (GTK_NOTEBOOK (notebook_sidebar), g_quick_launch_window.vbox,
 	                          gtk_widget_new (GTK_TYPE_LABEL, "label", "Connections", "xalign", 0.0, NULL) );
-	gtk_notebook_append_page (GTK_NOTEBOOK (notebook_sidebar), vbox_sftp,
-	                          gtk_widget_new (GTK_TYPE_LABEL, "label", "SFTP", "xalign", 0.0, NULL) );
 	//gtk_box_pack_start (GTK_BOX (hbox_workspace), g_quick_launch_window.vbox, FALSE, FALSE, 0);
 	/*
 	  align_sidebar = gtk_alignment_new (0, 0, 0, 1);
@@ -3736,10 +3445,6 @@ start_gtk (int argc, char **argv)
 	if (globals.upgraded) {
 		profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "package_version", VERSION);
 		msgbox_info ("Congratulations, you just upgraded to version %s", VERSION);
-		if (!cmpver (VERSION, "1.4.1") ) {
-			if (prefs.sftp_buffer < 128 * 1024)
-				prefs.sftp_buffer = 128 * 1024;
-		}
 	}
 	/* init list of connections for the first time, needed by terminal popup menu */
 	log_write ("Loading connections...\n");
@@ -3750,6 +3455,4 @@ start_gtk (int argc, char **argv)
 	/* Ensure that buttons images will be shown */
 	GtkSettings *default_settings = gtk_settings_get_default ();
 	g_object_set (default_settings, "gtk-button-images", TRUE, NULL);
-	sftp_spinner_stop ();
-	sftp_end ();
 }

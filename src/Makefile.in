@@ -102,8 +102,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am_lterm_OBJECTS = connection.$(OBJEXT) gui.$(OBJEXT) main.$(OBJEXT) \
 	preferences.$(OBJEXT) profile.$(OBJEXT) protocol.$(OBJEXT) \
 	utils.$(OBJEXT) grouptree.$(OBJEXT) connection_list.$(OBJEXT) \
-	xml.$(OBJEXT) sftp-panel.$(OBJEXT) ssh.$(OBJEXT) \
-	terminal.$(OBJEXT) async.$(OBJEXT) transfer_window.$(OBJEXT)
+	xml.$(OBJEXT) ssh.$(OBJEXT) terminal.$(OBJEXT) async.$(OBJEXT)
 lterm_OBJECTS = $(am_lterm_OBJECTS)
 lterm_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -274,11 +273,9 @@ lterm_SOURCES = \
   grouptree.h grouptree.c \
   connection_list.h connection_list.c \
   xml.h xml.c \
-  sftp-panel.c sftp-panel.h \
   ssh.c ssh.h \
   terminal.h terminal.c \
-  async.h async.c \
-  transfer_window.h transfer_window.c
+  async.h async.c
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -391,10 +388,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/preferences.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/profile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/protocol.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sftp-panel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ssh.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/terminal.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/transfer_window.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xml.Po@am__quote@
 

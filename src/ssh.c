@@ -30,7 +30,6 @@
 #include "main.h"
 #include "utils.h"
 #include "ssh.h"
-#include "sftp-panel.h"
 #include "connection_list.h"
 
 extern Globals globals;
@@ -149,8 +148,6 @@ ssh_list_keepalive (struct SSH_List *p_ssh_list)
 	while (node) {
 		if ( (rc = ssh_node_keepalive (node) ) != 0) {
 			log_debug ("can't ping %s rc=%d\n", node->host, rc);
-			//node->session = NULL;
-			//node->sftp = NULL;
 		}
 		node = node->next;
 	}
@@ -176,11 +173,8 @@ ssh_node_connect (struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth)
 			return (NULL);
 		}
 		/* check node validity */
-		//if (valid)
-		//  {
 		ssh_channel c;
 		log_write ("Tryng to open a channel on %s@%s\n", p_auth->user, p_auth->host);
-		sftp_spinner_refresh ();
 		if (c = ssh_node_open_channel (p_node) ) {
 			log_write ("Channel successfully opened, close it and return\n");
 			ssh_channel_close (c);
@@ -189,7 +183,6 @@ ssh_node_connect (struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth)
 			return (p_node);
 		} else
 			valid = 0;
-		//  }
 		if (!valid) {
 			log_write ("Not a valid node for to %s@%s, recreate it\n", p_auth->user, p_auth->host);
 			node.refcount = p_node->refcount;
@@ -204,7 +197,6 @@ ssh_node_connect (struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth)
 	ssh_options_set (node.session, SSH_OPTIONS_USER, p_auth->user);
 	ssh_options_set (node.session, SSH_OPTIONS_PORT, &p_auth->port);
 	ssh_options_set (node.session, SSH_OPTIONS_TIMEOUT, &prefs.ssh_timeout);
-	sftp_set_status ("Connecting to %s@%s...", p_auth->user, p_auth->host);
 	rc = ssh_connect (node.session);
 	if (rc != SSH_OK) {
 		sprintf (p_auth->error_s, "%s", ssh_get_error (node.session) );
@@ -222,13 +214,9 @@ ssh_node_connect (struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth)
 	  }
 	*/
 l_auth:
-	sftp_set_status ("Authenticating %s@%s...", p_auth->user, p_auth->host);
 	/* get authentication methods */
-	while (ssh_userauth_none (node.session, NULL) == SSH_AUTH_AGAIN)
-		sftp_spinner_refresh ();
 	if (p_auth->mode == CONN_AUTH_MODE_KEY) {
 		log_write ("Authentication by key\n");
-		sftp_spinner_refresh ();
 		if (p_auth->identityFile[0])
 			ssh_options_set (node.session, SSH_OPTIONS_IDENTITY, p_auth->identityFile);
 #if LIBSSH_VERSION_INT >= SSH_VERSION_INT(0, 6, 0)
@@ -237,26 +225,20 @@ l_auth:
 		rc = ssh_userauth_autopubkey (node.session, NULL);
 #endif
 	} else {
-		sftp_spinner_refresh ();
 		node.auth_methods = ssh_userauth_list (node.session, NULL);
 		log_write ("auth methods for %s@%s: %d\n", p_auth->user, p_auth->host, node.auth_methods);
 		if (node.auth_methods & SSH_AUTH_METHOD_PASSWORD) {
 			gsize bytes_read, bytes_written;
-			//rc = ssh_userauth_password (node.session, NULL, p_auth->password);
-			sftp_spinner_refresh ();
 			rc = ssh_userauth_password (node.session, NULL,
 			                            g_convert (p_auth->password, strlen (p_auth->password),
 			                                       "UTF8", "ISO-8859-1", &bytes_read, &bytes_written, &error)
 			                           );
 			log_write ("auth method password returns %d\n", rc);
 		} else if (node.auth_methods & SSH_AUTH_METHOD_INTERACTIVE) {
-			sftp_spinner_refresh ();
 			rc = ssh_userauth_kbdint (node.session, NULL, NULL);
 			log_write ("auth method interactive: ssh_userauth_kbdint() returns %d\n", rc);
 			if (rc == SSH_AUTH_INFO) {
-				sftp_spinner_refresh ();
 				ssh_userauth_kbdint_setanswer (node.session, 0, p_auth->password);
-				sftp_spinner_refresh ();
 				rc = ssh_userauth_kbdint (node.session, NULL, NULL);
 				log_write ("auth method interactive: ssh_userauth_kbdint() returns %d\n", rc);
 			} else
@@ -274,31 +256,12 @@ l_auth:
 		sprintf (p_auth->error_s, "Authentication error %d: %s", rc, ssh_get_error (node.session) );
 		if (rc == SSH_AUTH_AGAIN) {
 			log_write ("%s: SSH_AUTH_AGAIN\n", p_auth->host);
-			sftp_spinner_refresh ();
 			goto l_auth;
 		}
 		p_auth->error_code = SSH_ERR_AUTH;
 		ssh_disconnect (node.session);
 		ssh_free (node.session);
 		return (NULL);
-	}
-	/* create an sftp session */
-	sftp_set_status ("Creating sftp session on %s@%s...", p_auth->user, p_auth->host);
-	node.sftp = sftp_new (node.session);
-	if (node.sftp == NULL) {
-		sprintf (p_auth->error_s, "%s", ssh_get_error (node.session) );
-		node.sftp = NULL;
-		//return (1);
-	} else {
-		sftp_set_status ("Initializing SFTP session on %s@%s...", p_auth->user, p_auth->host);
-		rc = sftp_init (node.sftp);
-		if (rc != SSH_OK) {
-			sprintf (p_auth->error_s, "%d", sftp_get_error (node.sftp) );
-			sftp_free (node.sftp);
-			node.sftp = NULL;
-			//return (2);
-		}
-		sftp_set_status ("%s", rc == 0 ? "sftp connected" : p_auth->error_s);
 	}
 	if (p_node)
 		memcpy (p_node, &node, sizeof (struct SSH_Node) ); /* recreated */
@@ -319,12 +282,6 @@ l_auth:
 void
 ssh_node_free (struct SSH_Node *p_ssh_node)
 {
-	////////////////////////////////
-	//lockSSH (__func__, TRUE);
-	if (p_ssh_node->sftp) {
-		sftp_free (p_ssh_node->sftp);
-		p_ssh_node->sftp = NULL;
-	}
 	if (p_ssh_node->session) {
 		if (ssh_is_connected (p_ssh_node->session) ) {
 			log_write ("disconnecting node %s@%s\n", p_ssh_node->user, p_ssh_node->host);
@@ -336,8 +293,6 @@ ssh_node_free (struct SSH_Node *p_ssh_node)
 	}
 	p_ssh_node->refcount = 0;
 	ssh_node_set_validity (p_ssh_node, 0);
-	//lockSSH (__func__, FALSE);
-	////////////////////////////////
 }
 
 void
@@ -352,8 +307,6 @@ ssh_node_unref (struct SSH_Node *p_ssh_node)
 	p_ssh_node->refcount --;
 	if (p_ssh_node->refcount == 0) {
 		log_write ("Removing watch file descriptors for %s@%s if any\n", p_ssh_node->user, p_ssh_node->host);
-		int nDel = sftp_panel_mirror_file_clear (p_ssh_node, 0);
-		log_write ("Removed %d\n", nDel);
 		log_debug ("Removing node %s@%s\n", p_ssh_node->user, p_ssh_node->host);
 		ssh_node_free (p_ssh_node);
 		ssh_list_remove (&globals.ssh_list, p_ssh_node);
@@ -433,15 +386,6 @@ ssh_node_keepalive (struct SSH_Node *p_ssh_node)
 		ssh_channel_free (channel);
 		return (3);
 	}
-	/*
-	  if (ssh_channel_request_env (p_ssh_node->channel, "__TEST", "test") == SSH_ERROR
-	      && ssh_get_error_code (p_ssh_node->session) == SSH_FATAL)
-	    {
-	      //ssh_channel_close (channel);
-	      //ssh_channel_free (channel);
-	      return (4);
-	    }
-	*/
 	ssh_channel_close (channel);
 	ssh_channel_free (channel);
 	return (0);
@@ -453,90 +397,6 @@ ssh_node_update_time (struct SSH_Node *p_ssh_node)
 	if (p_ssh_node)
 		p_ssh_node->last = time (NULL);
 	log_write ("%s: timestamp updated\n", p_ssh_node->host);
-}
-
-/* Directory list functions */
-
-void
-dl_init (struct Directory_List *p_dl)
-{
-	p_dl->head = NULL;
-	p_dl->tail = NULL;
-	p_dl->count = 0;
-}
-
-void
-dl_release_chain (struct Directory_Entry *p_head)
-{
-	if (p_head) {
-		dl_release_chain (p_head->next);
-		free (p_head);
-	}
-}
-
-void
-dl_release (struct Directory_List *p_dl)
-{
-	if (!p_dl->head)
-		return;
-	dl_release_chain (p_dl->head);
-	p_dl->head = 0;
-	p_dl->tail = 0;
-}
-
-void
-dl_append (struct Directory_List *p_dl, struct Directory_Entry *p_new)
-{
-	struct Directory_Entry *p_new_decl;
-	p_new_decl = (struct Directory_Entry *) malloc (sizeof (struct Directory_Entry) );
-	memset (p_new_decl, 0, sizeof (struct Directory_Entry) );
-	memcpy (p_new_decl, p_new, sizeof (struct Directory_Entry) );
-	p_new_decl->next = 0;
-	if (p_dl->head == 0) {
-		p_dl->head = p_new_decl;
-		p_dl->tail = p_new_decl;
-	} else {
-		p_dl->tail->next = p_new_decl;
-		p_dl->tail = p_new_decl;
-	}
-	if (!is_hidden_file (p_new) )
-		p_dl->count ++;
-}
-
-int
-is_hidden_file (struct Directory_Entry *entry)
-{
-	return (entry->name[0] == '.');
-}
-
-int
-is_directory (struct Directory_Entry *entry)
-{
-	return (entry->type == SSH_FILEXFER_TYPE_DIRECTORY);
-}
-
-struct Directory_Entry *
-dl_search_by_name (struct Directory_List *p_dl, char *name)
-{
-	struct Directory_Entry *e;
-	e = p_dl->head;
-	while (e) {
-		if (!strcmp (e->name, name) )
-			return (e);
-		e = e->next;
-	}
-	return (NULL);
-}
-
-void
-dl_dump (struct Directory_List *p_dl)
-{
-	struct Directory_Entry *e;
-	e = p_dl->head;
-	while (e) {
-		printf ("%s\t%s\t%llu\t%lu\n", e->name, e->type == SSH_FILEXFER_TYPE_DIRECTORY ? "[dir]" : "", e->size, e->mtime);
-		e = e->next;
-	}
 }
 
 /* SSH management functions */
@@ -643,7 +503,6 @@ lt_ssh_connect (struct SSH_Info *p_ssh, struct SSH_List *p_ssh_list, struct SSH_
 	int rc = 0;
 	////////////////////////////////
 	lockSSH (__func__, TRUE);
-	sftp_spinner_start ();
 	if ( (p_node = ssh_node_connect (p_ssh_list, p_auth) ) == NULL) {
 		//sprintf (p_ssh->error_s, "%s", ssh_get_error (p_ssh->ssh_node->session));
 		sprintf (p_ssh->error_s, "%s", p_auth->error_s);
@@ -652,8 +511,6 @@ lt_ssh_connect (struct SSH_Info *p_ssh, struct SSH_List *p_ssh_list, struct SSH_
 		p_ssh->ssh_node = p_node;
 		lt_ssh_getenv (p_ssh, "HOME", p_ssh->home);
 	}
-	sftp_clear_status ();
-	sftp_spinner_stop ();
 	lockSSH (__func__, FALSE);
 	////////////////////////////////
 	return (rc);
@@ -681,7 +538,7 @@ lt_ssh_is_connected (struct SSH_Info *p_ssh)
 	log_debug ("\n");
 	if (p_ssh) {
 		if (p_ssh->ssh_node) {
-			if (p_ssh->ssh_node->session == NULL || p_ssh->ssh_node->sftp == NULL)
+			if (p_ssh->ssh_node->session == NULL)
 				connected = 0;
 		} else
 			connected = 0;
@@ -743,131 +600,6 @@ lt_ssh_getenv (struct SSH_Info *p_ssh, char *variable, char *value)
 	////////////////////////////////
 	return (0);
 }
-/*
-int
-lt_sftp_create (struct SSH_Info *p_ssh)
-{
-  //sftp_session sftp;
-  int rc;
-
-  p_ssh->ssh_node->sftp = sftp_new (p_ssh->ssh_node->session);
-
-  if (p_ssh->ssh_node->sftp == NULL)
-    {
-      sprintf (p_ssh->error_s, "%s", ssh_get_error (p_ssh->ssh_node->session));
-      p_ssh->ssh_node->sftp = NULL;
-      return (1);
-    }
-
-  sftp_set_status ("initializing sftp");
-
-  rc = sftp_init (p_ssh->ssh_node->sftp);
-
-  if (rc != SSH_OK)
-    {
-      sprintf (p_ssh->error_s, "%d", sftp_get_error (p_ssh->ssh_node->sftp));
-      sftp_free (p_ssh->ssh_node->sftp);
-      p_ssh->ssh_node->sftp = NULL;
-      return (2);
-    }
-
-  return (0);
-}
-*/
-void
-sftp_normalize_directory (struct SSH_Info *p_ssh, char *path)
-{
-	char *tmp;
-	trim (path);
-	if (strcmp (path, "/") != 0) {
-		if (path[strlen (path) - 1] == '/')
-			path[strlen (path) - 1] = 0;
-	}
-	tmp = replace_str (path, "//", "/");
-	strcpy (path, tmp);
-	if (lt_ssh_is_connected (p_ssh) ) {
-		tmp = replace_str (path, "~", p_ssh->home);
-		strcpy (path, tmp);
-	}
-}
-
-int
-sftp_refresh_directory_list (struct SSH_Info *p_ssh)
-{
-	int n, nh = 0, retCode = 0;
-	struct Directory_Entry entry;
-	sftp_dir dir;
-	sftp_attributes attributes;
-	char /*home[256],*/ *tmp;
-	////////////////////////////////
-	lockSSH (__func__, TRUE);
-	if (!lt_ssh_is_connected (p_ssh) )
-		return (1);
-	log_debug ("$HOME=%s\n", p_ssh->home);
-	if (p_ssh->directory[0]) {
-		tmp = replace_str (p_ssh->directory, "~", p_ssh->home);
-		strcpy (p_ssh->directory, tmp);
-	} else
-		strcpy (p_ssh->directory, p_ssh->home);
-	sftp_set_status (_ ("Opening directory %s..."), p_ssh->directory);
-	/* set timeout */
-	/*
-	  signal (SIGALRM, AlarmHandler);
-	  sTimeout = 0;
-	  alarm (2);
-	*/
-	timerStart (2);
-	dir = sftp_opendir (p_ssh->ssh_node->sftp, p_ssh->directory[0] ? p_ssh->directory : ".");
-	if (timedOut () ) {
-		log_write ("Timeout!\n");
-		dir = NULL;
-	}
-	/*
-	  signal (SIGALRM, SIG_DFL);
-	  sTimeout = 0;
-	  alarm (0);
-	*/
-	timerStop ();
-	if (dir) {
-		dl_release (&p_ssh->dirlist);
-		sftp_set_status (_ ("Reading directory %s..."), p_ssh->directory);
-		sftp_spinner_start ();
-		sftp_begin ();
-		n = 0;
-		while ( (attributes = sftp_readdir (p_ssh->ssh_node->sftp, dir) ) != NULL) {
-			if (sftp_stoped_by_user () )
-				break;
-			memset (&entry, 0, sizeof (struct Directory_Entry) );
-			strcpy (entry.name, attributes->name);
-			entry.type = attributes->type;
-			entry.size = attributes->size;
-			entry.mtime = attributes->mtime;
-			//log_debug ("appending %s\n", entry.name);
-			strcpy (entry.owner, attributes->owner ? attributes->owner : "?");
-			strcpy (entry.group, attributes->group ? attributes->group : "?");
-			entry.permissions = attributes->permissions;
-			dl_append (&p_ssh->dirlist, &entry);
-			sftp_attributes_free (attributes);
-			n ++;
-			if (is_hidden_file (&entry) )
-				nh ++;
-			if ( (n >= 200) && (n % 100 == 0) )
-				sftp_set_status (_ ("Reading directory %s (%d files)..."), p_ssh->directory, n);
-		}
-		sftp_closedir (dir);
-		ssh_node_update_time (p_ssh->ssh_node);
-		//sftp_set_status (_("%d file%s in %s (%d hidden)"), n, n != 1 ? "s" : "", p_ssh->directory, nh);
-		update_statusbar ();
-		//dl_dump (&p_ssh->dirlist);
-		sftp_spinner_stop ();
-		sftp_end ();
-	} else
-		retCode = 2;
-	lockSSH (__func__, FALSE);
-	////////////////////////////////
-	return (retCode);
-}
-
 int
 lt_ssh_exec (struct SSH_Info *p_ssh, char *command, char *output, int outlen, char *error, int errlen)
 {

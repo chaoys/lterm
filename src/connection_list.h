@@ -52,9 +52,6 @@ typedef struct Connection {
 	char directory[256]; /* e.g. samba condivision folder */
 	unsigned int flags;
 	char note[MAX_NOTE_LEN];
-	char sftp_dir[1024];
-	char upload_dir[1024];
-	char download_dir[1024];
 	//int x11Forwarding;
 	char identityFile[1024];
 	//int disableStrictKeyChecking;

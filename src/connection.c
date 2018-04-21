@@ -181,9 +181,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         "%*s  <directory>%s</directory>\n"
 	         "%*s  <user_options>%s</user_options>\n"
 	         "%*s  <note>%s</note>\n"
-	         "%*s  <sftp_dir>%s</sftp_dir>\n"
-	         "%*s  <upload_dir>%s</upload_dir>\n"
-	         "%*s  <download_dir>%s</download_dir>\n"
 	         //"%*s  <x11Forwarding>%d</x11Forwarding>\n",
 	         "%*s  <options>\n"
 	         "%*s    <property name='x11Forwarding'>%d</property>\n"
@@ -205,9 +202,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         indent, " ", p_conn->directory[0] ? g_markup_escape_text (p_conn->directory, strlen (p_conn->directory) ) : "",
 	         indent, " ", p_conn->user_options,
 	         indent, " ", p_conn->note[0] ? g_markup_escape_text (p_conn->note, strlen (p_conn->note) ) : "",
-	         indent, " ", p_conn->sftp_dir[0] ? g_markup_escape_text (p_conn->sftp_dir, strlen (p_conn->sftp_dir) ) : "",
-	         indent, " ", p_conn->upload_dir[0] ? g_markup_escape_text (p_conn->upload_dir, strlen (p_conn->upload_dir) ) : "",
-	         indent, " ", p_conn->download_dir[0] ? g_markup_escape_text (p_conn->download_dir, strlen (p_conn->download_dir) ) : "",
 	         indent, " ",
 	         indent, " ", p_conn->sshOptions.x11Forwarding,
 	         indent, " ", p_conn->sshOptions.agentForwarding,
@@ -404,10 +398,6 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 			child = child->next;
 		}
 	}
-	if (child = xml_node_get_child (node, "upload_dir") )
-		strcpy (pConn->upload_dir, NVL (xml_node_get_value (child), "") );
-	if (child = xml_node_get_child (node, "download_dir") )
-		strcpy (pConn->download_dir, NVL (xml_node_get_value (child), "") );
 	// Deprecated: use options node
 	if (child = xml_node_get_child (node, "x11Forwarding") ) {
 		//log_debug ("x11Forwarding\n");

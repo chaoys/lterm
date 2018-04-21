@@ -281,25 +281,7 @@ show_preferences ()
 	          GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 	          GTK_STOCK_OK, GTK_RESPONSE_OK,
 	          NULL);
-	/*gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
-	gtk_window_set_position (GTK_WINDOW (dialog), GTK_WIN_POS_CENTER);*/
 	gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (dialog) ), GTK_WINDOW (main_window) );
-	//gtk_box_set_spacing (GTK_BOX(gtk_dialog_get_content_area (GTK_DIALOG (dialog))), 10);
-	//gtk_container_set_border_width (GTK_CONTAINER (dialog), 5);
-	/* check rgba capabilities */
-	/*
-		GdkScreen *screen = gtk_widget_get_screen (GTK_WIDGET (dialog));
-		GdkVisual *visual = gdk_screen_get_rgba_visual (screen);
-		if (visual != NULL && gdk_screen_is_composited (screen))
-	    {
-			  gtk_widget_set_visual (GTK_WIDGET (dialog), visual);
-			  log_write ("[%s] RGBA capabilities OK\n", __func__);
-		  }
-	  else
-	    {
-			  log_write ("[%s] can't get visual, no rgba capabilities!\n", __func__);
-		  }
-	*/
 	notebook = GTK_WIDGET (gtk_builder_get_object (builder, "notebook1") );
 	/* startup */
 	GtkWidget *startlocal_check = GTK_WIDGET (gtk_builder_get_object (builder, "check_startlocal") );
@@ -382,31 +364,13 @@ show_preferences ()
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (scroll_on_keystroke_check), prefs.scroll_on_keystroke);
 	GtkWidget *scroll_on_output_check = GTK_WIDGET (gtk_builder_get_object (builder, "check_scrolloutput") );
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (scroll_on_output_check), prefs.scroll_on_output);
-	/* sftp */
-	GtkWidget *spin_buffer = GTK_WIDGET (gtk_builder_get_object (builder, "spin_buffer") );
-	gtk_spin_button_set_value (GTK_SPIN_BUTTON (spin_buffer), (int) prefs.sftp_buffer / 1024);
 	GtkWidget *radio_ask = GTK_WIDGET (gtk_builder_get_object (builder, "radio_ask") );
 	GtkWidget *radio_dir = GTK_WIDGET (gtk_builder_get_object (builder, "radio_dir") );
 	GtkWidget *entry_download_dir = GTK_WIDGET (gtk_builder_get_object (builder, "entry_download_dir") );
-	gtk_entry_set_text (GTK_ENTRY (entry_download_dir), prefs.download_dir);
 	g_signal_connect (radio_ask, "toggled", G_CALLBACK (radio_ask_cb), entry_download_dir);
 	g_signal_connect (radio_dir, "toggled", G_CALLBACK (radio_dir_cb), entry_download_dir);
-	if (prefs.flag_ask_download) {
-		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_ask), TRUE);
-		gtk_widget_set_state_flags (entry_download_dir, GTK_STATE_FLAG_INSENSITIVE, TRUE);
-	} else {
-		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_dir), TRUE);
-		gtk_widget_set_state_flags (entry_download_dir, GTK_STATE_FLAG_NORMAL, TRUE);
-	}
-	GtkWidget *entry_text_editor = GTK_WIDGET (gtk_builder_get_object (builder, "entry_text_editor") );
-	gtk_entry_set_text (GTK_ENTRY (entry_text_editor), prefs.text_editor);
-	//GtkWidget *entry_uri = GTK_WIDGET (gtk_builder_get_object (builder, "entry_uri"));
-	//gtk_entry_set_text (GTK_ENTRY (entry_uri), prefs.sftp_open_file_uri);
-	/* Hyperlinks */
-	GtkWidget *check_hyperlink_tooltip = GTK_WIDGET (gtk_builder_get_object (builder, "check_hyperlink_tooltip") );
-	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_hyperlink_tooltip), prefs.hyperlink_tooltip_enabled);
-	GtkWidget *check_hyperlink_leftmouse = GTK_WIDGET (gtk_builder_get_object (builder, "check_hyperlink_leftmouse") );
-	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_hyperlink_leftmouse), prefs.hyperlink_click_enabled);
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_dir), TRUE);
+	gtk_widget_set_state_flags (entry_download_dir, GTK_STATE_FLAG_NORMAL, TRUE);
 	refresh_profiles_list_store ();
 	gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), notebook);
 	gtk_widget_show_all (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) );
@@ -425,16 +389,9 @@ show_preferences ()
 		prefs.scrollback_lines = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (spin_button) );
 		prefs.scroll_on_keystroke = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (scroll_on_keystroke_check) ) ? 1 : 0;
 		prefs.scroll_on_output = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (scroll_on_output_check) ) ? 1 : 0;
-		prefs.sftp_buffer = 1024 * gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (spin_buffer) );
-		prefs.flag_ask_download = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (radio_ask) ) ? 1 : 0;
-		strcpy (prefs.download_dir, gtk_entry_get_text (GTK_ENTRY (entry_download_dir) ) );
-		strcpy (prefs.text_editor, gtk_entry_get_text (GTK_ENTRY (entry_text_editor) ) );
-		//strcpy (prefs.sftp_open_file_uri, gtk_entry_get_text (GTK_ENTRY (entry_uri)));
 		if (p_profile = profile_get_by_position (&g_profile_list,
 		                gtk_combo_box_get_active (GTK_COMBO_BOX (default_profile_combo) ) ) )
 			g_profile_list.id_default = p_profile->id;
-		prefs.hyperlink_tooltip_enabled = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_hyperlink_tooltip) ) ? 1 : 0;
-		prefs.hyperlink_click_enabled = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_hyperlink_leftmouse) ) ? 1 : 0;
 		apply_preferences ();
 		update_all_profiles ();
 		//break;

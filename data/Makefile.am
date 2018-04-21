@@ -1,12 +1,12 @@
 EXTRA_DIST = credits.txt lterm.desktop.in lterm.xml \
-             preferences.glade profile.glade transfer.glade edit-connection.glade sftp.glade login.glade \
-             find.glade credits.glade cluster.glade time.glade transfer-item.glade \
+             preferences.glade profile.glade edit-connection.glade login.glade \
+             find.glade credits.glade cluster.glade time.glade \
              additionals.xml types.xml PuttyExportTemplate.txt
 
 pkgdatadir = $(datadir)/$(PACKAGE)/data
 pkgdata_DATA = credits.txt lterm.desktop.in lterm.xml \
-             preferences.glade profile.glade transfer.glade edit-connection.glade sftp.glade login.glade \
-             find.glade credits.glade  cluster.glade time.glade transfer-item.glade \
+             preferences.glade profile.glade edit-connection.glade login.glade \
+             find.glade credits.glade  cluster.glade time.glade \
              additionals.xml types.xml PuttyExportTemplate.txt
 
 desktopdir = $(datadir)/applications

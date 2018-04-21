@@ -134,19 +134,8 @@ struct _prefs {
 	int save_session;
 	int checkpoint_interval;
 
-	int sftp_buffer;
-	int flag_ask_download;
-	char download_dir[512];
-	char text_editor[128];
-	char sftp_open_file_uri[1024];
 	int ssh_keepalive;
 	int ssh_timeout;
-	char sftp_panel_background[64];
-	//char last_upload_dir[256];
-	//char last_download_dir[256];
-
-	int hyperlink_tooltip_enabled;
-	int hyperlink_click_enabled;
 
 	char tempDir[1024];
 };

@@ -41,7 +41,6 @@
 #include "connection.h"
 #include "protocol.h"
 #include "ssh.h"
-#include "sftp-panel.h"
 #include "utils.h"
 #include "config.h"
 #include "async.h"
@@ -174,9 +173,6 @@ lterm_iteration ()
 				break;
 			case ITERATION_REFRESH_TREE_VIEW:
 				refresh_connection_tree_view ( (struct GtkTreeView *) ifr_function.user_data);
-				break;
-			case ITERATION_REFRESH_SFTP_PANEL:
-				refresh_current_sftp_panel ();
 				break;
 			case ITERATION_CLOSE_TAB:
 				connection_tab_close ( (SConnectionTab *) ifr_function.user_data);
@@ -413,8 +409,6 @@ main (int argc, char *argv[])
 	log_write ("Saving profiles...\n");
 	save_profiles (&g_profile_list, globals.profiles_file);
 	profile_list_release (&g_profile_list);
-	log_write ("Removing all watch file descriptors...\n");
-	sftp_panel_mirror_file_clear (NULL, 1);
 	g_object_unref (application);
 	log_write ("End\n");
 	return 0;
@@ -455,8 +449,6 @@ load_settings ()
 	prefs.save_session = profile_load_int (globals.conf_file, "general", "save_session", 0);
 	prefs.checkpoint_interval = profile_load_int (globals.conf_file, "general", "checkpoint_interval", 5);
 	profile_load_string (globals.conf_file, "general", "font_fixed", prefs.font_fixed, DEFAULT_FIXED_FONT);
-	prefs.hyperlink_tooltip_enabled = profile_load_int (globals.conf_file, "general", "hyperlink_tooltip_enabled", 1);
-	prefs.hyperlink_click_enabled = profile_load_int (globals.conf_file, "general", "hyperlink_click_enabled", 1);
 	profile_load_string (globals.conf_file, "general", "tempDir", prefs.tempDir, globals.app_dir/*"/tmp"*/);
 	prefs.startup_show_connections = profile_load_int (globals.conf_file, "TERMINAL", "startup_show_connections", 0);
 	prefs.startup_local_shell = switch_local ? 1 : profile_load_int (globals.conf_file, "TERMINAL", "startup_local_shell", 1);
@@ -484,31 +476,6 @@ load_settings ()
 	profile_load_string (globals.conf_file, "GUI", "tab_status_disconnected_alert_color", prefs.tab_status_disconnected_alert_color, "darkred");
 	prefs.show_sidebar = profile_load_int (globals.conf_file, "GUI", "show_sidebar", 1);
 	profile_load_string (globals.conf_file, "GUI", "font_quick_launch_window", prefs.font_quick_launch_window, "Sans 9");
-	prefs.sftp_buffer = profile_load_int (globals.conf_file, "SFTP", "sftp_buffer", 128 * 1024);
-	prefs.flag_ask_download = profile_load_int (globals.conf_file, "SFTP", "flag_ask_download", 1);
-	profile_load_string (globals.conf_file, "SFTP", "download_directory", prefs.download_dir, "");
-	profile_load_string (globals.conf_file, "SFTP", "text_editor", prefs.text_editor, "");
-	if (prefs.text_editor[0] == 0) {
-		switch (get_desktop_environment () ) {
-			case DE_GNOME:
-			case DE_CINNAMON:
-				strcpy (prefs.text_editor, "gedit");
-				break;
-			case DE_KDE:
-				strcpy (prefs.text_editor, "kate");
-				break;
-			case DE_XFCE:
-				strcpy (prefs.text_editor, "mousepad");
-				break;
-			default:
-				strcpy (prefs.text_editor, "gedit");
-				break;
-		}
-	}
-	profile_load_string (globals.conf_file, "SFTP", "sftp_open_file_uri", prefs.sftp_open_file_uri, "sftp://%u@%h/%f");
-	prefs.ssh_keepalive = profile_load_int (globals.conf_file, "SFTP", "ssh_keepalive", 10);
-	prefs.ssh_timeout = profile_load_int (globals.conf_file, "SFTP", "ssh_timeout", 3);
-	profile_load_string (globals.conf_file, "SFTP", "sftp_panel_background", prefs.sftp_panel_background, "white");
 }
 
 void
@@ -525,8 +492,6 @@ save_settings ()
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "save_session", prefs.save_session);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "checkpoint_interval", prefs.checkpoint_interval);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "font_fixed", prefs.font_fixed);
-	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "hyperlink_tooltip_enabled", prefs.hyperlink_tooltip_enabled);
-	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "hyperlink_click_enabled", prefs.hyperlink_click_enabled);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "tempDir", prefs.tempDir);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "TERMINAL", "startup_show_connections", prefs.startup_show_connections);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "TERMINAL", "startup_local_shell", prefs.startup_local_shell);
@@ -544,13 +509,6 @@ save_settings ()
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "GUI", "tab_alerts", prefs.tab_alerts);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "GUI", "show_sidebar", prefs.show_sidebar);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "GUI", "font_quick_launch_window", prefs.font_quick_launch_window);
-	profile_modify_int (PROFILE_SAVE, globals.conf_file, "SFTP", "sftp_buffer", prefs.sftp_buffer);
-	profile_modify_int (PROFILE_SAVE, globals.conf_file, "SFTP", "flag_ask_download", prefs.flag_ask_download);
-	profile_modify_string (PROFILE_SAVE, globals.conf_file, "SFTP", "download_directory", prefs.download_dir);
-	profile_modify_string (PROFILE_SAVE, globals.conf_file, "SFTP", "text_editor", prefs.text_editor);
-	profile_modify_string (PROFILE_SAVE, globals.conf_file, "SFTP", "sftp_open_file_uri", prefs.sftp_open_file_uri);
-	profile_modify_int (PROFILE_SAVE, globals.conf_file, "SFTP", "ssh_timeout", prefs.ssh_timeout);
-	profile_modify_string (PROFILE_SAVE, globals.conf_file, "SFTP", "sftp_panel_background", prefs.sftp_panel_background);
 }
 
 void
