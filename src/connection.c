@@ -176,7 +176,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         "%*s  <last_user>%s</last_user>\n"
 	         "%*s  <user>%s</user>\n"
 	         "%*s  <password>%s</password>\n"
-	         "%*s  <directory>%s</directory>\n"
 	         "%*s  <user_options>%s</user_options>\n"
 	         "%*s  <note>%s</note>\n"
 	         //"%*s  <x11Forwarding>%d</x11Forwarding>\n",
