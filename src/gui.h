@@ -211,7 +211,6 @@ gboolean update_statusbar_upload_download ();
 void update_screen_info ();
 
 void select_current_profile_menu_item (struct ConnectionTab *p_ct);
-void refresh_profile_menu ();
 struct ConnectionTab *get_connection_tab_from_child (GtkWidget *child);
 //void connection_tab_set_status (struct ConnectionTab *connection_tab, int status);
 void refreshTabStatus (SConnectionTab *pTab);

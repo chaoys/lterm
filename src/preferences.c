@@ -194,34 +194,10 @@ profile_edit (struct Profile *p_profile)
 }
 
 void
-profile_new_cb (GtkButton *button, gpointer user_data)
-{
-	profile_edit (NULL);
-	refresh_profiles_list_store ();
-	refresh_profile_menu ();
-}
-
-void
 profile_edit_cb (GtkButton *button, gpointer user_data)
 {
 	profile_edit (g_selected_profile);
 	refresh_profiles_list_store ();
-	refresh_profile_menu ();
-}
-
-void
-profile_delete_cb (GtkButton *button, gpointer user_data)
-{
-	int result;
-	if (g_selected_profile == NULL)
-		return;
-	result = msgbox_yes_no ("Delete profile %s?", g_selected_profile->name);
-	if (result == GTK_RESPONSE_NO)
-		return;
-	profile_list_delete (&g_profile_list, g_selected_profile);
-	g_selected_profile = NULL;
-	refresh_profiles_list_store ();
-	refresh_profile_menu ();
 }
 
 gboolean
@@ -320,12 +296,8 @@ show_preferences ()
 	gtk_tree_selection_set_mode (select, GTK_SELECTION_SINGLE);
 	tree_model_profiles = gtk_tree_view_get_model (GTK_TREE_VIEW (tree_view) );
 	/* buttons */
-	GtkWidget *button_new = GTK_WIDGET (gtk_builder_get_object (builder, "button_new") );
-	g_signal_connect (G_OBJECT (button_new), "clicked", G_CALLBACK (profile_new_cb), NULL);
 	GtkWidget *button_edit = GTK_WIDGET (gtk_builder_get_object (builder, "button_edit") );
 	g_signal_connect (G_OBJECT (button_edit), "clicked", G_CALLBACK (profile_edit_cb), NULL);
-	GtkWidget *button_delete = GTK_WIDGET (gtk_builder_get_object (builder, "button_delete") );
-	g_signal_connect (G_OBJECT (button_delete), "clicked", G_CALLBACK (profile_delete_cb), NULL);
 	/* scrolled window */
 	GtkWidget *scrolled_window = GTK_WIDGET (gtk_builder_get_object (builder, "scrolled_profiles") );
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);

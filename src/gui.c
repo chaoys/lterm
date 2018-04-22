@@ -875,8 +875,6 @@ connection_tab_new ()
 	connection_tab = g_new0 (struct ConnectionTab, 1);
 	//memset (connection_tab, 0, sizeof (struct ConnectionTab));
 	connection_tab_list = g_list_append (connection_tab_list, connection_tab);
-	//log_debug ("%d\n", (unsigned int) connection_tab);
-	//log_debug ("%d\n", (unsigned int) (struct ConnectionTab *) g_list_last (connection_tab_list)->data);
 	connection_tab->vte = vte_terminal_new ();
 	g_signal_connect (connection_tab->vte, "child-exited", G_CALLBACK (child_exited_cb), connection_tab);
 	g_signal_connect (connection_tab->vte, "eof", G_CALLBACK (eof_cb), connection_tab);
@@ -884,8 +882,6 @@ connection_tab_new ()
 	g_signal_connect (connection_tab->vte, "decrease-font-size", G_CALLBACK (decrease_font_size_cb), NULL);
 	g_signal_connect (connection_tab->vte, "char-size-changed", G_CALLBACK (char_size_changed_cb), main_window);
 	g_signal_connect (connection_tab->vte, "maximize-window", G_CALLBACK (maximize_window_cb), main_window);
-	//g_signal_connect (connection_tab->vte, "resize-window", G_CALLBACK (resize_window_cb), main_window);
-	//g_signal_connect (connection_tab->vte, "status-line-changed", G_CALLBACK (status_line_changed_cb), NULL);
 	g_signal_connect (connection_tab->vte, "button-press-event", G_CALLBACK (button_press_event_cb), connection_tab->vte);
 	g_signal_connect (connection_tab->vte, "window-title-changed", G_CALLBACK (window_title_changed_cb), connection_tab);
 	g_signal_connect (connection_tab->vte, "selection-changed", G_CALLBACK (selection_changed_cb), connection_tab);
@@ -1419,6 +1415,7 @@ edit_current_profile ()
 void
 view_toolbar ()
 {
+#if 0
 	GtkWidget *toggle;
 	toggle = gtk_ui_manager_get_widget (ui_manager, N_ ("/MainMenu/ViewMenu/Toolbar") );
 	if (gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM (toggle) ) ) {
@@ -1428,11 +1425,13 @@ view_toolbar ()
 		gtk_widget_hide (main_toolbar);
 		prefs.toolbar = 0;
 	}
+#endif
 }
 
 void
 view_statusbar ()
 {
+#if 0
 	GtkWidget *toggle;
 	toggle = gtk_ui_manager_get_widget (ui_manager, N_ ("/MainMenu/ViewMenu/Statusbar") );
 	if (gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM (toggle) ) ) {
@@ -1442,11 +1441,13 @@ view_statusbar ()
 		gtk_widget_hide (statusbar);
 		prefs.statusbar = 0;
 	}
+#endif
 }
 
 void
 view_fullscreen ()
 {
+#if 0
 	GtkWidget *toggle;
 	toggle = gtk_ui_manager_get_widget (ui_manager, N_ ("/MainMenu/ViewMenu/Fullscreen") );
 	if (prefs.fullscreen) {
@@ -1458,6 +1459,7 @@ view_fullscreen ()
 		prefs.fullscreen = 1;
 		/* GTK_CHECK_MENU_ITEM (toggle)->active = 1; */
 	}
+#endif
 }
 
 void view_go_back ()
@@ -1993,6 +1995,7 @@ profile_radio_action_cb (GtkAction *action, GtkRadioAction *current)
 	apply_profile (p_current_connection_tab, id);
 }
 
+#if 0
 void
 add_stock_icon (GtkIconFactory *factory, gchar *location, gchar *stock_id)
 {
@@ -2002,10 +2005,11 @@ add_stock_icon (GtkIconFactory *factory, gchar *location, gchar *stock_id)
 	gtk_icon_set_add_source (set, source);
 	gtk_icon_factory_add (factory, stock_id, set);
 }
-
+#endif
 void
 create_stock_objects ()
 {
+#if 0
 	GtkIconFactory *factory;
 	factory = gtk_icon_factory_new ();
 	add_stock_icon (factory, g_strconcat (globals.img_dir, "/main_icon.png", NULL), MY_STOCK_MAIN_ICON);
@@ -2030,49 +2034,10 @@ create_stock_objects ()
 	add_stock_icon (factory, g_strconcat (globals.img_dir, "/home.png", NULL), MY_STOCK_HOME);
 	add_stock_icon (factory, g_strconcat (globals.img_dir, "/file_new.png", NULL), MY_STOCK_FILE_NEW);
 	gtk_icon_factory_add_default (factory);
-}
-
-void
-refresh_profile_menu ()
-{
-	char enc_desc[10000], item_s[256], tmp_s[32];
-	struct Profile *p;
-	int i;
-	GList *actions, *l, *items;
-	GtkAction *action;
-	if (profile_menu_ui_id != 0)
-		gtk_ui_manager_remove_ui (ui_manager, profile_menu_ui_id);
-	actions = gtk_action_group_list_actions (profile_action_group);
-	for (l = actions; l != NULL; l = l->next) {
-		gtk_action_group_remove_action (profile_action_group, GTK_ACTION (l->data) );
-	}
-	g_list_free (actions);
-	GtkRadioActionEntry radio_enc_entries[profile_count (&g_profile_list)];
-	strcpy (enc_desc, "<ui>"
-	        "  <menubar name='MainMenu'>"
-	        "    <menu action='TerminalMenu'>"
-	        "      <menu action='ProfileMenu'>");
-	p = g_profile_list.head;
-	i = 0;
-	while (p) {
-		sprintf (tmp_s, "profile-%d", p->id);
-		radio_enc_entries[i].name = g_strdup (tmp_s);
-		radio_enc_entries[i].stock_id = NULL;
-		radio_enc_entries[i].label = g_strdup (p->name);
-		radio_enc_entries[i].accelerator = NULL;
-		radio_enc_entries[i].tooltip = NULL;
-		radio_enc_entries[i].value = p->id /*i+1*/;
-		sprintf (item_s, "<menuitem action='%s' />", tmp_s);
-		strcat (enc_desc, item_s);
-		p = p->next;
-		i ++;
-	}
-	strcat (enc_desc, "      </menu></menu>"
-	        "  </menubar>"
-	        "</ui>");
-	gtk_action_group_add_radio_actions (profile_action_group, radio_enc_entries, G_N_ELEMENTS (radio_enc_entries), 1,
-	                                    G_CALLBACK (profile_radio_action_cb), NULL);
-	profile_menu_ui_id = gtk_ui_manager_add_ui_from_string (ui_manager, enc_desc, -1, NULL);
+#else
+	GtkIconTheme *ict = gtk_icon_theme_get_default();
+	gtk_icon_theme_append_search_path(ict, globals.img_dir);
+#endif
 }
 
 void
@@ -2420,6 +2385,7 @@ update_screen_info ()
 void
 terminal_popup_menu (GdkEventButton *event)
 {
+#if 0
 	GtkUIManager *ui_manager;
 	GtkActionGroup *action_group;
 	GtkWidget *popup;
@@ -2464,22 +2430,11 @@ terminal_popup_menu (GdkEventButton *event)
 	gtk_ui_manager_add_ui_from_string (ui_manager, conn_desc, -1, NULL);
 	//g_object_set_data (G_OBJECT (widget), "ui-manager", ui_manager);
 	popup = gtk_ui_manager_get_widget (ui_manager, "/TermPopupMenu");
-	/*
-	GtkWidget *download = gtk_ui_manager_get_widget (ui_manager, N_("/TermPopupMenu/Download files"));
-
-	if (p_current_connection_tab && p_current_connection_tab->type == CONNECTION_LOCAL)
-	  {
-	    gtk_widget_set_sensitive (download, FALSE);
-	  }
-	else
-	  {
-	    gtk_widget_set_sensitive (download, TRUE);
-	  }
-	*/
 	log_debug ("Show popup menu\n");
 	gtk_menu_popup (GTK_MENU (popup), NULL, NULL, NULL, NULL,
 	                (event != NULL) ? event->button : 0,
 	                gdk_event_get_time ( (GdkEvent *) event) );
+#endif
 }
 
 gint
@@ -2598,15 +2553,6 @@ status_line_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 gboolean
 button_press_event_cb (GtkWidget *widget, GdkEventButton *event, gpointer userdata)
 {
-	VteTerminal *vte = VTE_TERMINAL (userdata);
-	int row, col, tag;
-	GtkBorder *inner_border = NULL;
-	struct Connection *p_conn;
-	/* Get matched text */
-	col = (event->x - (inner_border ? inner_border->left : 0) ) / vte_terminal_get_char_width (vte);
-	row = (event->y - (inner_border ? inner_border->top : 0) ) / vte_terminal_get_char_height (vte);
-	//gtk_border_free (inner_border);
-	log_debug ("row=%d, col=%d\n", row, col);
 	if (event->type == GDK_BUTTON_PRESS) {
 		if (event->button == 3) {
 			log_write ("Right button pressed\n");
@@ -3164,7 +3110,6 @@ start_gtk (int argc, char **argv)
 	gtk_widget_show (menubar);
 	log_write ("Creating accelerators...\n");
 	create_accelerators ();
-	refresh_profile_menu ();
 	/* Toolbar */
 	log_write ("Creating toolbar...\n");
 	add_toolbar (vbox);
