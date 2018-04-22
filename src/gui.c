@@ -3248,14 +3248,11 @@ start_gtk (int argc, char **argv)
 	gtk_box_pack_end (GTK_BOX (vbox), statusbar, FALSE, TRUE, 0);
 	g_signal_connect (main_window, "delete_event", G_CALLBACK (delete_event_cb), NULL);
 	g_signal_connect (main_window, "size-allocate", G_CALLBACK (size_allocate_cb), NULL);
-	//g_signal_connect (main_window, "window-state-event", G_CALLBACK (window_state_event_cb), NULL);
 	g_signal_connect (main_window, "key-press-event", G_CALLBACK (key_press_event_cb), NULL);
-	//g_signal_connect (G_OBJECT(main_window), "window-state-event", G_CALLBACK(window_state_event_cb), NULL);
 	g_signal_connect (G_OBJECT (main_window), "window-state-event", G_CALLBACK (window_state_event_cb), NULL);
 	g_signal_connect (G_OBJECT (main_window), "configure-event", G_CALLBACK (configure_event_cb), NULL);
 	gtk_window_set_default_size (GTK_WINDOW (main_window), prefs.w, prefs.h); /* keep this before gtk_widget_show() */
 	gtk_widget_show (main_window);
-	//gtk_window_present (GTK_WINDOW (main_window));
 	if (globals.upgraded) {
 		profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "package_version", VERSION);
 		msgbox_info ("Congratulations, you just upgraded to version %s", VERSION);

@@ -1397,39 +1397,6 @@ row_activated_cb (GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *
 	//gtk_dialog_response (GTK_DIALOG (user_data), GTK_RESPONSE_OK);
 }
 
-/* row_activated_quick_cb() - callback function when a row has been double-clicked in the quick launch window */
-void
-row_activated_quick_cb (GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, gpointer user_data)
-{
-	GtkTreeSelection *selection;
-	GtkTreeIter iter;
-	gboolean have_iter;
-	struct Connection *p_conn_selected, conn;
-	struct Connection *p_conn_new, conn1;
-	struct Protocol *p_prot;
-	gint sel_port;
-	gchar *sel_name;
-	struct ConnectionTab *p_connection_tab;
-	int connect_it = 0, retcode;
-	selection = gtk_tree_view_get_selection (tree_view);
-	connect_it = get_selected_connection (selection, &conn);
-	if (connect_it) {
-		gtk_tree_selection_unselect_all (selection);
-		p_connection_tab = connection_tab_new ();
-		log_debug ("selected '%s'\n", conn.name);
-		memset (& (p_connection_tab->connection), 0, sizeof (struct Connection) );
-		connection_copy (&p_connection_tab->connection, &conn);
-		log_debug ("connecting to '%s' ...\n", p_connection_tab->connection.name);
-		retcode = log_on (p_connection_tab);
-		if (retcode == 0) {
-			connection_tab_add (p_connection_tab);
-			p_current_connection_tab = p_connection_tab;
-			gtk_widget_grab_focus (p_current_connection_tab->hbox_terminal);
-		}
-		update_screen_info ();
-	}
-}
-
 void
 connection_name_cell_data_func (GtkTreeViewColumn *col, GtkCellRenderer *renderer, GtkTreeModel *model,
                                 GtkTreeIter *iter, gpointer user_data)
