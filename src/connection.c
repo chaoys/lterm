@@ -1856,9 +1856,9 @@ choose_manage_connection (struct Connection *p_conn)
 	gtk_container_add (GTK_CONTAINER (dialog_window), dialog_vbox);
 	gtk_widget_show_all (dialog_vbox);
 	gint w_width, w_height;
-	screen = gtk_window_get_screen (GTK_WINDOW (main_window) );
 	gtk_window_get_size (GTK_WINDOW (dialog_window), &w_width, &w_height);
-	gtk_widget_set_size_request (GTK_WIDGET (dialog_window), w_width + 100, gdk_screen_get_height (screen) / 2);
+	get_monitor_size(GTK_WINDOW(main_window), NULL, &w_height);
+	gtk_widget_set_size_request (GTK_WIDGET (dialog_window), w_width + 100, w_height / 2);
 	gtk_window_set_position (GTK_WINDOW (dialog_window), GTK_WIN_POS_CENTER_ON_PARENT);
 	gtk_widget_show_all (dialog_window);
 	/* select the first row */

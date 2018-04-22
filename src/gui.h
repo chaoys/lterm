@@ -222,4 +222,17 @@ void connection_tab_close (struct ConnectionTab *p_ct);
 void refresh_search_completion ();
 gboolean search_entry_focus_out_event_cb (GtkWidget *widget, GdkEvent *event, gpointer user_data);
 
+static inline void get_monitor_size(GtkWindow *win, int *width, int *height)
+{
+	GdkScreen *screen = gtk_window_get_screen (GTK_WINDOW (win));
+	GdkDisplay *dis = gdk_screen_get_display(screen);
+	GdkMonitor *mon = gdk_display_get_monitor_at_window(dis, gdk_screen_get_root_window(screen));
+	GdkRectangle geome;
+	gdk_monitor_get_geometry(mon, &geome);
+	if (width)
+		*width = geome.width;
+	if (height)
+		*height = geome.height;
+}
+
 #endif

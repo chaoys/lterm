@@ -225,7 +225,6 @@ const gchar ui_main_desc[] =
         "      <menuitem action='Zoom 100' />"
         "    </menu>"
         "    <menu action='TerminalMenu'>"
-        "      <menu action='ProfileMenu' />" /* filled later */
         "      <menu action='CharacterEncodingMenu' />" /* filled later */
         "      <separator />"
         "      <menuitem action='Reset' />"
@@ -530,7 +529,6 @@ query_value (char *title, char *labeltext, char *default_value, char *buffer, in
 	GtkWidget *dialog;
 	GtkWidget *p_label;
 	GtkWidget *user_entry;
-	GtkWidget *l_align;
 	dialog = gtk_dialog_new_with_buttons (title, NULL, 0,
 	                                      "_Cancel",
 	                                      GTK_RESPONSE_CANCEL,
@@ -548,15 +546,11 @@ query_value (char *title, char *labeltext, char *default_value, char *buffer, in
 	gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (dialog) ), GTK_WINDOW (main_window) );
 	p_label = gtk_label_new (NULL);
 	gtk_label_set_markup (GTK_LABEL (p_label), labeltext);
-	l_align = gtk_alignment_new (0, 0, 0, 0);
-	gtk_container_add (GTK_CONTAINER (l_align), p_label);
-	gtk_widget_show (l_align);
 	GtkWidget *main_hbox;
 	GtkWidget *text_vbox;
 	main_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
 	text_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
 	/* image */
-	GdkScreen *screen;
 	gint w_width, w_height;
 	switch (type) {
 		case QUERY_USER:
@@ -573,9 +567,9 @@ query_value (char *title, char *labeltext, char *default_value, char *buffer, in
 			break;
 		case QUERY_RENAME:
 			strcpy (imagefile, "/rename.png");
-			screen = gtk_window_get_screen (GTK_WINDOW (main_window) );
 			gtk_window_get_size (GTK_WINDOW (dialog), &w_width, &w_height);
-			gtk_widget_set_size_request (GTK_WIDGET (dialog), gdk_screen_get_width (screen) / 1.8, w_height);
+			get_monitor_size(GTK_WINDOW(main_window), &w_width, NULL);
+			gtk_widget_set_size_request (GTK_WIDGET (dialog), w_width / 1.8, w_height);
 			break;
 		default:
 			strcpy (imagefile, "");
@@ -586,15 +580,10 @@ query_value (char *title, char *labeltext, char *default_value, char *buffer, in
 	} else
 		gtk_container_set_border_width (GTK_CONTAINER (main_hbox), 0);
 	/* text and field */
-	gtk_box_pack_start (GTK_BOX (text_vbox), l_align, FALSE, TRUE, 5);
+	gtk_box_pack_start (GTK_BOX (text_vbox), p_label, FALSE, TRUE, 5);
 	gtk_box_pack_start (GTK_BOX (text_vbox), user_entry, FALSE, TRUE, 5);
 	gtk_box_pack_start (GTK_BOX (main_hbox), text_vbox, TRUE, TRUE, 5);
 	gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), main_hbox);
-	/*
-	  gtk_container_add (GTK_CONTAINER (GTK_DIALOG (dialog)->vbox), gtk_image_new_from_file (g_strconcat (globals.img_dir, "/keys-64.png", NULL)));
-	  gtk_container_add (GTK_CONTAINER (GTK_DIALOG (dialog)->vbox), l_align);
-	  gtk_container_add (GTK_CONTAINER (GTK_DIALOG (dialog)->vbox), user_entry);
-	*/
 	gtk_widget_show_all (dialog);
 	gtk_widget_grab_focus (user_entry);
 	/* Start the dialog window */
@@ -1334,18 +1323,6 @@ edit_copy_and_paste ()
 	edit_paste ();
 }
 
-static void
-paste_host (GtkAction *action)
-{
-	struct Connection *p_conn;
-	if (!p_current_connection_tab)
-		return;
-	gchar *name = (gchar *) gtk_action_get_name (GTK_ACTION (action) );
-	p_conn = get_connection_by_name (name);
-	if (p_conn)
-		vte_terminal_feed_child (VTE_TERMINAL (p_current_connection_tab->vte), p_conn->host, -1);
-}
-
 void
 edit_find ()
 {
@@ -1791,9 +1768,9 @@ terminal_cluster ()
 	// Command
 	GtkWidget *entry_command = GTK_WIDGET (gtk_builder_get_object (builder, "entry_command") );
 	gint w_width, w_height;
-	GdkScreen *screen = gtk_window_get_screen (GTK_WINDOW (main_window) );
 	gtk_window_get_size (GTK_WINDOW (dialog), &w_width, &w_height);
-	gtk_widget_set_size_request (GTK_WIDGET (dialog), w_width, gdk_screen_get_height (screen) / 2);
+	get_monitor_size(GTK_WINDOW (main_window), NULL, &w_height);
+	gtk_widget_set_size_request (GTK_WIDGET (dialog), w_width, w_height / 2);
 	gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
 	//gtk_window_set_position (GTK_WINDOW (dialog), GTK_WIN_POS_CENTER);
 	gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (dialog) ), GTK_WINDOW (main_window) );
