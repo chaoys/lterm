@@ -103,8 +103,8 @@ profile_edit (struct Profile *p_profile)
 	dialog = gtk_dialog_new_with_buttons
 	         (_ ("Edit profile"), NULL,
 	          GTK_DIALOG_MODAL,
-	          GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-	          GTK_STOCK_OK, GTK_RESPONSE_OK,
+	          "_Cancel", GTK_RESPONSE_CANCEL,
+	          "_Ok", GTK_RESPONSE_OK,
 	          NULL);
 	gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (dialog) ), GTK_WINDOW (main_window) );
 	//gtk_box_set_spacing (GTK_BOX(gtk_dialog_get_content_area (GTK_DIALOG (dialog))), 10);
@@ -278,8 +278,8 @@ show_preferences ()
 	dialog = gtk_dialog_new_with_buttons
 	         (_ ("Preferences"), NULL,
 	          GTK_DIALOG_MODAL,
-	          GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-	          GTK_STOCK_OK, GTK_RESPONSE_OK,
+	          "_Cancel", GTK_RESPONSE_CANCEL,
+	          "_Ok", GTK_RESPONSE_OK,
 	          NULL);
 	gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (dialog) ), GTK_WINDOW (main_window) );
 	notebook = GTK_WIDGET (gtk_builder_get_object (builder, "notebook1") );

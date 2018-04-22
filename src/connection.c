@@ -62,7 +62,6 @@ int g_dialog_connections_connect;
 
 GtkWidget *connections_dialog;
 
-
 GtkWidget *port_spin_button;
 GtkWidget *check_x11, *check_agentForwarding;
 GtkWidget *check_disable_key_checking, *check_keepAliveInterval, *spin_keepAliveInterval;
@@ -92,6 +91,7 @@ int rows_signals_enabled = 1;
 int g_rebuilding_tree_store = 0;
 
 GtkWidget * create_connections_tree_view ();
+int get_selected_connection (GtkTreeSelection *select, struct Connection *p_conn);
 
 void
 connection_init_stuff ()
@@ -752,8 +752,8 @@ select_private_key_cb (GtkButton *button, gpointer user_data)
 	gint result;
 	dialog = gtk_file_chooser_dialog_new ("Select private key file", GTK_WINDOW (main_window),
 	                                      GTK_FILE_CHOOSER_ACTION_OPEN,
-	                                      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-	                                      GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+	                                      "_Cancel", GTK_RESPONSE_CANCEL,
+	                                      "_Open", GTK_RESPONSE_ACCEPT,
 	                                      NULL);
 	/*if (p_conn->upload_dir[0])
 	  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), p_conn->upload_dir);*/
@@ -761,7 +761,7 @@ select_private_key_cb (GtkButton *button, gpointer user_data)
 	gtk_file_chooser_set_select_multiple (GTK_FILE_CHOOSER (dialog), FALSE);
 	result = gtk_dialog_run (GTK_DIALOG (dialog) );
 	if (result == GTK_RESPONSE_ACCEPT) {
-		gtk_entry_set_text (authWidgets.entry_private_key, gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog) ) );
+		gtk_entry_set_text (GTK_ENTRY (authWidgets.entry_private_key), gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog) ) );
 	}
 	gtk_widget_destroy (dialog);
 }
@@ -769,7 +769,7 @@ select_private_key_cb (GtkButton *button, gpointer user_data)
 void
 clear_private_key_cb (GtkButton *button, gpointer user_data)
 {
-	gtk_entry_set_text (authWidgets.entry_private_key, "");
+	gtk_entry_set_text (GTK_ENTRY (authWidgets.entry_private_key), "");
 }
 
 void
@@ -876,13 +876,13 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	struct Connection conn_new, *p_conn_ctrl = NULL;
 	struct GroupNode *p_parent;
 	struct GroupNode *p_node_return = NULL;
-	char ui[256];
+	char ui[600];
 	log_debug ("Loading gui\n");
 	builder = gtk_builder_new ();
 	sprintf (ui, "%s/edit-connection.glade", globals.data_dir);
 	if (gtk_builder_add_from_file (builder, ui, &error) == 0) {
 		msgbox_error ("Can't load user interface file:\n%s", error->message);
-		return;
+		return NULL;
 	}
 	log_debug ("Loaded %s\n", ui);
 	if (p_node == NULL) {
@@ -1042,8 +1042,8 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	//gtk_container_set_border_width (GTK_CONTAINER (dialog), 5);
 	//gtk_box_pack_end (GTK_BOX (GTK_DIALOG (dialog)->vbox), notebook, TRUE, TRUE, 0);
 	gtk_box_pack_end (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), notebook, TRUE, TRUE, 0);
-	cancel_button = gtk_dialog_add_button (GTK_DIALOG (dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
-	ok_button = gtk_dialog_add_button (GTK_DIALOG (dialog), GTK_STOCK_OK, GTK_RESPONSE_OK);
+	cancel_button = gtk_dialog_add_button (GTK_DIALOG (dialog), "_Cancel", GTK_RESPONSE_CANCEL);
+	ok_button = gtk_dialog_add_button (GTK_DIALOG (dialog), "_Ok", GTK_RESPONSE_OK);
 	gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_OK);
 	gtk_widget_show_all (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) );
 	gtk_widget_grab_focus (name_entry);
@@ -1181,8 +1181,8 @@ add_update_folder (struct GroupNode *p_node)
 	gtk_box_set_spacing (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), 10);
 	gtk_container_set_border_width (GTK_CONTAINER (dialog), 5);
 	gtk_box_pack_end (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), name_hbox, TRUE, TRUE, 0);
-	cancel_button = gtk_dialog_add_button (GTK_DIALOG (dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
-	ok_button = gtk_dialog_add_button (GTK_DIALOG (dialog), GTK_STOCK_OK, GTK_RESPONSE_OK);
+	cancel_button = gtk_dialog_add_button (GTK_DIALOG (dialog), "_Cancel", GTK_RESPONSE_CANCEL);
+	ok_button = gtk_dialog_add_button (GTK_DIALOG (dialog), "_Ok", GTK_RESPONSE_OK);
 	gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_OK);
 	gtk_widget_show_all (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) );
 	gtk_widget_grab_focus (name_entry);
@@ -1687,7 +1687,7 @@ duplicate_connection_button_clicked_cb (GtkButton *button, gpointer user_data)
 	GtkTreeView *tree_view = user_data;
 	struct Connection *p_conn, conn_new;
 	struct GroupNode *p_node_copy = NULL;
-	char new_name[256];
+	char new_name[512];
 	int i, err;
 	if (g_selected_node == NULL)
 		return;
@@ -1726,22 +1726,16 @@ delete_button_clicked_cb (GtkButton *button, gpointer user_data)
 	int rc;
 	GtkTreeView *tree_view = user_data;
 	GtkTreePath *path;
-	char confirm_remove_message[256];
+	char confirm_remove_message[512];
 	if (g_selected_node == NULL)
 		return;
 	if (g_selected_node->type == GN_TYPE_CONNECTION)
-		sprintf (confirm_remove_message, _ ("Remove connection '%s'?"), g_selected_node->name);
+		sprintf (confirm_remove_message, "Remove connection '%s'?", g_selected_node->name);
 	else
-		sprintf (confirm_remove_message, _ ("Remove folder '%s' and all his connections?"), g_selected_node->name);
+		sprintf (confirm_remove_message, "Remove folder '%s' and all his connections?", g_selected_node->name);
 	rc = msgbox_yes_no (confirm_remove_message);
 	if (rc == GTK_RESPONSE_YES) {
 		group_node_delete_child (g_selected_node->parent, g_selected_node);
-		/*
-		      path = gtk_tree_path_new_from_string ("0");
-
-		      if (path)
-		        gtk_tree_view_set_cursor (GTK_TREE_VIEW (tree_view), path, NULL, FALSE);
-		*/
 		move_cursor_to_node (tree_view, NULL);
 	}
 }
@@ -1906,11 +1900,11 @@ choose_manage_connection (struct Connection *p_conn)
 	  gtk_table_set_row_spacings (GTK_TABLE (std_table), 20);
 	  gtk_table_set_col_spacings (GTK_TABLE (std_table), 10);
 	*/
-	GtkWidget *cancel_button = gtk_button_new_from_stock (GTK_STOCK_CANCEL);
+	GtkWidget *cancel_button = gtk_button_new_with_label ("Cancel");
 	gtk_box_pack_end (GTK_BOX (std_buttons_hbox), cancel_button, TRUE, TRUE, 0);
 	//gtk_table_attach (GTK_TABLE (std_table), cancel_button, 1, 2, 0, 1, GTK_FILL, GTK_SHRINK, 0, 0);
 	g_signal_connect (G_OBJECT (cancel_button), "clicked", G_CALLBACK (dialog_delete_event_cb), NULL);
-	GtkWidget *ok_button = gtk_button_new_from_stock (GTK_STOCK_CONNECT);
+	GtkWidget *ok_button = gtk_button_new_with_label ("Connect");
 	gtk_box_pack_end (GTK_BOX (std_buttons_hbox), ok_button, TRUE, TRUE, 0);
 	//gtk_table_attach (GTK_TABLE (std_table), ok_button, 0, 1, 0, 1, GTK_FILL, GTK_SHRINK, 0, 0);
 	g_signal_connect (G_OBJECT (ok_button), "clicked", G_CALLBACK (ok_button_clicked_cb), NULL);
@@ -1976,8 +1970,8 @@ connection_export_file_chooser (char *title,
 	gint result;
 	char *filename;
 	dialog = gtk_file_chooser_dialog_new (title, GTK_WINDOW (main_window), GTK_FILE_CHOOSER_ACTION_SAVE,
-	                                      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-	                                      GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+	                                      "_Cancel", GTK_RESPONSE_CANCEL,
+	                                      "_Save", GTK_RESPONSE_ACCEPT,
 	                                      NULL);
 	gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
 	gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), globals.home_dir);

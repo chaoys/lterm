@@ -75,6 +75,8 @@ void connection_init (SConnection *);
 void cl_init (struct Connection_List *p_cl);
 void cl_remove (struct Connection_List *p_cl, char *name);
 void cl_release (struct Connection_List *p_cl);
+void cl_check (struct Connection_List *p_cl);
+int cl_count (struct Connection_List *p_cl);
 struct Connection * cl_append (struct Connection_List *p_cl, struct Connection *p_new);
 struct Connection *cl_insert_sorted (struct Connection_List *p_cl, struct Connection *p_new);
 struct Connection *cl_host_search (struct Connection_List *p_cl, char *host, char *skip_this);
@@ -86,6 +88,7 @@ int search_directory (SConnection *pConn, gchar *item);
 void add_directory (SConnection *pConn, char *item);
 
 int connection_fill_from_string (struct Connection *p_conn, char *connection_string);
+void connection_copy (struct Connection *p_dst, struct Connection *p_src);
 
 #endif
 

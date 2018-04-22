@@ -186,7 +186,7 @@ lterm_iteration ()
 				rebuild_tree_store ();
 				break;
 			case ITERATION_REFRESH_TREE_VIEW:
-				refresh_connection_tree_view ( (struct GtkTreeView *) ifr_function.user_data);
+				refresh_connection_tree_view ( (GtkTreeView *) ifr_function.user_data);
 				break;
 			case ITERATION_CLOSE_TAB:
 				connection_tab_close ( (SConnectionTab *) ifr_function.user_data);
@@ -273,9 +273,6 @@ main (int argc, char *argv[])
 	int digit_optind;
 	int opt;
 	int i;
-	setlocale (LC_ALL, "");
-	textdomain (PACKAGE);
-	bindtextdomain (PACKAGE, LOCALEDIR);
 	sprintf (argv_0, "%s", argv[0]);
 	sprintf (app_name, "%s", basename (argv_0) );
 	/* command line options */
@@ -358,12 +355,6 @@ main (int argc, char *argv[])
 	}
 	ssh_list_init (&globals.ssh_list);
 	log_write ("Initializing threads...\n");
-	XInitThreads ();
-	/* Secure glib */
-	if (!g_thread_supported() )
-		g_thread_init (NULL);
-	/* Secure gtk */
-	gdk_threads_init();
 	ssh_threads_set_callbacks (ssh_threads_get_pthread() );
 	log_write ("Building gui...\n");
 	start_gtk (argc, argv);
@@ -586,7 +577,7 @@ help ()
 	        "Options:\n"
 	        "  -v            : show version\n"
 	        "  -h --help     : help\n",
-	        app_name, app_name
+	        app_name
 	);
 }
 

@@ -328,7 +328,7 @@ struct EncodingEntry enc_array[] = {
 };
 
 void
-ifr_init ()
+ifr_init (void)
 {
 	int i;
 	for (i = 0; i < ITERATION_MAX; i++)
@@ -708,7 +708,7 @@ show_login_mask (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth)
 	GtkWidget *dialog;
 	GtkBuilder *builder;
 	GError *error = NULL;
-	char ui[512], image_auth_filename[512];
+	char ui[1024], image_auth_filename[1024];
 	int result, rc = 0, i;
 	builder = gtk_builder_new ();
 	sprintf (ui, "%s/login.glade", globals.data_dir);
@@ -1359,7 +1359,7 @@ edit_find ()
 	GtkWidget *dialog;
 	GtkBuilder *builder;
 	GError *error = NULL;
-	char ui[512];
+	char ui[1024];
 	int result, rc = 0, i;
 	if (p_current_connection_tab == NULL)
 		return;
@@ -1705,7 +1705,7 @@ terminal_cluster ()
 	GError *error = NULL;
 	GtkWidget *button_ok, *button_cancel;
 	GtkWidget *dialog;
-	char ui[512];
+	char ui[1024];
 	if (g_list_length (connection_tab_list) == 0) {
 		log_write ("No tabs for cluster command\n");
 		return;
@@ -1897,7 +1897,7 @@ void
 Info ()
 {
 	int major, minor, micro;
-	char sys[256], image_filename[512];
+	char sys[256], image_filename[1024];
 	char s[1024], text[1024];
 	char s_linked[1024];
 	struct utsname info;
@@ -1906,7 +1906,7 @@ Info ()
 	FILE *fp;
 	GtkBuilder *builder;
 	GError *error = NULL;
-	char ui[512];
+	char ui[1024];
 	builder = gtk_builder_new ();
 	sprintf (ui, "%s/credits.glade", globals.data_dir);
 	if (gtk_builder_add_from_file (builder, ui, &error) == 0) {

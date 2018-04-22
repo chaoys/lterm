@@ -33,5 +33,8 @@ void manage_protocols (struct Protocol_List *);
 void refresh_protocols (struct Protocol_List *p_pl);
 int load_protocols_from_file_xml (char *filename, struct Protocol_List *p_pl);
 int save_protocols_to_file_xml (char *filename, struct Protocol_List *p_pl);
+void pl_release (struct Protocol_List *p_pl);
+void pl_init (struct Protocol_List *p_pl);
+void check_standard_protocols (struct Protocol_List *p_pl);
 
 #endif

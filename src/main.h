@@ -30,18 +30,8 @@ char * getCurrentFunction ();
 
 #include "config.h"
 
-#ifdef ENABLE_NLS
-
-#include <libintl.h>
-#define  _(x)  gettext(x)
-#define N_(x)  x
-
-#else
-
 #define _(x)   x
 #define N_(x)  x
-
-#endif
 
 #define KEY "You may say I'm a dreamer"
 
@@ -69,8 +59,8 @@ char * getCurrentFunction ();
 */
 struct _globals {
 	int running;
-	char home_dir[512];
-	char app_dir[512];
+	char home_dir[256];
+	char app_dir[300];
 	char img_dir[512];
 	char data_dir[512];
 	char serverlist[512];             /* Server list file (deprecated) */
@@ -138,6 +128,7 @@ struct _prefs {
 typedef struct _prefs Prefs;
 
 void lockSSH (const char *caller, gboolean flagLock);
+void lterm_iteration ();
 void log_reset ();
 void log_write (const char *fmt, ...);
 gboolean doGTKMainIteration ();

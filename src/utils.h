@@ -47,6 +47,7 @@ int file_exists (char *filename);
 
 int list_count (char *list, char sep);
 int list_get_nth (char *list, int n, char sep, char *elem);
+void get_system (char *sys_name);
 
 #endif
 

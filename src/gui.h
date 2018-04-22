@@ -226,4 +226,11 @@ void update_all_profiles ();
 
 void sb_msg_push (char *);
 
+void start_gtk (int argc, char **argv);
+void ifr_init (void);
+int open_connection (char *connection);
+int ifr_get (struct Iteration_Function_Request *dest);
+void connection_tab_close (struct ConnectionTab *p_ct);
+void refresh_search_completion ();
+
 #endif

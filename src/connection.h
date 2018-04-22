@@ -31,6 +31,7 @@ GList *load_connection_list_from_file_xml (char *filename);
 int save_connections_to_file (char *, struct Connection_List *, int);
 //int save_connections_to_file_xml_from_list (struct Connection_List *pList, char *filename);
 int save_connections_to_file_xml_from_glist (GList *pList, char *filename);
+int save_connections_to_file_xml (char *filename);
 int load_connections ();
 
 #define ERR_VALIDATE_MISSING_VALUES 1
@@ -47,6 +48,10 @@ void connection_export_CSV ();
 void connection_init_stuff ();
 void rebuild_tree_store ();
 GtkWidget *create_entry_control (char *label, GtkWidget *entry);
+void refresh_connection_tree_view (GtkTreeView *tree_view);
+int count_current_connections ();
+int choose_manage_connection (struct Connection *p_conn);
+int conn_update_last_user (char *cname, char *last_user);
 
 #endif
 
