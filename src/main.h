@@ -137,6 +137,7 @@ struct _prefs {
 
 typedef struct _prefs Prefs;
 
+void lockSSH (char *caller, gboolean flagLock);
 void log_reset ();
 void log_write (const char *fmt, ...);
 gboolean doGTKMainIteration ();
