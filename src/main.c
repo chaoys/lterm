@@ -427,7 +427,6 @@ load_settings ()
 	/* emulation_list is not saved on exit, actually */
 	//profile_load_string (globals.conf_file, "general", "emulation_list", prefs.emulation_list, "xterm:vt100:vt220:vt320:vt440");
 	prefs.tabs_position = profile_load_int (globals.conf_file, "general", "tabs_position", GTK_POS_TOP);
-	prefs.search_by = profile_load_int (globals.conf_file, "general", "search_by", 0);
 	prefs.check_connections = profile_load_int (globals.conf_file, "general", "check_connections", 1);
 	profile_load_string (globals.conf_file, "general", "warnings_color", prefs.warnings_color, "orange");
 	profile_load_string (globals.conf_file, "general", "warnings_error_color", prefs.warnings_error_color, "red");
@@ -467,7 +466,6 @@ save_settings ()
 	/* store the version of program witch saved this profile */
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "package_version", VERSION);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "tabs_position", prefs.tabs_position);
-	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "search_by", prefs.search_by);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "check_connections", prefs.check_connections);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "warnings_color", prefs.warnings_color);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "local_start_directory", prefs.local_start_directory);

@@ -38,9 +38,6 @@
 #include "utils.h"
 #include "xml.h"
 
-#define SEARCH_BY_NAME "Search by name"
-#define SEARCH_BY_HOST "Search by host"
-
 extern Globals globals;
 extern Prefs prefs;
 extern struct Protocol_List g_prot_list;
@@ -651,20 +648,6 @@ change_protocol_cb (GtkWidget *entry, gpointer user_data)
 		}
 	}
 	log_debug ("[end]\n");
-}
-
-static void
-change_search_by_cb (GtkWidget *entry, gpointer user_data)
-{
-	GtkWidget *tree_view;
-	tree_view = GTK_WIDGET (user_data);
-	if (!strcmp (gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (entry) ), SEARCH_BY_NAME) ) {
-		prefs.search_by = 0;
-	} else {
-		prefs.search_by = 1;
-	}
-	gtk_tree_view_set_search_column (GTK_TREE_VIEW (tree_view), prefs.search_by);
-	gtk_widget_grab_focus (tree_view);
 }
 
 void
@@ -1570,8 +1553,6 @@ create_connections_tree_view ()
 	//gtk_tree_view_column_pack_start (column, cell, FALSE);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column) );
 	//g_signal_connect (G_OBJECT (tree_view), "row-activated", G_CALLBACK (row_activated_cb), dialog);
-	/* sets "Name" as the column where the interactive search code should search */
-	gtk_tree_view_set_search_column (GTK_TREE_VIEW (tree_view), prefs.search_by);
 	/* Enable drag and drop */
 	//tree_model = gtk_tree_view_get_model (GTK_TREE_VIEW (tree_view));
 	/* row-inserted callback is common for quick launch window and dialog */
@@ -1585,17 +1566,6 @@ create_connections_tree_view ()
 	                                        G_N_ELEMENTS (row_targets), GDK_ACTION_MOVE);
 	*/
 	return (tree_view);
-}
-
-GtkWidget *
-create_search_by_combo ()
-{
-	GtkWidget *search_by_combo = gtk_combo_box_text_new ();
-	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (search_by_combo), SEARCH_BY_NAME);
-	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (search_by_combo), SEARCH_BY_HOST);
-	gtk_combo_box_set_active (GTK_COMBO_BOX (search_by_combo), prefs.search_by);
-	gtk_widget_show (search_by_combo);
-	return (search_by_combo);
 }
 
 int
@@ -1869,53 +1839,20 @@ choose_manage_connection (struct Connection *p_conn)
 	gtk_widget_set_tooltip_text (new_folder_button, _ ("Create a new folder") );
 	gtk_box_pack_start (GTK_BOX (buttons_hbox), new_folder_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (new_folder_button), "clicked", G_CALLBACK (new_folder_button_clicked_cb), tree_view);
-	//gtk_box_pack_start (gtk_dialog_get_content_area (GTK_DIALOG (connections_dialog)), buttons_hbox, TRUE, TRUE, 0);
 	gtk_box_pack_start (GTK_BOX (dialog_vbox), buttons_hbox, FALSE, FALSE, 0);
-	/*
-	  gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (connections_dialog)), GTK_WINDOW (main_window));
-	  gtk_box_set_spacing (gtk_dialog_get_content_area (GTK_DIALOG (connections_dialog)), 10);
-	  gtk_container_set_border_width (GTK_CONTAINER (connections_dialog), 5);
-	*/
 	g_signal_connect (tree_view, "cursor-changed", G_CALLBACK (cursor_changed_cb), select);
 	g_signal_connect (tree_view, "row-activated", G_CALLBACK (row_activated_cb), NULL /*connections_dialog*/);
-	//g_signal_connect (connections_dialog, "key-press-event", G_CALLBACK (conn_key_press_cb), NULL);
-	//gtk_dialog_set_default_response (GTK_DIALOG (connections_dialog), GTK_RESPONSE_OK);
-	//gtk_box_pack_start (gtk_dialog_get_content_area (GTK_DIALOG (connections_dialog)), buttons_hbox, TRUE, TRUE, 0);
-	//gtk_box_pack_start (gtk_dialog_get_content_area (GTK_DIALOG (connections_dialog)), scrolled_window, TRUE, TRUE, 0);
 	gtk_box_pack_start (GTK_BOX (dialog_vbox), scrolled_window, TRUE, TRUE, 0);
-	/* combo for selecting column in interactive search */
-	GtkWidget *search_by_combo = create_search_by_combo ();
-	//gtk_box_pack_end (gtk_dialog_get_content_area (GTK_DIALOG (connections_dialog)), search_by_combo, TRUE, FALSE, 0);
-	/*
-	  g_signal_connect (GTK_COMBO_BOX (search_by_combo), "changed", G_CALLBACK (change_search_by_cb), tree_view);
-	*/
-	g_signal_connect (GTK_COMBO_BOX (search_by_combo), "changed", G_CALLBACK (change_search_by_cb), tree_view);
 	/* standard buttons */
 	GtkWidget *std_buttons_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
-	//gtk_box_set_homogeneous (GTK_BOX (std_buttons_hbox), TRUE);
 	gtk_container_set_border_width (GTK_CONTAINER (std_buttons_hbox), 10);
-	/*
-	  GtkWidget *std_table = gtk_table_new (1, 2, TRUE);
-	  gtk_table_set_homogeneous (GTK_TABLE (std_table), TRUE);
-	  gtk_table_set_row_spacings (GTK_TABLE (std_table), 20);
-	  gtk_table_set_col_spacings (GTK_TABLE (std_table), 10);
-	*/
 	GtkWidget *cancel_button = gtk_button_new_with_label ("Cancel");
 	gtk_box_pack_end (GTK_BOX (std_buttons_hbox), cancel_button, TRUE, TRUE, 0);
-	//gtk_table_attach (GTK_TABLE (std_table), cancel_button, 1, 2, 0, 1, GTK_FILL, GTK_SHRINK, 0, 0);
 	g_signal_connect (G_OBJECT (cancel_button), "clicked", G_CALLBACK (dialog_delete_event_cb), NULL);
 	GtkWidget *ok_button = gtk_button_new_with_label ("Connect");
 	gtk_box_pack_end (GTK_BOX (std_buttons_hbox), ok_button, TRUE, TRUE, 0);
-	//gtk_table_attach (GTK_TABLE (std_table), ok_button, 0, 1, 0, 1, GTK_FILL, GTK_SHRINK, 0, 0);
 	g_signal_connect (G_OBJECT (ok_button), "clicked", G_CALLBACK (ok_button_clicked_cb), NULL);
-	GtkWidget *b_align = gtk_alignment_new (1, 0, 0, 0);
-	gtk_container_add (GTK_CONTAINER (b_align), std_buttons_hbox);
-	//gtk_widget_show (l_align);
-	//gtk_box_pack_end (dialog_vbox, std_buttons_hbox, FALSE, FALSE, 0);
-	GtkWidget *sep = gtk_separator_new (GTK_ORIENTATION_HORIZONTAL);
-	gtk_box_pack_end (GTK_BOX (dialog_vbox), b_align, FALSE, FALSE, 0);
-	gtk_box_pack_end (GTK_BOX (dialog_vbox), sep, FALSE, FALSE, 10);
-	gtk_box_pack_end (GTK_BOX (dialog_vbox), search_by_combo, FALSE, FALSE, 0);
+	gtk_box_pack_end (GTK_BOX (dialog_vbox), std_buttons_hbox, FALSE, FALSE, 0);
 	gtk_container_add (GTK_CONTAINER (dialog_window), dialog_vbox);
 	gtk_widget_show_all (dialog_vbox);
 	gint w_width, w_height;
@@ -1924,8 +1861,6 @@ choose_manage_connection (struct Connection *p_conn)
 	gtk_widget_set_size_request (GTK_WIDGET (dialog_window), w_width + 100, gdk_screen_get_height (screen) / 2);
 	gtk_window_set_position (GTK_WINDOW (dialog_window), GTK_WIN_POS_CENTER_ON_PARENT);
 	gtk_widget_show_all (dialog_window);
-	//gtk_widget_show_all (gtk_dialog_get_content_area (GTK_DIALOG (connections_dialog)));
-	//gtk_widget_grab_focus (tree_view);
 	/* select the first row */
 	if (cl_count (&conn_list) )
 		move_cursor_to_node (GTK_TREE_VIEW (tree_view), group_node_find_by_numeric_path (&g_groups.root, "0", 1) );

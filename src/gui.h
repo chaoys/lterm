@@ -60,17 +60,6 @@ typedef struct ConnectionTab {
 	pid_t pid;
 } SConnectionTab;
 
-struct QuickLaunchWindow {
-	GtkTreeModel *tree_model;
-	GtkWidget *tree_view;
-	GtkWidget *scrolled_window;
-	GtkWidget *search_by_combo;
-	GtkWidget *copy_button;
-	GtkWidget *vbox;
-	gulong row_inserted_handler;
-	gulong row_deleted_handler;
-};
-
 /* stock objects */
 
 #define MY_STOCK_MAIN_ICON "main_icon"
