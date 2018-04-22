@@ -379,7 +379,7 @@ int
 asked_for_user (struct ConnectionTab *p_ct, char *log_on_data)
 {
 	int feed_child;
-	char label[256];
+	char label[512];
 	struct Protocol *p_prot;
 	VteTerminal *vteterminal;
 	log_debug ("\n");
@@ -398,7 +398,7 @@ int
 asked_for_password (struct ConnectionTab *p_ct, char *log_on_data)
 {
 	int feed_child;
-	char label[256];
+	char label[512];
 	struct Protocol *p_prot;
 	VteTerminal *vteterminal;
 	log_debug ("\n");

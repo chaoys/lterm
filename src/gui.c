@@ -27,6 +27,8 @@
 #include <openssl/opensslv.h>
 #include <openssl/md5.h>
 #include <sys/utsname.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
@@ -625,7 +627,7 @@ expand_args (struct Connection *p_conn, char *args, char *prefix, char *dest)
 	int go_on;
 	char expanded[256];
 	char title[256];
-	char label[256];
+	char label[512];
 	i = 0;
 	go_on = 1;
 	strcpy (dest, prefix != NULL ? prefix : "");
@@ -706,7 +708,7 @@ show_login_mask (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth)
 	GtkWidget *dialog;
 	GtkBuilder *builder;
 	GError *error = NULL;
-	char ui[256], image_auth_filename[256];
+	char ui[512], image_auth_filename[512];
 	int result, rc = 0, i;
 	builder = gtk_builder_new ();
 	sprintf (ui, "%s/login.glade", globals.data_dir);
@@ -821,7 +823,7 @@ connection_tab_close (struct ConnectionTab *p_ct)
 {
 	int page, retcode, can_close;
 	GtkWidget *child;
-	char prompt[256];
+	char prompt[512];
 	//log_debug ("ptr = %d\n", (unsigned int) p_ct);
 	if (/*p_ct->connected*/tabIsConnected (p_ct) ) {
 		log_debug ("%s seems connected\n", p_ct->connection.name);
@@ -1357,7 +1359,7 @@ edit_find ()
 	GtkWidget *dialog;
 	GtkBuilder *builder;
 	GError *error = NULL;
-	char ui[256];
+	char ui[512];
 	int result, rc = 0, i;
 	if (p_current_connection_tab == NULL)
 		return;
@@ -1703,7 +1705,7 @@ terminal_cluster ()
 	GError *error = NULL;
 	GtkWidget *button_ok, *button_cancel;
 	GtkWidget *dialog;
-	char ui[256], tmp[512];
+	char ui[512];
 	if (g_list_length (connection_tab_list) == 0) {
 		log_write ("No tabs for cluster command\n");
 		return;
@@ -1895,7 +1897,7 @@ void
 Info ()
 {
 	int major, minor, micro;
-	char sys[256], image_filename[256];
+	char sys[256], image_filename[512];
 	char s[1024], text[1024];
 	char s_linked[1024];
 	struct utsname info;
@@ -1904,7 +1906,7 @@ Info ()
 	FILE *fp;
 	GtkBuilder *builder;
 	GError *error = NULL;
-	char ui[256];
+	char ui[512];
 	builder = gtk_builder_new ();
 	sprintf (ui, "%s/credits.glade", globals.data_dir);
 	if (gtk_builder_add_from_file (builder, ui, &error) == 0) {
@@ -2408,7 +2410,7 @@ statusbar_msg (const char *fmt, ...)
 void
 update_statusbar ()
 {
-	char s[256];
+	char s[1024];
 	//char emulation[256];
 	char encoding[256];
 	char protocol[256];
@@ -2476,7 +2478,7 @@ terminal_popup_menu (GdkEventButton *event)
 	GtkWidget *popup;
 	struct Connection *p_conn;
 	char conn_desc[10000], ip_desc[1024], item_s[256];
-	char s_tmp[256];
+	char s_tmp[600];
 	int n_conn, i;
 	/* Build PasteHost submenu */
 	n_conn = count_current_connections ();
