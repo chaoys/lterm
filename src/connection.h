@@ -53,7 +53,6 @@ void connection_export_CSV ();
 void connection_init_stuff ();
 void rebuild_tree_store ();
 GtkWidget *create_entry_control (char *label, GtkWidget *entry);
-void create_quick_launch_window (struct QuickLaunchWindow *p_qlv);
 
 #endif
 

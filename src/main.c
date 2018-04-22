@@ -431,7 +431,6 @@ load_settings ()
 		log_debug ("last-version=%s current-version=%s\n", last_package_version, VERSION);
 		profile_modify_int (PROFILE_DELETE, globals.conf_file, "terminal", "mouse_autohide", 0);
 		profile_modify_int (PROFILE_DELETE, globals.conf_file, "general", "mouse_autohide", 0);
-		profile_modify_int (PROFILE_DELETE, globals.conf_file, "protocols", "samba", 0);
 	}
 	/* load settings */
 	/* emulation_list is not saved on exit, actually */
@@ -442,7 +441,6 @@ load_settings ()
 	profile_load_string (globals.conf_file, "general", "warnings_color", prefs.warnings_color, "orange");
 	profile_load_string (globals.conf_file, "general", "warnings_error_color", prefs.warnings_error_color, "red");
 	profile_load_string (globals.conf_file, "general", "local_start_directory", prefs.local_start_directory, "");
-	prefs.checkpoint_interval = profile_load_int (globals.conf_file, "general", "checkpoint_interval", 5);
 	profile_load_string (globals.conf_file, "general", "font_fixed", prefs.font_fixed, DEFAULT_FIXED_FONT);
 	profile_load_string (globals.conf_file, "general", "tempDir", prefs.tempDir, globals.app_dir/*"/tmp"*/);
 	prefs.startup_show_connections = profile_load_int (globals.conf_file, "TERMINAL", "startup_show_connections", 0);
@@ -469,8 +467,6 @@ load_settings ()
 	profile_load_string (globals.conf_file, "GUI", "tab_status_changed_color", prefs.tab_status_changed_color, "blue");
 	profile_load_string (globals.conf_file, "GUI", "tab_status_disconnected_color", prefs.tab_status_disconnected_color, "#707070");
 	profile_load_string (globals.conf_file, "GUI", "tab_status_disconnected_alert_color", prefs.tab_status_disconnected_alert_color, "darkred");
-	prefs.show_sidebar = profile_load_int (globals.conf_file, "GUI", "show_sidebar", 1);
-	profile_load_string (globals.conf_file, "GUI", "font_quick_launch_window", prefs.font_quick_launch_window, "Sans 9");
 }
 
 void
@@ -484,7 +480,6 @@ save_settings ()
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "check_connections", prefs.check_connections);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "warnings_color", prefs.warnings_color);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "local_start_directory", prefs.local_start_directory);
-	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "checkpoint_interval", prefs.checkpoint_interval);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "font_fixed", prefs.font_fixed);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "tempDir", prefs.tempDir);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "TERMINAL", "startup_show_connections", prefs.startup_show_connections);
@@ -501,8 +496,6 @@ save_settings ()
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "GUI", "w", prefs.w);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "GUI", "h", prefs.h);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "GUI", "tab_alerts", prefs.tab_alerts);
-	profile_modify_int (PROFILE_SAVE, globals.conf_file, "GUI", "show_sidebar", prefs.show_sidebar);
-	profile_modify_string (PROFILE_SAVE, globals.conf_file, "GUI", "font_quick_launch_window", prefs.font_quick_launch_window);
 }
 
 void

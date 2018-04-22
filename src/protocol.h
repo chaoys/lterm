@@ -4,7 +4,6 @@
 
 #define PROT_TYPE_TELNET 1
 #define PROT_TYPE_SSH 2
-#define PROT_TYPE_SAMBA 3
 #define PROT_TYPE_OTHER 99
 
 #define PROT_FLAG_NO 0

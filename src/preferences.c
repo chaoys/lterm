@@ -300,9 +300,6 @@ show_preferences ()
 	gtk_entry_set_text (GTK_ENTRY (start_directory_entry), prefs.local_start_directory);
 	GtkWidget *tab_alerts_check = GTK_WIDGET (gtk_builder_get_object (builder, "check_tab_alerts") );
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (tab_alerts_check), prefs.tab_alerts);
-	/* quick launch window font */
-	GtkWidget *qlw_font_entry = GTK_WIDGET (gtk_builder_get_object (builder, "fontbutton_qlw") );
-	gtk_font_button_set_font_name (GTK_FONT_BUTTON (qlw_font_entry), prefs.font_quick_launch_window);
 	/* profile list */
 	g_selected_profile = NULL;
 	GtkTreeSelection *select;
@@ -372,7 +369,6 @@ show_preferences ()
 		prefs.tabs_position = gtk_combo_box_get_active (GTK_COMBO_BOX (tabs_pos_combo) );
 		prefs.tab_alerts = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (tab_alerts_check) ) ? 1 : 0;
 		strcpy (prefs.local_start_directory, gtk_entry_get_text (GTK_ENTRY (start_directory_entry) ) );
-		strcpy (prefs.font_quick_launch_window, gtk_font_button_get_font_name (GTK_FONT_BUTTON (qlw_font_entry) ) );
 		prefs.mouse_copy_on_select = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (mouse_copy_on_select_check) ) ? 1 : 0;
 		prefs.mouse_paste_on_right_button = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (mouse_paste_on_right_button_check) ) ? 1 : 0;
 		prefs.mouse_autohide = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (mouse_autohide_check) ) ? 1 : 0;

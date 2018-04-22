@@ -46,8 +46,6 @@ extern Prefs prefs;
 extern struct Protocol_List g_prot_list;
 extern GtkWidget *main_window;
 extern struct ConnectionTab *p_current_connection_tab;
-extern struct QuickLaunchWindow g_quick_launch_window;
-//extern int g_refresh_qlw_tree_view;
 
 struct GroupTree g_groups;
 struct Connection_List conn_list;
@@ -199,7 +197,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         indent, " ", NVL (p_conn->last_user, ""),
 	         indent, " ", NVL (p_conn->user, ""),
 	         indent, " ", NVL (p_conn->password_encrypted, ""),
-	         indent, " ", p_conn->directory[0] ? g_markup_escape_text (p_conn->directory, strlen (p_conn->directory) ) : "",
 	         indent, " ", p_conn->user_options,
 	         indent, " ", p_conn->note[0] ? g_markup_escape_text (p_conn->note, strlen (p_conn->note) ) : "",
 	         indent, " ",
@@ -352,10 +349,6 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 		}
 		//log_debug ("Password: %s\n", pConn->password);
 	}
-	/*if (child = xml_node_get_child (node, "emulation"))
-	  strcpy (pConn->emulation, NVL(xml_node_get_value (child), "xterm"));*/
-	if (child = xml_node_get_child (node, "directory") )
-		strcpy (pConn->directory, NVL (xml_node_get_value (child), "") );
 	if (child = xml_node_get_child (node, "note") )
 		strcpy (pConn->note, NVL (xml_node_get_value (child), "") );
 	if (node_auth = xml_node_get_child (node, "authentication") ) {
@@ -1021,7 +1014,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	GtkWidget *directory_entry = GTK_WIDGET (gtk_builder_get_object (builder, "entry_shared_dir") );
 	if (p_conn) {
 		gtk_entry_set_text (GTK_ENTRY (user_options_entry), p_conn->user_options);
-		gtk_entry_set_text (GTK_ENTRY (directory_entry), p_conn->directory);
 	}
 	/* notes */
 	GtkTextBuffer *note_buffer;
@@ -1079,7 +1071,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 			conn_new.port = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (port_spin_button) );
 			//strcpy (conn_new.emulation, gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (emulation_combo)));
 			strcpy (conn_new.user_options, gtk_entry_get_text (GTK_ENTRY (user_options_entry) ) );
-			strcpy (conn_new.directory, gtk_entry_get_text (GTK_ENTRY (directory_entry) ) );
 			conn_new.sshOptions.x11Forwarding = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_x11) ) ? 1 : 0;
 			conn_new.sshOptions.agentForwarding = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_agentForwarding) ) ? 1 : 0;
 			conn_new.sshOptions.disableStrictKeyChecking = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_disable_key_checking) ) ? 1 : 0;
@@ -1850,13 +1841,6 @@ choose_manage_connection (struct Connection *p_conn)
 	struct GroupNode *p_node;
 	gint sel_port;
 	gchar *sel_name;
-	/* disable DND signals for QLW */
-	/*
-	  g_signal_handler_disconnect (g_quick_launch_window.tree_model, g_quick_launch_window.row_inserted_handler);
-	  g_signal_handler_disconnect (g_quick_launch_window.tree_model, g_quick_launch_window.row_deleted_handler);
-	*/
-	g_signal_handler_block (g_quick_launch_window.tree_model, g_quick_launch_window.row_inserted_handler);
-	g_signal_handler_block (g_quick_launch_window.tree_model, g_quick_launch_window.row_deleted_handler);
 	/* create the window */
 	GtkWidget *dialog_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	connections_dialog = dialog_window;
@@ -1870,23 +1854,7 @@ choose_manage_connection (struct Connection *p_conn)
 	GtkWidget *tree_view = create_connections_tree_view ();
 	select = gtk_tree_view_get_selection (GTK_TREE_VIEW (tree_view) );
 	gtk_tree_selection_set_mode (select, GTK_SELECTION_SINGLE);
-	/*
-	  guint sig_refresh_tree_view = g_signal_new ("lterm-refresh-dialog-tree-view",
-	                                              G_TYPE_OBJECT, G_SIGNAL_RUN_CLEANUP,
-	                                              0, NULL, NULL,
-	                                              g_cclosure_marshal_VOID__POINTER,
-	                                              G_TYPE_NONE, 1, G_TYPE_POINTER);
-
-	  g_signal_connect (tree_view, "lterm-refresh-dialog-tree-view", G_CALLBACK (refresh_dialog_tree_view_cb), tree_view);
-	*/
 	refresh_connection_tree_view (GTK_TREE_VIEW (tree_view) );
-	//expand_connection_tree_view_groups (GTK_TREE_VIEW (tree_view), &g_groups.root);
-	/* refresh quick launch window expansders */
-	//expand_connection_tree_view_groups (GTK_TREE_VIEW (g_quick_launch_window.tree_view), &g_groups.root);
-	//ifr_add (ITERATION_REFRESH_QUICK_LAUCH_TREE_VIEW, NULL);
-	/*
-	  g_signal_connect (tree_view, "cursor-changed", G_CALLBACK (cursor_changed_cb), select);
-	*/
 	g_signal_connect (tree_view, "cursor-changed", G_CALLBACK (cursor_changed_cb), select);
 	tree_model = gtk_tree_view_get_model (GTK_TREE_VIEW (tree_view) );
 	g_signal_connect (tree_model, "row-inserted", G_CALLBACK (on_drag_data_inserted), GTK_TREE_VIEW (tree_view) );
@@ -2026,75 +1994,11 @@ choose_manage_connection (struct Connection *p_conn)
 	} /* while */
 	gtk_widget_destroy (dialog_window);
 	connections_dialog = NULL;
-	/* reenable DND signals for QLW */
-	g_signal_handler_unblock (g_quick_launch_window.tree_model, g_quick_launch_window.row_inserted_handler);
-	g_signal_handler_unblock (g_quick_launch_window.tree_model, g_quick_launch_window.row_deleted_handler);
 	/* refresh list for search entry completion */
 	refresh_search_completion ();
 	/* refresh quick launch window expansders */
 	ifr_add (ITERATION_REFRESH_QUICK_LAUCH_TREE_VIEW, NULL);
 	return (retcode);
-}
-
-
-/**
- * create_quick_launch_window()
- * @param[out] p_conn new or updated connection
- * @return pointer to the window widget
- */
-void
-create_quick_launch_window (struct QuickLaunchWindow *p_qlv)
-{
-	GtkTreeSelection *select;
-	/* create a tree view for connections */
-	p_qlv->tree_view = create_connections_tree_view ();
-	p_qlv->tree_model = gtk_tree_view_get_model (GTK_TREE_VIEW (p_qlv->tree_view) );
-	select = gtk_tree_view_get_selection (GTK_TREE_VIEW (p_qlv->tree_view) );
-	gtk_tree_selection_set_mode (select, GTK_SELECTION_SINGLE);
-	gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (p_qlv->tree_view), FALSE);
-	/* remove protocol and port column */
-	gtk_tree_view_remove_column (GTK_TREE_VIEW (p_qlv->tree_view), gtk_tree_view_get_column (GTK_TREE_VIEW (p_qlv->tree_view), 2) );
-	gtk_tree_view_remove_column (GTK_TREE_VIEW (p_qlv->tree_view), gtk_tree_view_get_column (GTK_TREE_VIEW (p_qlv->tree_view), 2) );
-	/*
-	  g_signal_connect (p_qlv->tree_view, "cursor-changed", G_CALLBACK (cursor_changed_cb), select);
-	*/
-	g_signal_connect (p_qlv->tree_view, "cursor-changed", G_CALLBACK (cursor_changed_cb), select);
-	p_qlv->row_inserted_handler = g_signal_connect (p_qlv->tree_model, "row-inserted", G_CALLBACK (on_drag_data_inserted), GTK_TREE_VIEW (p_qlv->tree_view) );
-	p_qlv->row_deleted_handler = g_signal_connect (p_qlv->tree_model, "row-deleted", G_CALLBACK (on_drag_data_deleted), GTK_TREE_VIEW (p_qlv->tree_view) );
-	gtk_widget_show_all (p_qlv->tree_view);
-	PangoFontDescription *font_desc;
-	font_desc = pango_font_description_from_string (prefs.font_quick_launch_window);
-	gtk_widget_modify_font (p_qlv->tree_view, font_desc);
-	pango_font_description_free (font_desc);
-	/*
-	  font_desc = pango_font_description_copy (vte_terminal_get_font (terminal));
-	  newsize = (pango_font_description_get_size (font_desc) / PANGO_SCALE) - 1;
-	  pango_font_description_set_size (font_desc, CLAMP (newsize, 4, 144) * PANGO_SCALE);
-	*/
-	g_signal_connect (G_OBJECT (p_qlv->tree_view), "row-activated", G_CALLBACK (row_activated_quick_cb), select);
-	//g_signal_connect (GTK_OBJECT (dialog), "key-press-event", GTK_SIGNAL_FUNC (conn_key_press_cb), NULL);
-	//refresh_connection_tree_view (GTK_TREE_VIEW (p_qlv->tree_view));
-	//rebuild_tree_store ();
-	expand_connection_tree_view_groups (GTK_TREE_VIEW (p_qlv->tree_view), &g_groups.root);
-	/* create a new scrolled window, with scrollbars only if needed, and put the tree view inside */
-	p_qlv->scrolled_window = gtk_scrolled_window_new (NULL, NULL);
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (p_qlv->scrolled_window), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (p_qlv->scrolled_window), GTK_SHADOW_ETCHED_IN);
-	//gtk_container_set_resize_mode (GTK_SCROLLED_WINDOW (scrolled_window), GTK_RESIZE_IMMEDIATE);
-	gtk_container_add (GTK_CONTAINER (p_qlv->scrolled_window), p_qlv->tree_view);
-	gtk_widget_show_all (p_qlv->scrolled_window);
-	/* combo for selecting column in interactive search */
-	p_qlv->search_by_combo = create_search_by_combo ();
-	g_signal_connect (G_OBJECT (GTK_COMBO_BOX (p_qlv->search_by_combo) ), "changed", G_CALLBACK (change_search_by_cb), p_qlv->tree_view);
-	/* button for copying host into clipboard */
-	p_qlv->copy_button = gtk_button_new_with_label ("Copy host to clipboard");
-	g_signal_connect (G_OBJECT (p_qlv->copy_button), "clicked", G_CALLBACK (copy_button_clicked_cb), select);
-	/* main vertical box */
-	p_qlv->vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-	gtk_box_pack_start (GTK_BOX (p_qlv->vbox), p_qlv->scrolled_window, TRUE, TRUE, 0);
-	gtk_box_pack_end (GTK_BOX (p_qlv->vbox), p_qlv->copy_button, FALSE, FALSE, 0);
-	gtk_box_pack_end (GTK_BOX (p_qlv->vbox), p_qlv->search_by_combo, FALSE, FALSE, 0);
-	//return (vbox);
 }
 
 int
@@ -2141,7 +2045,6 @@ connection_import_lterm ()
 			msgbox_error ("Unable to load %s", filename);
 		else {
 			rebuild_tree_store ();
-			expand_connection_tree_view_groups (GTK_TREE_VIEW (g_quick_launch_window.tree_view), &g_groups.root);
 			msgbox_info ("Import completed");
 		}
 	}

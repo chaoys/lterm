@@ -49,7 +49,6 @@ typedef struct Connection {
 	char user[32];
 	char password[32];
 	char password_encrypted[64]; /* base 64 encoded */
-	char directory[256]; /* e.g. samba condivision folder */
 	unsigned int flags;
 	char note[MAX_NOTE_LEN];
 	//int x11Forwarding;

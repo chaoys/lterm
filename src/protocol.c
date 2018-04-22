@@ -84,8 +84,6 @@ pl_append (struct Protocol_List *p_pl, struct Protocol *p_new)
 		p_new_decl->type = PROT_TYPE_TELNET;
 	else if (!strcmp (p_new_decl->command, "ssh") )
 		p_new_decl->type = PROT_TYPE_SSH;
-	else if (!strcmp (p_new_decl->command, "smbclient") )
-		p_new_decl->type = PROT_TYPE_SAMBA;
 	else
 		p_new_decl->type = PROT_TYPE_OTHER;
 	p_new_decl->next = 0;
@@ -175,7 +173,6 @@ check_standard_protocols (struct Protocol_List *p_pl)
 	struct Protocol std_protocosls[] = {
 		{ "ssh", PROT_TYPE_SSH, "ssh", "-p %p -l %u %h", 22, PROT_FLAG_ASKPASSWORD, NULL },
 		{ "telnet", PROT_TYPE_TELNET, "telnet", "%h %p", 23, PROT_FLAG_ASKUSER | PROT_FLAG_ASKPASSWORD, NULL },
-		{ "samba", PROT_TYPE_SAMBA, "smbclient", "//%h/%d -U %u%%%P", -1, PROT_FLAG_NO, NULL }
 	};
 	n = sizeof (std_protocosls) / sizeof (struct Protocol);
 	for (i = 0; i < n; i++) {

@@ -126,11 +126,8 @@ struct _prefs {
 	//char tab_status_connecting_color [32];
 	char tab_status_disconnected_color [32];
 	char tab_status_disconnected_alert_color [32];
-	int show_sidebar;
-	char font_quick_launch_window [128];
 	char font_fixed [128];
 	int search_by;
-	int checkpoint_interval;
 
 	int ssh_keepalive;
 	int ssh_timeout;

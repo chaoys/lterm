@@ -180,7 +180,6 @@ void show_preferences ();
 
 void view_toolbar ();
 void view_statusbar ();
-void view_sidebar ();
 void view_fullscreen ();
 void view_go_back ();
 void view_go_forward ();

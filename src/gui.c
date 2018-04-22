@@ -88,8 +88,6 @@ GtkWidget *search_entry;
 GtkEntryCompletion *completion;
 GtkWidget *statusbar, *sb_msg, *sb_protocol, *sb_transfer, *sb_enc;       /* statusbar */
 GtkWidget *notebook;
-GtkWidget *notebook_sidebar;
-//GtkWidget *align_sidebar;
 
 void update_statusbar();
 
@@ -99,7 +97,6 @@ GdkScreen *g_screen;
 /* pointer to the list of open connections or NULL if there's no open connection */
 GList *connection_tab_list;
 struct ConnectionTab *p_current_connection_tab;
-struct QuickLaunchWindow g_quick_launch_window;
 
 GtkActionGroup *profile_action_group;
 int profile_menu_ui_id;
@@ -110,7 +107,6 @@ int prev_columns;
 //int g_window_resized = 0;
 
 int switch_tab_enabled = 1;
-//int g_refresh_qlw_tree_view = 0;
 
 char *g_vte_selected_text = NULL;
 
@@ -186,7 +182,6 @@ GtkActionEntry main_menu_items[] = {
 static GtkToggleActionEntry toggle_entries[] = {
 	{ "Toolbar", NULL, N_ ("_Toolbar"), NULL, NULL, G_CALLBACK (view_toolbar) },
 	{ "Statusbar", NULL, N_ ("_Statusbar"), NULL, NULL, G_CALLBACK (view_statusbar) },
-	{ "Sidebar", MY_STOCK_SIDEBAR, N_ ("S_idebar"), "F9", "Show/hide sidebar", G_CALLBACK (view_sidebar) }
 };
 
 const gchar ui_main_desc[] =
@@ -235,7 +230,6 @@ const gchar ui_main_desc[] =
         "    <menu action='ViewMenu'>"
         "      <menuitem action='Toolbar' />"
         "      <menuitem action='Statusbar' />"
-        "      <menuitem action='Sidebar' />"
         "      <separator />"
         "      <menuitem action='Fullscreen' />"
         "      <separator />"
@@ -286,8 +280,6 @@ const gchar ui_main_desc[] =
         "    <toolitem action='Zoom in'/>"
         "    <toolitem action='Zoom out'/>"
         "    <toolitem action='Zoom 100'/>"
-        "    <separator />"
-        "    <toolitem action='Sidebar'/>"
         "    <separator />"
         "    <toolitem action='Preferences'/>"
         "    <toolitem action='Zoom 100'/>"
@@ -705,15 +697,6 @@ expand_args (struct Connection *p_conn, char *args, char *prefix, char *dest)
 					}
 					//else
 					//  strcpy (expanded, p_conn->password);
-					break;
-				/* directory */
-				case 'd':
-					if (p_conn->directory[0] == 0) {
-						strcpy (title, "Log on");
-						sprintf (label, _ ("Enter directory for <b>%s</b>:"), p_conn->name);
-						go_on = query_value (title, label, p_conn->directory, expanded, FALSE);
-					} else
-						strcpy (expanded, p_conn->directory);
 					break;
 				case '%':
 					strcpy (expanded, "%");
@@ -1528,30 +1511,6 @@ view_statusbar ()
 		gtk_widget_hide (statusbar);
 		prefs.statusbar = 0;
 	}
-}
-
-void
-show_sidebar (gboolean show)
-{
-	/* Set resize flag for all the tabs. Will be checked in contents_changed_cb() */
-	set_window_resized_all (1);
-	if (show) {
-		gtk_widget_show_all (notebook_sidebar);
-		prefs.show_sidebar = 1;
-		/* grab focus */
-		gtk_widget_grab_focus (notebook_sidebar);
-	} else {
-		gtk_widget_hide (notebook_sidebar);
-		prefs.show_sidebar = 0;
-	}
-}
-
-void
-view_sidebar ()
-{
-	GtkWidget *toggle;
-	toggle = gtk_ui_manager_get_widget (ui_manager, N_ ("/MainMenu/ViewMenu/Sidebar") );
-	show_sidebar (gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM (toggle) ) );
 }
 
 void
@@ -3204,12 +3163,6 @@ apply_preferences ()
 		//gtk_window_move (GTK_WINDOW (main_window), prefs.x, prefs.y);
 		gtk_window_set_resizable (GTK_WINDOW (main_window), TRUE);
 	}
-	log_debug ("set font for qlw : %s\n", prefs.font_quick_launch_window);
-	PangoFontDescription *font_desc;
-	font_desc = pango_font_description_from_string (prefs.font_quick_launch_window);
-	gtk_widget_modify_font (g_quick_launch_window.tree_view, font_desc);
-	pango_font_description_free (font_desc);
-	//gtk_widget_queue_draw (g_quick_launch_window.tree_view);
 	gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook), prefs.tabs_position);
 }
 
@@ -3365,29 +3318,6 @@ start_gtk (int argc, char **argv)
 	/* list store for connetions */
 	connection_init_stuff ();
 	//create_connections_list_store ();
-	/* Create the sidebar */
-	notebook_sidebar = gtk_notebook_new ();
-	gtk_notebook_set_scrollable (GTK_NOTEBOOK (notebook_sidebar), TRUE);
-	gtk_notebook_set_show_border (GTK_NOTEBOOK (notebook_sidebar), FALSE);
-	/* quick launch window */
-	log_write ("Creating quick launch window...\n");
-	create_quick_launch_window (&g_quick_launch_window);
-	gtk_notebook_append_page (GTK_NOTEBOOK (notebook_sidebar), g_quick_launch_window.vbox,
-	                          gtk_widget_new (GTK_TYPE_LABEL, "label", "Connections", "xalign", 0.0, NULL) );
-	//gtk_box_pack_start (GTK_BOX (hbox_workspace), g_quick_launch_window.vbox, FALSE, FALSE, 0);
-	/*
-	  align_sidebar = gtk_alignment_new (0, 0, 0, 1);
-	  gtk_widget_show (align_sidebar);
-	  gtk_container_add (GTK_CONTAINER (align_sidebar), notebook_sidebar);
-	*/
-	log_write ("Adding sftp panel...\n");
-	gtk_paned_add1 (GTK_PANED (hpaned), notebook_sidebar);
-	//gtk_box_pack_start (GTK_BOX (hbox_workspace), align_sidebar, TRUE, TRUE, 0);
-	//gtk_box_set_homogeneous (GTK_BOX (hbox_workspace), FALSE);
-	//show_sidebar ((gboolean) prefs.show_sidebar);
-	GtkWidget *toggle = gtk_ui_manager_get_widget (ui_manager, N_ ("/MainMenu/ViewMenu/Sidebar") );
-	if (prefs.show_sidebar)
-		gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toggle), TRUE);
 	/* Notebook */
 	notebook = gtk_notebook_new ();
 	gtk_notebook_set_scrollable (GTK_NOTEBOOK (notebook), TRUE);
