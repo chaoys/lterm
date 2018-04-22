@@ -291,7 +291,6 @@ const gchar ui_main_desc[] =
         "    <separator />"
         "    <toolitem action='Preferences'/>"
         "    <toolitem action='Zoom 100'/>"
-        "    <toolitem action='About'/>"
 #ifdef DEBUG
         "    <separator />"
         "    <toolitem action='Debug'/>"
