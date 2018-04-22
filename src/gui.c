@@ -130,13 +130,9 @@ GtkActionEntry main_menu_items[] = {
 	{ "Open terminal", MY_STOCK_TERMINAL, N_ ("Open _terminal"), "<ctrl>T", "Open terminal", G_CALLBACK (connection_new_terminal) },
 	{ "ExportMenu", NULL, N_ ("_Export bookmarks") },
 	{ "ExportLTerm", NULL, N_ ("To _lterm"), NULL, NULL, G_CALLBACK (connection_export_lterm) },
-	{ "ExportMobaXterm", NULL, N_ ("To _MobaXterm"), NULL, NULL, G_CALLBACK (connection_export_MobaXterm) },
-	{ "ExportPutty", NULL, N_ ("To _Putty"), NULL, NULL, G_CALLBACK (connection_export_Putty) },
 	{ "ExportCSV", NULL, N_ ("To _CSV"), NULL, NULL, G_CALLBACK (connection_export_CSV) },
 	{ "ImportMenu", NULL, N_ ("_Import bookmarks") },
 	{ "ImportLTerm", NULL, N_ ("From _lterm"), NULL, NULL, G_CALLBACK (connection_import_lterm) },
-	{ "ImportMobaXterm", NULL, N_ ("From _MobaXterm"), NULL, NULL, G_CALLBACK (connection_import_MobaXterm) },
-	{ "ImportPutty", NULL, N_ ("From _Putty"), NULL, NULL, G_CALLBACK (connection_import_Putty) },
 	{ "Close tab", "_Close", N_ ("Close tab"), "<ctrl>W", NULL, G_CALLBACK (connection_close_tab) },
 	{ "Quit", "_Quit", N_ ("_Quit"), SHORTCUT_QUIT, NULL, G_CALLBACK (application_quit) },
 

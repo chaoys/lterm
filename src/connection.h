@@ -43,11 +43,7 @@ struct GroupNode *add_update_connection (struct GroupNode *p_node, struct Connec
 struct GroupNode *add_update_folder (struct GroupNode *p_node);
 
 void connection_import_lterm ();
-void connection_import_MobaXterm ();
-void connection_import_Putty ();
 void connection_export_lterm ();
-void connection_export_MobaXterm ();
-void connection_export_Putty ();
 void connection_export_CSV ();
 
 void connection_init_stuff ();
