@@ -69,16 +69,16 @@ char * getCurrentFunction ();
 */
 struct _globals {
 	int running;
-	char home_dir[256];
-	char app_dir[256];
-	char img_dir[256];
-	char data_dir[256];
-	char serverlist[256];             /* Server list file (deprecated) */
-	char connections_xml[256];    /* Server list file (xml format)*/
-	char conf_file[256];
-	char log_file[256];
-	char profiles_file[256];
-	char protocols_file[256];
+	char home_dir[512];
+	char app_dir[512];
+	char img_dir[512];
+	char data_dir[512];
+	char serverlist[512];             /* Server list file (deprecated) */
+	char connections_xml[512];    /* Server list file (xml format)*/
+	char conf_file[512];
+	char log_file[512];
+	char profiles_file[512];
+	char protocols_file[512];
 	int connected;
 	int original_font_size;
 	char system_font[256];
@@ -137,7 +137,7 @@ struct _prefs {
 
 typedef struct _prefs Prefs;
 
-void lockSSH (char *caller, gboolean flagLock);
+void lockSSH (const char *caller, gboolean flagLock);
 void log_reset ();
 void log_write (const char *fmt, ...);
 gboolean doGTKMainIteration ();

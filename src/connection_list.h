@@ -73,6 +73,7 @@ struct Connection_List {
 void connection_init (SConnection *);
 
 void cl_init (struct Connection_List *p_cl);
+void cl_remove (struct Connection_List *p_cl, char *name);
 void cl_release (struct Connection_List *p_cl);
 struct Connection * cl_append (struct Connection_List *p_cl, struct Connection *p_new);
 struct Connection *cl_insert_sorted (struct Connection_List *p_cl, struct Connection *p_new);

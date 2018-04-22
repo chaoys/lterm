@@ -345,9 +345,9 @@ query_name_new_protocol (char *buffer, struct Protocol_List *p_pl)
 	GtkWidget *user_entry;
 	GtkWidget *l_align;
 	dialog = gtk_dialog_new_with_buttons ("New protocol", GTK_WINDOW (main_window), 0,
-	                                      GTK_STOCK_CANCEL,
+	                                      "_Cancel",
 	                                      GTK_RESPONSE_CANCEL,
-	                                      GTK_STOCK_OK,
+	                                      "_Ok",
 	                                      GTK_RESPONSE_OK,
 	                                      NULL);
 	gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_OK);
@@ -581,16 +581,16 @@ manage_protocols (struct Protocol_List *p_pl)
 	gtk_box_pack_start (GTK_BOX (entries_vbox), askpassword_check, FALSE, FALSE, 0);
 	gtk_box_pack_start (GTK_BOX (entries_vbox), disconnectclose_check, FALSE, FALSE, 0);
 	/* buttons */
-	GtkWidget *new_button = gtk_button_new_from_stock (GTK_STOCK_NEW);
+	GtkWidget *new_button = gtk_button_new_with_label ("New");
 	gtk_box_pack_start (GTK_BOX (buttons_vbox), new_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (new_button), "clicked", G_CALLBACK (prot_new_clicked_cb), p_pl);
-	GtkWidget *save_button = gtk_button_new_from_stock (GTK_STOCK_SAVE);
+	GtkWidget *save_button = gtk_button_new_with_label ("Save");
 	gtk_box_pack_start (GTK_BOX (buttons_vbox), save_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (save_button), "clicked", G_CALLBACK (prot_save_clicked_cb), p_pl);
-	GtkWidget *revert_button = gtk_button_new_from_stock (GTK_STOCK_REVERT_TO_SAVED);
+	GtkWidget *revert_button = gtk_button_new_with_label ("Revert");
 	gtk_box_pack_start (GTK_BOX (buttons_vbox), revert_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (revert_button), "clicked", G_CALLBACK (prot_revert_clicked_cb), p_pl);
-	GtkWidget *delete_button = gtk_button_new_from_stock (GTK_STOCK_DELETE);
+	GtkWidget *delete_button = gtk_button_new_with_label ("Delete");
 	gtk_box_pack_start (GTK_BOX (buttons_vbox), delete_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (delete_button), "clicked", G_CALLBACK (prot_delete_clicked_cb), p_pl);
 	gtk_box_pack_start (GTK_BOX (edit_hbox), buttons_vbox, TRUE, FALSE, 0);
@@ -637,8 +637,7 @@ manage_protocols (struct Protocol_List *p_pl)
 	gtk_window_set_position (GTK_WINDOW (dialog), GTK_WIN_POS_CENTER);
 	gtk_box_set_spacing (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), 10);
 	gtk_container_set_border_width (GTK_CONTAINER (dialog), 10);
-	//cancel_button = gtk_dialog_add_button (GTK_DIALOG (dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
-	ok_button = gtk_dialog_add_button (GTK_DIALOG (dialog), GTK_STOCK_CLOSE, GTK_RESPONSE_OK);
+	ok_button = gtk_dialog_add_button (GTK_DIALOG (dialog), "_Close", GTK_RESPONSE_OK);
 	gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_OK);
 	gtk_box_pack_start (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), main_vbox, TRUE, TRUE, 0);
 	gtk_widget_show_all (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) );

@@ -44,21 +44,6 @@
 #include "utils.h"
 #include "config.h"
 
-// Access to ssh operations
-pthread_mutex_t mutexSSH = PTHREAD_MUTEX_INITIALIZER;
-
-void
-lockSSH (char *caller, gboolean flagLock)
-{
-	if (flagLock) {
-		log_debug ("[%s] locking SSH mutex...\n", caller);
-		pthread_mutex_lock (&mutexSSH);
-	} else {
-		log_debug ("[%s] unlocking SSH mutex...\n", caller);
-		pthread_mutex_unlock (&mutexSSH);
-	}
-}
-
 int switch_local = 0;     /* start with local shell */
 
 Globals globals;
@@ -73,6 +58,21 @@ void load_settings ();
 void save_settings ();
 void show_version ();
 void help ();
+
+// Access to ssh operations
+pthread_mutex_t mutexSSH = PTHREAD_MUTEX_INITIALIZER;
+
+void
+lockSSH (const char *caller, gboolean flagLock)
+{
+	if (flagLock) {
+		log_debug ("[%s] locking SSH mutex...\n", caller);
+		pthread_mutex_lock (&mutexSSH);
+	} else {
+		log_debug ("[%s] unlocking SSH mutex...\n", caller);
+		pthread_mutex_unlock (&mutexSSH);
+	}
+}
 
 #ifdef DEBUG
 char gCurrentFunction[512];

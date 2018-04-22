@@ -25,6 +25,7 @@
 #include <openssl/des.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
@@ -118,7 +119,7 @@ seconds_to_hhmmdd (uint64_t seconds, char *buf)
 	min = seconds / 60;
 	seconds = seconds % 60;
 	sec = seconds;
-	sprintf (buf, "%02lld:%02lld:%02lld", hour, min, sec);
+	sprintf (buf, "%02ld:%02ld:%02ld", hour, min, sec);
 	return (buf);
 }
 
@@ -778,24 +779,5 @@ get_system (char *sys_name)
 #ifdef __linux__
 	strcpy (sys_name, "Linux");
 #endif
-}
-
-char *
-readFile (char *filename)
-{
-	char * buffer = 0;
-	long length;
-	FILE * f = fopen (filename, "rb");
-	if (f) {
-		fseek (f, 0, SEEK_END);
-		length = ftell (f);
-		fseek (f, 0, SEEK_SET);
-		buffer = malloc (length);
-		if (buffer) {
-			fread (buffer, 1, length, f);
-		}
-		fclose (f);
-	}
-	return (buffer);
 }
 

@@ -545,7 +545,7 @@ xml_parse (char *doc, XML *p_xml)
 	p_xml->context = g_markup_parse_context_new (&xml_parser, G_MARKUP_TREAT_CDATA_AS_TEXT, p_xml, NULL);
 	if (!g_markup_parse_context_parse (p_xml->context, doc, strlen (doc), NULL) ) {
 		g_markup_parse_context_free (p_xml->context);
-		return;
+		return 0;
 	}
 	g_markup_parse_context_free (p_xml->context);
 	return (p_xml->error.code);

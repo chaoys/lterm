@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include "connection_list.h"
 #include "ssh.h"
+#include "profile.h"
 
 #define QUERY_USER 1
 #define QUERY_PASSWORD 2
@@ -220,6 +221,7 @@ char *get_remote_directory ();
 int connection_tab_getcwd (struct ConnectionTab *p_ct, char *directory);
 
 void apply_profile (struct ConnectionTab *p_ct, int profile_id);
+void apply_profile_terminal (GtkWidget *terminal, struct Profile *p_profile);
 void update_all_profiles ();
 
 void sb_msg_push (char *);

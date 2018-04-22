@@ -92,7 +92,7 @@ profile_edit (struct Profile *p_profile)
 	GError *error = NULL;
 	GtkWidget *dialog;
 	struct Profile new_profile;
-	char ui[256];
+	char ui[600];
 	builder = gtk_builder_new ();
 	sprintf (ui, "%s/profile.glade", globals.data_dir);
 	if (gtk_builder_add_from_file (builder, ui, &error) == 0) {
@@ -267,7 +267,7 @@ show_preferences ()
 	struct Profile *p_profile;
 	//char *ui = "/home/fabio/src/lterm-0.5.x/data/preferences.glade";
 	//char *ui = "/dati/Source/lterm-0.5.x/data/preferences.glade";
-	char ui[256], tmp[512];
+	char ui[600];
 	builder = gtk_builder_new ();
 	sprintf (ui, "%s/preferences.glade", globals.data_dir);
 	if (gtk_builder_add_from_file (builder, ui, &error) == 0) {
