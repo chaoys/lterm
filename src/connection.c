@@ -2000,55 +2000,6 @@ choose_manage_connection (struct Connection *p_conn)
 	return (retcode);
 }
 
-int
-connection_import_file_chooser (char *title, char *outFilename)
-{
-	GtkWidget *dialog;
-	gint result;
-	char *filename;
-	int err = 0;
-	struct Connection *p_conn;
-	dialog = gtk_file_chooser_dialog_new (title, GTK_WINDOW (main_window), GTK_FILE_CHOOSER_ACTION_OPEN,
-	                                      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-	                                      GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
-	                                      NULL);
-	gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), globals.home_dir);
-	result = gtk_dialog_run (GTK_DIALOG (dialog) );
-	if (result == GTK_RESPONSE_ACCEPT) {
-		filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog) );
-		log_debug ("filename : %s\n", filename);
-		strcpy (outFilename, filename);
-		g_free (filename);
-	}
-	gtk_widget_destroy (dialog);
-	return (result);
-}
-
-void
-connection_import_lterm ()
-{
-	int result, err = 0;
-	char filename[512];
-	result = connection_import_file_chooser (_ ("Import from lterm"), filename);
-	if (result == GTK_RESPONSE_ACCEPT) {
-		if (is_xml_file (filename) ) {
-			log_debug ("XML file\n");
-			err = load_connections_from_file_xml (filename);
-		} else {
-			msgbox_error (_ ("Unable to import %s\nWrong file format"), filename);
-			err = 1;
-		}
-	}
-	if (result == GTK_RESPONSE_ACCEPT) {
-		if (err)
-			msgbox_error ("Unable to load %s", filename);
-		else {
-			rebuild_tree_store ();
-			msgbox_info ("Import completed");
-		}
-	}
-}
-
 gint
 connection_export_file_chooser (char *title,
                                 char *currentName,
@@ -2075,18 +2026,6 @@ connection_export_file_chooser (char *title,
 	return (result);
 }
 
-void
-connection_export_lterm ()
-{
-	int result;
-	char filename[512];
-	result = connection_export_file_chooser (_ ("Export to lterm"), "lterm-bookmarks.xml", filename);
-	if (result == GTK_RESPONSE_ACCEPT) {
-		if (save_connections_to_file_xml (filename) )
-			msgbox_error ("Unable to save %s", filename);
-	}
-}
-
 int mxtBookmarksCount;
 char *mainFolder = "lterm-bookmarks";
 
@@ -2096,7 +2035,7 @@ connection_export_CSV ()
 	int result;
 	char filename[512], templateFilename[512], *template, *connectionEntry;
 	FILE *fp;
-	result = connection_export_file_chooser (_ ("Export to CSV"), "lterm-bookmarks.csv", filename);
+	result = connection_export_file_chooser (_ ("Export to CSV"), "lterm-connections.csv", filename);
 	if (result == GTK_RESPONSE_ACCEPT) {
 		// Open output file
 		fp = fopen (filename, "w");

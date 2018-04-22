@@ -110,8 +110,6 @@ int switch_tab_enabled = 1;
 
 char *g_vte_selected_text = NULL;
 
-struct Match g_match;
-
 // Cluster
 enum { COLUMN_CLUSTER_TERM_SELECTED, COLUMN_CLUSTER_TERM_NAME, N_CLUSTER_COLUMNS };
 GtkListStore *list_store_cluster;
@@ -128,11 +126,8 @@ GtkActionEntry main_menu_items[] = {
 	{ "Duplicate", MY_STOCK_DUPLICATE, N_ ("_Duplicate"), "<shift><ctrl>D", "Duplicate connection", G_CALLBACK (connection_duplicate) },
 	{ "Edit protocols", NULL, N_ ("_Edit protocols"), NULL, NULL, G_CALLBACK (connection_edit_protocols) },
 	{ "Open terminal", MY_STOCK_TERMINAL, N_ ("Open _terminal"), "<ctrl>T", "Open terminal", G_CALLBACK (connection_new_terminal) },
-	{ "ExportMenu", NULL, N_ ("_Export bookmarks") },
-	{ "ExportLTerm", NULL, N_ ("To _lterm"), NULL, NULL, G_CALLBACK (connection_export_lterm) },
+	{ "ExportMenu", NULL, N_ ("_Export connections") },
 	{ "ExportCSV", NULL, N_ ("To _CSV"), NULL, NULL, G_CALLBACK (connection_export_CSV) },
-	{ "ImportMenu", NULL, N_ ("_Import bookmarks") },
-	{ "ImportLTerm", NULL, N_ ("From _lterm"), NULL, NULL, G_CALLBACK (connection_import_lterm) },
 	{ "Close tab", "_Close", N_ ("Close tab"), "<ctrl>W", NULL, G_CALLBACK (connection_close_tab) },
 	{ "Quit", "_Quit", N_ ("_Quit"), SHORTCUT_QUIT, NULL, G_CALLBACK (application_quit) },
 
@@ -193,11 +188,7 @@ const gchar ui_main_desc[] =
         "      <menuitem action='Edit protocols' />"
         "      <separator />"
         "      <menu action='ExportMenu'>"
-        "        <menuitem action='ExportLTerm' />"
         "        <menuitem action='ExportCSV' />"
-        "      </menu>"
-        "      <menu action='ImportMenu'>"
-        "        <menuitem action='ImportLTerm' />"
         "      </menu>"
         "      <separator />"
         "      <menuitem action='Close tab' />"
@@ -878,41 +869,6 @@ close_button_clicked_cb (GtkButton *button, gpointer user_data)
 	connection_tab_close (p_ct);
 }
 
-gboolean
-query_tooltip_cb (GtkWidget  *widget,
-                  gint        x,
-                  gint        y,
-                  gboolean    keyboard_mode,
-                  GtkTooltip *tooltip,
-                  gpointer    user_data)
-{
-	//log_debug ("x=%d, y=%d\n");
-	int row, col;
-	GtkBorder *inner_border = NULL;
-	struct Connection *p_conn;
-	char s[1024];
-	/* Get matched text */
-	//gtk_widget_style_get (widget, "inner-border", &inner_border, NULL);
-	col = (x - (inner_border ? inner_border->left : 0) ) / vte_terminal_get_char_width (VTE_TERMINAL (widget) );
-	row = (y - (inner_border ? inner_border->top : 0) ) / vte_terminal_get_char_height (VTE_TERMINAL (widget) );
-	//gtk_border_free (inner_border);
-	//log_debug ("row=%d, col=%d\n", row, col);
-	/* If there is no user selection, check matched strings */
-	if (vte_terminal_get_has_selection (VTE_TERMINAL (widget) ) == FALSE)
-		g_match.matched_string = vte_terminal_match_check (VTE_TERMINAL (widget), col, row, &g_match.tag);
-	if (g_match.matched_string) {
-		if (p_conn = get_connection_by_host (g_match.matched_string) ) {
-			sprintf (s, "<b><big>%s</big></b>\n<i>Click to connect</i>", p_conn->name);
-			gtk_tooltip_set_markup (tooltip, s);
-		} else {
-			sprintf (s, "<b><big>%s unknown</big></b>\n<i>Click to bookmark</i>", g_match.matched_string);
-			gtk_tooltip_set_markup (tooltip, s);
-		}
-		return TRUE;
-	}
-	return FALSE;
-}
-
 struct ConnectionTab *
 connection_tab_new ()
 {
@@ -936,16 +892,6 @@ connection_tab_new ()
 	g_signal_connect (connection_tab->vte, "selection-changed", G_CALLBACK (selection_changed_cb), connection_tab);
 	g_signal_connect (connection_tab->vte, "contents-changed", G_CALLBACK (contents_changed_cb), connection_tab);
 	g_signal_connect (connection_tab->vte, "grab-focus", G_CALLBACK (terminal_focus_cb), connection_tab);
-	g_signal_connect_after (connection_tab->vte, "query-tooltip", G_CALLBACK (query_tooltip_cb), NULL);
-	gtk_widget_set_has_tooltip (connection_tab->vte, TRUE);
-	/*
-	  connection_tab->connected = 0;
-	  connection_tab->logged = 0;
-	  connection_tab->auth_state = AUTH_STATE_NOT_LOGGED;
-	  connection_tab->auth_attempt = 0;
-	  connection_tab->changes_count = 0;
-	  connection_tab->status = TAB_STATUS_NORMAL;
-	*/
 	tabInitConnection (connection_tab);
 	connection_tab->cx = -1;
 	connection_tab->cy = -1;
@@ -1347,13 +1293,7 @@ edit_copy ()
 	if (p_current_connection_tab) {
 		/* Check if the terminal has the focus or the current widget is null (popup menu) */
 		if (gtk_widget_has_focus (p_current_connection_tab->vte) || w == NULL) {
-			/* If pointing at an hypertext then copy it, else copy text */
-			if (g_match.matched_string) {
-				clipboard = gtk_widget_get_clipboard (p_current_connection_tab->vte, GDK_SELECTION_CLIPBOARD);
-				gtk_clipboard_set_text (clipboard, g_match.matched_string, -1);
-				gtk_clipboard_store (clipboard);
-			} else
-				vte_terminal_copy_clipboard (VTE_TERMINAL (p_current_connection_tab->vte) );
+			vte_terminal_copy_clipboard (VTE_TERMINAL (p_current_connection_tab->vte) );
 			done = 1;
 		}
 	}
@@ -2542,22 +2482,6 @@ terminal_popup_menu (GdkEventButton *event)
 	n_conn = count_current_connections ();
 	log_debug ("n_conn=%d\n", n_conn);
 	GtkActionEntry conn_entries[n_conn];
-	/* Add IP address menu items */
-	log_debug ("tag=%d matched_string=%s\n", g_match.tag, g_match.matched_string);
-	if (g_match.tag >= 0 && g_match.matched_string) {
-		p_conn = get_connection_by_host (g_match.matched_string);
-		strcpy (ip_desc, "<ui>"
-		        "  <popup name='TermPopupMenu'>");
-		if (p_conn) {
-			strcat (ip_desc, "<menuitem action='ConnectHost' />");
-			strcat (ip_desc, "<menuitem action='EditHost' />");
-		} else {
-			strcat (ip_desc, "<menuitem action='AddHost' />");
-		}
-		strcat (ip_desc, "<separator />");
-		strcat (ip_desc, "  </popup>"
-		        "</ui>");
-	}
 	strcpy (conn_desc, "<ui>"
 	        "  <popup name='TermPopupMenu'>");
 	/* Add PasteHost menu */
@@ -2587,8 +2511,6 @@ terminal_popup_menu (GdkEventButton *event)
 	ui_manager = gtk_ui_manager_new ();
 	gtk_ui_manager_insert_action_group (ui_manager, action_group, 0);
 	log_debug ("Adding ui\n");
-	if (g_match.tag >= 0 && g_match.matched_string)
-		gtk_ui_manager_add_ui_from_string (ui_manager, ip_desc, -1, NULL);
 	gtk_ui_manager_add_ui_from_string (ui_manager, ui_popup_desc, -1, NULL);
 	gtk_ui_manager_add_ui_from_string (ui_manager, conn_desc, -1, NULL);
 	//g_object_set_data (G_OBJECT (widget), "ui-manager", ui_manager);
@@ -2736,12 +2658,6 @@ button_press_event_cb (GtkWidget *widget, GdkEventButton *event, gpointer userda
 	row = (event->y - (inner_border ? inner_border->top : 0) ) / vte_terminal_get_char_height (vte);
 	//gtk_border_free (inner_border);
 	log_debug ("row=%d, col=%d\n", row, col);
-	/* If there is no user selection, check matched strings */
-	if (vte_terminal_get_has_selection (vte) == FALSE)
-		g_match.matched_string = vte_terminal_match_check (vte, col, row, &g_match.tag);
-	if (g_match.matched_string) {
-		log_debug ("matched_string=%s\n", g_match.matched_string);
-	}
 	if (event->type == GDK_BUTTON_PRESS) {
 		if (event->button == 3) {
 			log_write ("Right button pressed\n");

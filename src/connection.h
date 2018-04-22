@@ -42,8 +42,6 @@ int validate_name (struct GroupNode *p_parent, struct GroupNode *p_node_upd, str
 struct GroupNode *add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model);
 struct GroupNode *add_update_folder (struct GroupNode *p_node);
 
-void connection_import_lterm ();
-void connection_export_lterm ();
 void connection_export_CSV ();
 
 void connection_init_stuff ();
