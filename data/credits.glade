@@ -96,18 +96,6 @@ the terms of GNU General Public License</property>
       </packing>
     </child>
     <child>
-      <object class="GtkLabel" id="label_home_page">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes">home-page</property>
-      </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">1</property>
-      </packing>
-    </child>
-    <child>
       <object class="GtkNotebook" id="notebook1">
         <property name="visible">True</property>
         <property name="can_focus">False</property>

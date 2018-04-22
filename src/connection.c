@@ -1830,7 +1830,7 @@ choose_manage_connection (struct Connection *p_conn)
 	buttons_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
 	gtk_container_set_border_width (GTK_CONTAINER (buttons_hbox), 5);
 	GtkWidget *new_connection_button = gtk_button_new ();
-	gtk_button_set_image (GTK_BUTTON (new_connection_button), gtk_image_new_from_stock (MY_STOCK_PLUS, GTK_ICON_SIZE_LARGE_TOOLBAR) );
+	gtk_button_set_image (GTK_BUTTON (new_connection_button), gtk_image_new_from_icon_name (MY_STOCK_PLUS, GTK_ICON_SIZE_LARGE_TOOLBAR) );
 	gtk_button_set_image_position (GTK_BUTTON (new_connection_button), GTK_POS_TOP);
 	gtk_button_set_label (GTK_BUTTON (new_connection_button), _ ("Add") );
 	gtk_button_set_relief (GTK_BUTTON (new_connection_button), GTK_RELIEF_NONE);
@@ -1838,7 +1838,7 @@ choose_manage_connection (struct Connection *p_conn)
 	gtk_box_pack_start (GTK_BOX (buttons_hbox), new_connection_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (new_connection_button), "clicked", G_CALLBACK (new_connection_button_clicked_cb), tree_view);
 	GtkWidget *delete_button = gtk_button_new ();
-	gtk_button_set_image (GTK_BUTTON (delete_button), gtk_image_new_from_stock (MY_STOCK_LESS, GTK_ICON_SIZE_LARGE_TOOLBAR) );
+	gtk_button_set_image (GTK_BUTTON (delete_button), gtk_image_new_from_icon_name (MY_STOCK_LESS, GTK_ICON_SIZE_LARGE_TOOLBAR) );
 	gtk_button_set_image_position (GTK_BUTTON (delete_button), GTK_POS_TOP);
 	gtk_button_set_label (GTK_BUTTON (delete_button), _ ("Remove") );
 	gtk_widget_set_tooltip_text (delete_button, _ ("Remove selected connection or group") );
@@ -1846,7 +1846,7 @@ choose_manage_connection (struct Connection *p_conn)
 	gtk_box_pack_start (GTK_BOX (buttons_hbox), delete_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (delete_button), "clicked", G_CALLBACK (delete_button_clicked_cb), tree_view);
 	GtkWidget *edit_button = gtk_button_new ();
-	gtk_button_set_image (GTK_BUTTON (edit_button), gtk_image_new_from_stock (MY_STOCK_PENCIL, GTK_ICON_SIZE_LARGE_TOOLBAR) );
+	gtk_button_set_image (GTK_BUTTON (edit_button), gtk_image_new_from_icon_name (MY_STOCK_PENCIL, GTK_ICON_SIZE_LARGE_TOOLBAR) );
 	gtk_button_set_image_position (GTK_BUTTON (edit_button), GTK_POS_TOP);
 	gtk_button_set_label (GTK_BUTTON (edit_button), "Edit");
 	gtk_button_set_relief (GTK_BUTTON (edit_button), GTK_RELIEF_NONE);
@@ -1854,7 +1854,7 @@ choose_manage_connection (struct Connection *p_conn)
 	gtk_box_pack_start (GTK_BOX (buttons_hbox), edit_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (edit_button), "clicked", G_CALLBACK (edit_button_clicked_cb), tree_view);
 	GtkWidget *duplicate_connection_button = gtk_button_new ();
-	gtk_button_set_image (GTK_BUTTON (duplicate_connection_button), gtk_image_new_from_stock (MY_STOCK_COPY, GTK_ICON_SIZE_LARGE_TOOLBAR) );
+	gtk_button_set_image (GTK_BUTTON (duplicate_connection_button), gtk_image_new_from_icon_name (MY_STOCK_COPY, GTK_ICON_SIZE_LARGE_TOOLBAR) );
 	gtk_button_set_image_position (GTK_BUTTON (duplicate_connection_button), GTK_POS_TOP);
 	gtk_button_set_label (GTK_BUTTON (duplicate_connection_button), "Duplicate");
 	gtk_button_set_relief (GTK_BUTTON (duplicate_connection_button), GTK_RELIEF_NONE);
@@ -1862,7 +1862,7 @@ choose_manage_connection (struct Connection *p_conn)
 	gtk_box_pack_start (GTK_BOX (buttons_hbox), duplicate_connection_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (duplicate_connection_button), "clicked", G_CALLBACK (duplicate_connection_button_clicked_cb), tree_view);
 	GtkWidget *new_folder_button = gtk_button_new ();
-	gtk_button_set_image (GTK_BUTTON (new_folder_button), gtk_image_new_from_stock (MY_STOCK_FOLDER, GTK_ICON_SIZE_LARGE_TOOLBAR) );
+	gtk_button_set_image (GTK_BUTTON (new_folder_button), gtk_image_new_from_icon_name (MY_STOCK_FOLDER, GTK_ICON_SIZE_LARGE_TOOLBAR) );
 	gtk_button_set_image_position (GTK_BUTTON (new_folder_button), GTK_POS_TOP);
 	gtk_button_set_label (GTK_BUTTON (new_folder_button), "Folder");
 	gtk_button_set_relief (GTK_BUTTON (new_folder_button), GTK_RELIEF_NONE);

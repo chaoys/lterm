@@ -163,7 +163,6 @@ GtkActionEntry main_menu_items[] = {
 	{ "Cluster", MY_STOCK_CLUSTER, N_ ("Send command to cluster"), NULL, "Send command to cluster", G_CALLBACK (terminal_cluster) },
 
 	{ "HelpMenu", NULL, N_ ("_Help") },
-	{ "Home page", "go-home", N_ ("_Home page"), "F1", "Home page", G_CALLBACK (help_home_page) },
 	{ "About", "help-about", N_ ("_About"), NULL, "About", G_CALLBACK (Info) }
 
 #ifdef DEBUG
@@ -240,8 +239,6 @@ const gchar ui_main_desc[] =
         "    </menu>"
 
         "    <menu action='HelpMenu'>"
-        "      <menuitem action='Home page' />"
-        "      <separator />"
         "      <menuitem action='About' />"
         "    </menu>"
         "  </menubar>"
@@ -934,7 +931,7 @@ connection_tab_add (struct ConnectionTab *connection_tab)
 		image_type = gtk_image_new_from_stock (GTK_STOCK_NETWORK, GTK_ICON_SIZE_MENU); // Mac OS X
 #endif
 	else
-		image_type = gtk_image_new_from_stock (MY_STOCK_TERMINAL, GTK_ICON_SIZE_MENU);
+		image_type = gtk_image_new_from_icon_name (MY_STOCK_TERMINAL, GTK_ICON_SIZE_MENU);
 	connection_tab->label = gtk_label_new (connection_tab->connection.name);
 	close_button = gtk_button_new ();
 	gtk_button_set_relief (GTK_BUTTON (close_button), GTK_RELIEF_NONE);
@@ -1849,51 +1846,6 @@ get_terminal_selection (VteTerminal *terminal)
 }
 
 void
-go_to_url (char *url)
-{
-	char cmd[64];
-	int exit_code;
-	GError *error = NULL;
-	gboolean success;
-	log_debug ("%s\n", url);
-	success = gtk_show_uri (NULL, url, GDK_CURRENT_TIME, &error);
-	if (!success) {
-		log_debug ("%s() : gtk_show_uri() failed : %s\n", G_STRFUNC, error->message);
-		strcpy (cmd, "");
-		switch (get_desktop_environment () ) {
-			case DE_GNOME:
-				sprintf (cmd, "gnome-open %s", url);
-				break;
-			case DE_KDE:
-				sprintf (cmd, "kde-open %s", url);
-				break;
-			default:
-				sprintf (cmd, "xdg-open %s", url);
-				break;
-		}
-		log_debug ("%s() : %s\n", G_STRFUNC, cmd);
-		if (cmd[0])
-			exit_code = system (cmd);
-	}
-}
-
-void
-help_home_page ()
-{
-	go_to_url (HTTP_HOME_PAGE);
-}
-
-gboolean
-home_page_cb (GtkLabel *label, gchar *uri, gpointer user_data)
-{
-#ifdef DEBUG
-	//printf ("home_page_cb() : %s\n", uri);
-#endif
-	go_to_url (uri);
-	return (TRUE);
-}
-
-void
 Info ()
 {
 	int major, minor, micro;
@@ -1928,11 +1880,6 @@ Info ()
 	gtk_label_set_text (GTK_LABEL (label_package), PACKAGE_STRING);
 	get_system (sys);
 	gtk_label_set_text (GTK_LABEL (label_platform), g_strconcat ("For ", sys, NULL) );
-	/* home page link */
-	GtkWidget *label_home_page = GTK_WIDGET (gtk_builder_get_object (builder, "label_home_page") );
-	sprintf (text, "<a href=\"%s\">%s</a>", HTTP_HOME_PAGE, HOME_PAGE);
-	gtk_label_set_markup (GTK_LABEL (label_home_page), text);
-	g_signal_connect (G_OBJECT (label_home_page), "activate-link", G_CALLBACK (home_page_cb), 0);
 	/* credits */
 	GtkWidget *label_credits = GTK_WIDGET (gtk_builder_get_object (builder, "label_credits") );
 	const gchar *credits = gtk_label_get_text (GTK_LABEL (label_credits) );
@@ -2282,7 +2229,7 @@ add_toolbar (GtkWidget *box)
 	GtkToolItem *item  = gtk_tool_item_new ();
 	search_entry = gtk_entry_new ();
 	gtk_entry_set_width_chars (GTK_ENTRY (search_entry), strlen (ACCEL_SEARCH_ENTRY) );
-	gtk_entry_set_icon_from_stock (GTK_ENTRY (search_entry), GTK_ENTRY_ICON_SECONDARY, "edit-find");
+	gtk_entry_set_icon_from_icon_name (GTK_ENTRY (search_entry), GTK_ENTRY_ICON_SECONDARY, "edit-find");
 	g_signal_connect (search_entry, "activate", G_CALLBACK (search_entry_activate_cb), NULL);
 	g_signal_connect (search_entry, "focus-in-event", G_CALLBACK (search_entry_focus_in_event_cb), NULL);
 	g_signal_connect (search_entry, "focus-out-event", G_CALLBACK (search_entry_focus_out_event_cb), NULL);

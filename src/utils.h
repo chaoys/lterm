@@ -29,6 +29,7 @@
 void ltrim (char *s);
 void rtrim (char *s);
 void trim (char *s);
+void lower (char *s);
 char *timestamp_to_date (char *format, time_t t);
 char *bytes_to_human_readable (double size, char *buf);
 char *seconds_to_hhmmdd (uint64_t seconds, char *buf);
