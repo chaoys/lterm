@@ -260,18 +260,6 @@ log_on (struct ConnectionTab *p_conn_tab)
 	 * now the array is something like
 	 * char *params[] = { "ssh", "fabio@localhost", NULL };
 	 */
-#ifdef DEBUG
-	log_debug ("forking command : %s ...\n", expanded_args);
-	/*i = 0;
-	while (p_params[i] != NULL)
-	  {
-	    log_debug ("'%s' ", p_params[i]);
-	    i ++;
-	  }
-
-	printf ("\n");*/
-#endif
-	//vte_terminal_feed (VTE_TERMINAL (p_conn_tab->vte), _("Logging in...\n\r"), -1);
 	terminal_write_ex (p_conn_tab, _ ("Logging in...\n\r") );
 	log_debug ("using vte_terminal_fork_command_full()\n");
 	GError *error = NULL;

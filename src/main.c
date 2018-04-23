@@ -74,20 +74,6 @@ lockSSH (const char *caller, gboolean flagLock)
 	}
 }
 
-#ifdef DEBUG
-char gCurrentFunction[512];
-
-void setCurrentFunction (char *f)
-{
-	strcpy (gCurrentFunction, f);
-}
-
-char * getCurrentFunction ()
-{
-	return &gCurrentFunction[0];
-}
-#endif
-
 void *malloc ();
 
 /* Allocate an N-byte block of memory from the heap.
@@ -132,9 +118,6 @@ log_write (const char *fmt, ...)
 	va_end (ap);
 	sprintf (line, "%s: %s", time_s, msg);
 	fprintf (log_fp, "%s", line);
-#ifdef DEBUG
-	printf ("%s", line);
-#endif
 	fflush (log_fp);
 	fclose (log_fp);
 }

@@ -162,9 +162,6 @@ struct Connection *
 cl_get_by_name (struct Connection_List *p_cl, char *name)
 {
 	struct Connection *p_conn;
-#ifdef DEBUG
-	//printf ("cl_get_by_index()\n");
-#endif
 	p_conn = p_cl->head;
 	while (p_conn) {
 		if (!strcmp (p_conn->name, name) )
@@ -223,9 +220,6 @@ cl_remove (struct Connection_List *p_cl, char *name)
 			if (p_cl->tail == p_del)
 				p_cl->tail = p_prec;
 			free (p_del);
-#ifdef DEBUG
-			printf ("cl_remove() : removed %s\n", name);
-#endif
 			break;
 		}
 		p_prec = p_del;

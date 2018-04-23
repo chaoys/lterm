@@ -519,9 +519,6 @@ load_connections_from_file_xml (char *filename)
 		xml_free (&xmldoc);
 	}
 	//free (xml);
-#ifdef DEBUG
-	//group_tree_dump (&g_groups);
-#endif
 	return (rc);
 }
 
@@ -563,9 +560,6 @@ load_connection_list_from_file_xml (char *filename)
 		xml_free (&xmldoc);
 	}
 	//free (xml);
-#ifdef DEBUG
-	//group_tree_dump (&g_groups);
-#endif
 	return (list);
 }
 /**
@@ -660,9 +654,6 @@ copy_button_clicked_cb (GtkButton *button, gpointer user_data)
 	select = (GtkTreeSelection *) user_data;
 	found = get_selected_connection (select, &conn);
 	if (found) {
-#ifdef DEBUG
-		printf ("copy_button_clicked_cb() : copy %s (%s)\n", conn.host, conn.name);
-#endif
 		clipboard = gtk_clipboard_get (GDK_SELECTION_CLIPBOARD);
 		gtk_clipboard_clear (clipboard);
 		gtk_clipboard_set_text (clipboard, conn.host, strlen (conn.host) );
@@ -1110,8 +1101,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 				if (!err_name_validation) {
 					p_node_return = group_node_add_child (p_parent, GN_TYPE_CONNECTION, conn_new.name);
 					p_conn_ctrl = cl_insert_sorted (&conn_list, &conn_new);
-					/* refresh list for search entry completion */
-					refresh_search_completion ();
 					break;
 				} else
 					msgbox_error (get_validation_error_string (err_name_validation) );
@@ -1306,9 +1295,6 @@ conn_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 	keyReturn = GDK_KEY_Return;
 	keyEnter = GDK_KEY_KP_Enter;
 	if (event->keyval == keyReturn || event->keyval == keyEnter) {
-#ifdef DEBUG
-		printf ("conn_key_pressed() : pressed enter key\n");
-#endif
 		gtk_dialog_response (GTK_DIALOG (widget), GTK_RESPONSE_OK);
 	}
 	return FALSE;
@@ -1889,8 +1875,6 @@ choose_manage_connection (struct Connection *p_conn)
 	} /* while */
 	gtk_widget_destroy (dialog_window);
 	connections_dialog = NULL;
-	/* refresh list for search entry completion */
-	refresh_search_completion ();
 	/* refresh quick launch window expansders */
 	ifr_add (ITERATION_REFRESH_QUICK_LAUCH_TREE_VIEW, NULL);
 	return (retcode);

@@ -525,9 +525,6 @@ xml_parser_text_handler (GMarkupParseContext *context, const gchar *text, gsize 
 static void
 xml_parser_passthrough_handler (GMarkupParseContext *context, const gchar *passthrough_text, gsize text_len, gpointer user_data, GError **error)
 {
-#ifdef DEBUG
-	//printf ("PASS '%.*s'\n", (int)text_len, passthrough_text);
-#endif
 }
 
 static const GMarkupParser xml_parser = {

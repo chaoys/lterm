@@ -114,9 +114,6 @@ pl_remove (struct Protocol_List *p_pl, char *name)
 	struct Protocol *p_del, *p_prec;
 	p_prec = 0;
 	p_del = p_pl->head;
-#ifdef DEBUG
-	printf ("pl_remove() : to be removed %s\n", name);
-#endif
 	while (p_del) {
 		if (!strcmp (p_del->name, name) ) {
 			if (p_prec)
@@ -125,13 +122,7 @@ pl_remove (struct Protocol_List *p_pl, char *name)
 				p_pl->head = p_del->next;
 			if (p_pl->tail == p_del)
 				p_pl->tail = p_prec;
-#ifdef DEBUG
-			printf ("pl_remove() : removing %s ...\n", p_del->name);
-#endif
 			free (p_del);
-#ifdef DEBUG
-			printf ("pl_remove() : removed %s\n", name);
-#endif
 			break;
 		}
 		p_prec = p_del;
@@ -391,15 +382,9 @@ prot_new_clicked_cb (GtkButton *button, gpointer user_data)
 {
 	struct Protocol_List *p_pl;
 	struct Protocol prot_new;
-#ifdef DEBUG
-	printf ("prot_new_clicked_cb()\n");
-#endif
 	p_pl = (struct Protocol_List *) user_data;
 	memset (&prot_new, 0, sizeof (struct Protocol) );
 	if (query_name_new_protocol (prot_new.name, p_pl) != -1) {
-#ifdef DEBUG
-		printf ("prot_new_clicked_cb(): adding '%s'\n", prot_new.name);
-#endif
 		pl_prepend (p_pl, &prot_new);
 		refresh_protocols (p_pl);
 		modified = 1;
@@ -411,9 +396,6 @@ void
 prot_revert_clicked_cb (GtkButton *button, gpointer user_data)
 {
 	struct Protocol_List *p_pl;
-#ifdef DEBUG
-	printf ("prot_revert_clicked_cb()\n");
-#endif
 	p_pl = (struct Protocol_List *) user_data;
 	fill_protocol_entries ( (char *) gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (protocol_combo) ), p_pl);
 	modified = 0;
@@ -426,9 +408,6 @@ prot_save_clicked_cb (GtkButton *button, gpointer user_data)
 	struct Protocol_List *p_pl;
 	struct Protocol *p_prot;
 	char s_port[256];
-#ifdef DEBUG
-	printf ("prot_save_clicked_cb()\n");
-#endif
 	p_pl = (struct Protocol_List *) user_data;
 	p_prot = get_protocol (p_pl, (char *) gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (protocol_combo) ) );
 	if (p_prot) {
@@ -444,9 +423,6 @@ prot_save_clicked_cb (GtkButton *button, gpointer user_data)
 		p_prot->flags = (p_prot->flags & ~ (PROT_FLAG_ASKUSER) ) | ( (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (askuser_check) ) ? 1 : 0) << 0);
 		p_prot->flags = (p_prot->flags & ~ (PROT_FLAG_ASKPASSWORD) ) | ( (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (askpassword_check) ) ? 1 : 0) << 1);
 		p_prot->flags = (p_prot->flags & ~ (PROT_FLAG_DISCONNECTCLOSE) ) | ( (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (disconnectclose_check) ) ? 1 : 0) << 2);
-#ifdef DEBUG
-		printf ("prot_save_clicked_cb() : flags = %d\n", p_prot->flags);
-#endif
 		modified = 0;
 		gtk_label_set_markup (GTK_LABEL (label_status), "Saved");
 	}
@@ -457,9 +433,6 @@ prot_delete_clicked_cb (GtkButton *button, gpointer user_data)
 {
 	struct Protocol_List *p_pl;
 	char name[1024];
-#ifdef DEBUG
-	printf ("prot_delete_clicked_cb()\n");
-#endif
 	strcpy (name, (char *) gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (protocol_combo) ) );
 	p_pl = (struct Protocol_List *) user_data;
 	if (msgbox_yes_no (_ ("Delete protocol %s?"), name) == GTK_RESPONSE_YES) {
@@ -482,9 +455,6 @@ void
 cmd_check_clicked_cb (GtkButton *button, gpointer user_data)
 {
 	char cmd[2048];
-#ifdef DEBUG
-	printf ("cmd_check_clicked_cb()\n");
-#endif
 	strcpy (cmd, gtk_entry_get_text (GTK_ENTRY (command_entry) ) );
 	if (check_command (cmd) )
 		msgbox_info (_ ("%s found"), cmd);

@@ -414,27 +414,3 @@ group_tree_sort (struct GroupTree *p_gt, int flags)
 	group_node_sort_children (&p_gt->root, flags);
 }
 
-#ifdef DEBUG
-int gt_indent = 0;
-
-void
-group_subtree_dump (struct GroupNode *p_node)
-{
-	int i;
-	printf ("%*s %s (%s)\n", gt_indent, " ", p_node->name, p_node->parent != NULL ? p_node->parent->name : "");
-	gt_indent += 2;
-	for (i = 0; i < MAX_CHILD_GROUPS; i++) {
-		if (p_node->child[i]) {
-			group_subtree_dump (p_node->child[i]);
-		}
-	}
-	gt_indent -= 2;
-}
-
-void
-group_tree_dump (struct GroupTree *p_gt)
-{
-	group_subtree_dump (&p_gt->root);
-}
-#endif
-

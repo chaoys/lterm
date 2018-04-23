@@ -10,23 +10,8 @@
 #include "ssh.h"
 #include "gtk/gtk.h"
 
-/* #define DEBUG */
-
-#ifdef DEBUG
-void setCurrentFunction (char *);
-char * getCurrentFunction ();
-#define log_debug(format, ...) { log_write ("[%s] "format, __func__, ##__VA_ARGS__); }
-#define ENTER_FUNC() { setCurrentFunction (__func__); }
-#else
-//#define _DBG_printf(format, ...)
-//#define _DBG_fn_start
-//#define _DBG_fn_end
 #define log_debug(format, ...)
 #define ENTER_FUNC()
-#endif
-
-//#define UI_DIR "/home/fabio/src/lterm-0.5.x/data"
-//#define UI_DIR "/dati/Source/lterm-0.5.x/data"
 
 #include "config.h"
 

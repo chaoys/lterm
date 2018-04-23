@@ -219,7 +219,6 @@ void ifr_init (void);
 int open_connection (char *connection);
 int ifr_get (struct Iteration_Function_Request *dest);
 void connection_tab_close (struct ConnectionTab *p_ct);
-void refresh_search_completion ();
 gboolean search_entry_focus_out_event_cb (GtkWidget *widget, GdkEvent *event, gpointer user_data);
 
 static inline void get_monitor_size(GtkWindow *win, int *width, int *height)

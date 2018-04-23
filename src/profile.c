@@ -84,17 +84,11 @@ profile_load_string (char *profile_file, char *section, char *param, char *dest,
 		if (pc)
 			*pc = '\0';
 		/* seek section */
-#ifdef DEBUG
-		//printf ("profile_load_string(): searching section...\n");
-#endif
 		if (!section_found) {
 			if (!strncasecmp (sec, line, strlen (sec) ) )
 				section_found = 1;
 			continue;
 		}
-#ifdef DEBUG
-		//printf ("profile_load_string(): found %s\n", sec);
-#endif
 		/* if reached next section then exit */
 		if (section_found && line[0] == '[') {
 			rc = PROFILE_PARAMETER_NOT_FOUND;
@@ -103,9 +97,6 @@ profile_load_string (char *profile_file, char *section, char *param, char *dest,
 		/* check parameter */
 		profile_get_name_param (line, param_read, value_read);
 		if (!strcasecmp (param_read, param) ) {
-#ifdef DEBUG
-			//printf ("profile_load_string(): %s = %s\n", param_read, value_read);
-#endif
 			strcpy (dest, value_read);
 			rc = PROFILE_OK;
 			break;

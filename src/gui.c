@@ -86,7 +86,6 @@ GtkWidget *hpaned;
 GtkUIManager *ui_manager;
 GtkWidget *menubar, *main_toolbar;
 GtkActionGroup *action_group;
-GtkWidget *search_entry;
 GtkEntryCompletion *completion;
 GtkWidget *statusbar, *sb_msg, *sb_protocol, *sb_transfer, *sb_enc;       /* statusbar */
 GtkWidget *notebook;
@@ -94,7 +93,6 @@ GtkWidget *notebook;
 void update_statusbar();
 
 GdkScreen *g_screen;
-//GdkVisual *visual;
 
 /* pointer to the list of open connections or NULL if there's no open connection */
 GList *connection_tab_list;
@@ -106,7 +104,6 @@ int profile_menu_ui_id;
 /* number of rows and columns before maximization */
 int prev_rows;
 int prev_columns;
-//int g_window_resized = 0;
 
 int switch_tab_enabled = 1;
 
@@ -164,11 +161,6 @@ GtkActionEntry main_menu_items[] = {
 
 	{ "HelpMenu", NULL, N_ ("_Help") },
 	{ "About", "help-about", N_ ("_About"), NULL, "About", G_CALLBACK (Info) }
-
-#ifdef DEBUG
-	,
-	{ "Debug", "_Yes", N_ ("_Debug"), NULL, NULL, G_CALLBACK (Debug) }
-#endif
 };
 
 static GtkToggleActionEntry toggle_entries[] = {
@@ -264,10 +256,6 @@ const gchar ui_main_desc[] =
         "    <separator />"
         "    <toolitem action='Preferences'/>"
         "    <toolitem action='Zoom 100'/>"
-#ifdef DEBUG
-        "    <separator />"
-        "    <toolitem action='Debug'/>"
-#endif
         "  </toolbar>"
         "</ui>";
 
@@ -360,22 +348,6 @@ ifr_get (struct Iteration_Function_Request *dest)
 	return (1);
 }
 
-#ifdef DEBUG
-void
-ifr_dump ()
-{
-	int i;
-	for (i = 0; i < ITERATION_MAX; i++) {
-		printf ("ifr[%d] = %d", i, ifr[i].id);
-		if (i == ifr_index_insert)
-			printf ("<- insert");
-		if (i == ifr_index_first)
-			printf ("<- first");
-		printf ("\n");
-	}
-}
-#endif
-
 void
 msgbox_error (const char *fmt, ...)
 {
@@ -433,9 +405,6 @@ child_exit ()
 {
 	int pid, status;
 	pid = wait (&status);
-#ifdef DEBUG
-	printf ("child_exit() : process ended : %d\n", pid);
-#endif
 	if (status > 0)
 		printf ("process %d terminated with code %d (%s)\n", pid, status, strerror (status) );
 }
@@ -655,9 +624,6 @@ expand_args (struct Connection *p_conn, char *args, char *prefix, char *dest)
 				/* password */
 				case 'P':
 					if (p_conn->auth_mode == CONN_AUTH_MODE_SAVE || p_conn->password[0]) {
-#ifdef DEBUG
-						printf ("expand_args() : auth_password = '%s'\n", p_conn->password);
-#endif
 						strcpy (expanded, p_conn->password);
 					} else {
 						strcpy (title, "Log on");
@@ -1017,9 +983,6 @@ connection_tab_getcwd (struct ConnectionTab *p_ct, char *directory)
 		if (pc) {
 			*pc ++;
 			strcpy (buffer, pc);
-#ifdef DEBUG
-			printf ("connection_tab_getcwd() : directory = '%s'\n", buffer);
-#endif
 		}
 	} else
 		return 2;
@@ -1044,9 +1007,6 @@ connection_log_on_param (struct Connection *p_conn)
 		log_debug ("user = '%s'\n", p_connection_tab->connection.user);
 	} else
 		retcode = choose_manage_connection (&p_connection_tab->connection);
-#ifdef DEBUG
-	//printf ("connection_log_on_param(): %s : connected = %d, logged = %d\n", p_connection_tab->connection.name, p_connection_tab->connected, p_connection_tab->logged);
-#endif
 	if (retcode == 0) {
 		if (p_connection_tab->connection.auth_mode == CONN_AUTH_MODE_SAVE && p_connection_tab->connection.auth_user[0])
 			strcpy (p_connection_tab->connection.user, p_connection_tab->connection.auth_user);
@@ -1885,42 +1845,6 @@ Info ()
 	g_object_unref (G_OBJECT (builder) );
 }
 
-#ifdef DEBUG
-void
-Debug ()
-{
-	char buffer[2048], s[1024];
-	char filename[1024];
-	int i, rc;
-	GList *item;
-	SConnectionTab *p_ct;
-	printf ("---[ DEBUG ]---\n");
-	printf ("Thread: 0x%08x\n", pthread_self () );
-	printf ("GTK version: %d.%d.%d\n", GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
-	if (p_current_connection_tab) {
-		printf ("Tab count: %d\n", gtk_notebook_get_n_pages (GTK_NOTEBOOK (p_current_connection_tab->notebook) ) );
-		printf ("tab title : %s\n", vte_terminal_get_window_title (VTE_TERMINAL (p_current_connection_tab->vte) ) );
-		printf ("changes_count = %d\n", p_current_connection_tab->changes_count);
-	}
-	lockSSH (__func__, TRUE);
-	ssh_list_dump (&globals.ssh_list);
-	lockSSH (__func__, FALSE);
-	for (i = 0; i < g_list_length (connection_tab_list); i++) {
-		item = g_list_nth (connection_tab_list, i);
-		p_ct = (struct ConnectionTab *) item->data;
-		glong x, y;
-		vte_terminal_get_cursor_position (p_ct->vte, &x, &y);
-		sprintf (buffer, "%d %s [%s] [%s] [%s] [Cursor at %d %d]", i, p_ct->connection.name,
-		         tabGetConnectionStatusDesc (tabGetConnectionStatus (p_ct) ),
-		         tabGetFlag (p_ct, TAB_LOGGED) ? "logged" : "not logged",
-		         tabGetFlag (p_ct, TAB_CHANGED) ? "changed" : "",
-		         x, y);
-		log_debug ("%s\n", buffer);
-	}
-	log_debug ("[end]\n");
-}
-#endif
-
 gchar *
 menu_translate (const gchar * path, gpointer data)
 {
@@ -2065,132 +1989,15 @@ get_main_menu ()
 }
 
 void
-activate_search_entry (/*GtkObject *object, gpointer data*/)
-{
-	gtk_widget_grab_focus (search_entry);
-}
-
-gboolean
-completion_match_selected_cb (GtkEntryCompletion *widget, GtkTreeModel *model,
-                              GtkTreeIter *iter, gpointer user_data)
-{
-	char connection_string[256];
-	GValue value = {0, };
-	gtk_tree_model_get_value (model, iter, 0, &value);
-	sprintf (connection_string, "conn:@%s", g_value_get_string (&value) );
-	g_value_unset (&value);
-	open_connection (connection_string);
-	search_entry_focus_out_event_cb (search_entry, NULL, NULL);
-	return (TRUE);
-}
-
-
-/* callback function when user hits Enter key */
-void
-search_entry_activate_cb (GtkEntry *entry, gpointer user_data)
-{
-	char connection_string[256];
-	char connection_name[256];
-	strcpy (connection_name, gtk_entry_get_text (entry) );
-	trim (connection_name);
-	if (connection_name[0]) {
-		sprintf (connection_string, "conn:@%s", gtk_entry_get_text (entry) );
-		open_connection (connection_string);
-	}
-}
-
-gboolean
-search_entry_focus_in_event_cb (GtkWidget *widget, GdkEvent *event, gpointer user_data)
-{
-	gtk_widget_override_color (search_entry, GTK_STATE_NORMAL, NULL);
-	gtk_entry_set_text (GTK_ENTRY (widget), "");
-	return (TRUE);
-}
-
-gboolean
-search_entry_focus_out_event_cb (GtkWidget *widget, GdkEvent *event, gpointer user_data)
-{
-	const GdkRGBA GRAY_COLOR = { 0.6, 0.6, 0.6, 1 };
-	gtk_widget_override_color (search_entry, GTK_STATE_NORMAL, &GRAY_COLOR);
-	//g_object_set (widget, "foreground-set", "gray", "foreground", TRUE, NULL);
-	gtk_entry_set_text (GTK_ENTRY (widget), ACCEL_SEARCH_ENTRY);
-	return (TRUE);
-}
-
-void
-create_accelerators ()
-{
-	GtkAccelGroup *gtk_accel = gtk_accel_group_new ();
-	GClosure *closure;
-	GdkModifierType mt;
-	mt = GDK_CONTROL_MASK;
-	closure = g_cclosure_new (G_CALLBACK (activate_search_entry), NULL, NULL);
-	gtk_accel_group_connect (gtk_accel, gdk_keyval_from_name ("k"), mt, GTK_ACCEL_VISIBLE, closure);
-	g_closure_unref (closure);
-	gtk_window_add_accel_group (GTK_WINDOW (main_window), gtk_accel);
-}
-
-void
-refresh_search_completion ()
-{
-	GtkListStore *model;
-	GtkTreeIter iter;
-	struct Connection *p_conn;
-	int i;
-	model = (GtkListStore *) gtk_entry_completion_get_model (completion);
-	if (model) {
-		gtk_list_store_clear (model);
-		g_object_unref (G_OBJECT (model) );
-	}
-	model = gtk_list_store_new (1, G_TYPE_STRING);
-	i = 0;
-	while (p_conn = cl_get_by_index (/*cl_get_current ()*/ &conn_list, i) ) {
-		gtk_list_store_append (model, &iter);
-		gtk_list_store_set (model, &iter, 0, p_conn->name, -1);
-		i ++;
-	}
-	gtk_entry_completion_set_model (completion, GTK_TREE_MODEL (model) );
-}
-
-GtkToolItem *
-create_toolbar_separator ()
-{
-	GtkToolItem *separator = gtk_separator_tool_item_new ();
-	gtk_separator_tool_item_set_draw (GTK_SEPARATOR_TOOL_ITEM (separator), FALSE);
-	gtk_tool_item_set_expand (separator, TRUE);
-	return (separator);
-}
-
-void
 add_toolbar (GtkWidget *box)
 {
 	main_toolbar = gtk_ui_manager_get_widget (ui_manager, N_ ("/MainToolbar") );
-	/* separator */
-	gtk_toolbar_insert (GTK_TOOLBAR (main_toolbar), create_toolbar_separator (), -1);
-	/* search entry */
-	GtkToolItem *item  = gtk_tool_item_new ();
-	search_entry = gtk_entry_new ();
-	gtk_entry_set_width_chars (GTK_ENTRY (search_entry), strlen (ACCEL_SEARCH_ENTRY) );
-	gtk_entry_set_icon_from_icon_name (GTK_ENTRY (search_entry), GTK_ENTRY_ICON_SECONDARY, "edit-find");
-	g_signal_connect (search_entry, "activate", G_CALLBACK (search_entry_activate_cb), NULL);
-	g_signal_connect (search_entry, "focus-in-event", G_CALLBACK (search_entry_focus_in_event_cb), NULL);
-	g_signal_connect (search_entry, "focus-out-event", G_CALLBACK (search_entry_focus_out_event_cb), NULL);
-	/* completion entry */
-	log_write ("Creating completion entry...\n");
-	completion = gtk_entry_completion_new ();
-	gtk_entry_completion_set_text_column (completion, 0); /* first column */
-	g_signal_connect (G_OBJECT (completion), "match-selected", G_CALLBACK (completion_match_selected_cb), NULL);
-	gtk_entry_set_completion (GTK_ENTRY (search_entry), completion);
-	search_entry_focus_out_event_cb (search_entry, NULL, NULL);
-	gtk_container_add (GTK_CONTAINER (item), GTK_WIDGET (search_entry) );
-	gtk_toolbar_insert (GTK_TOOLBAR (main_toolbar), GTK_TOOL_ITEM (item), -1);
 	gtk_toolbar_set_style (GTK_TOOLBAR (main_toolbar), GTK_TOOLBAR_ICONS);
 	gtk_box_pack_start (GTK_BOX (box), main_toolbar, FALSE, TRUE, 0);
 	gtk_widget_show (main_toolbar);
 	if (prefs.toolbar) {
 		GtkWidget *toggle = gtk_ui_manager_get_widget (ui_manager, N_ ("/MainMenu/ViewMenu/Toolbar") );
 		gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toggle), TRUE);
-		//gtk_widget_show (main_toolbar);
 	}
 	setup_toolbar_connect_button (main_toolbar);
 }
@@ -2426,9 +2233,6 @@ size_allocate_cb (GtkWidget *widget, GtkAllocation *allocation, gpointer user_da
 {
 	//log_debug ("\n");
 	if (allocation) {
-#ifdef DEBUG
-		/* printf ("size_allocate_cb() : (%d,%d) %d x %d\n", allocation->x, allocation->y, allocation->width, allocation->height); */
-#endif
 		/* Set resize flag for all the tabs. Will be checked in contents_changed_cb() */
 		if (allocation->width != prefs.w || allocation->height != prefs.h)
 			set_window_resized_all (1);
@@ -2693,9 +2497,6 @@ contents_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 gboolean
 commit_cb (VteTerminal *vteterminal, gchar *text, guint size, gpointer userdata)
 {
-#ifdef DEBUG
-	printf ("commit_cb() : %s\n", text);
-#endif
 	return FALSE;
 }
 
@@ -2706,9 +2507,6 @@ adjust_font_size (GtkWidget *widget, /*gpointer data,*/ gint delta)
 	PangoFontDescription *desired;
 	gint newsize;
 	gint columns, rows, owidth, oheight;
-#ifdef DEBUG
-	printf ("adjust_font_size()\n");
-#endif
 	/* Read the screen dimensions in cells. */
 	terminal = VTE_TERMINAL (widget);
 	columns = vte_terminal_get_column_count (terminal);
@@ -2730,31 +2528,18 @@ adjust_font_size (GtkWidget *widget, /*gpointer data,*/ gint delta)
 	 * number of rows and columns. */
 	vte_terminal_set_font (terminal, desired);
 	//gtk_window_resize(GTK_WINDOW(data), columns * terminal->char_width + owidth, rows * terminal->char_height + oheight);
-	/*
-	  if (!prefs.maximize)
-	    gtk_window_resize (GTK_WINDOW (main_window), columns * vte_terminal_get_char_width (terminal) + owidth, rows * vte_terminal_get_char_height (terminal) + oheight);
-	*/
-#ifdef DEBUG
-	printf ("adjust_font_size() : new font : %s\n", pango_font_description_to_string (desired) );
-#endif
 	pango_font_description_free (desired);
 }
 
 void
 increase_font_size_cb (GtkWidget *widget, gpointer user_data)
 {
-#ifdef DEBUG
-	printf ("increase_font_size_cb()\n");
-#endif
 	adjust_font_size (widget, /*user_data,*/ 1);
 }
 
 void
 decrease_font_size_cb (GtkWidget *widget, gpointer user_data)
 {
-#ifdef DEBUG
-	printf ("decrease_font_size_cb()\n");
-#endif
 	adjust_font_size (widget, /*user_data,*/ -1);
 }
 
@@ -2788,15 +2573,6 @@ maximize_window_cb (VteTerminal *terminal, gpointer user_data)
 	set_window_resized_all (1);
 }
 
-/*
-void
-resize_window_cb (VteTerminal *terminal, guint width, guint height, gpointer user_data)
-{
-#ifdef DEBUG
-  printf ("resize_event_cb() : x=%d, y=%d\n", width, height);
-#endif
-}
-*/
 gboolean
 window_state_event_cb (GtkWidget *widget, GdkEventWindowState *event, gpointer user_data)
 {
@@ -3085,8 +2861,6 @@ start_gtk (int argc, char **argv)
 	get_main_menu ();
 	gtk_box_pack_start (GTK_BOX (vbox), menubar, FALSE, TRUE, 0);
 	gtk_widget_show (menubar);
-	log_write ("Creating accelerators...\n");
-	create_accelerators ();
 	/* Toolbar */
 	log_write ("Creating toolbar...\n");
 	add_toolbar (vbox);
@@ -3131,8 +2905,6 @@ start_gtk (int argc, char **argv)
 	/* init list of connections for the first time, needed by terminal popup menu */
 	log_write ("Loading connections...\n");
 	load_connections ();
-	log_debug ("Refreshing completion list...\n");
-	refresh_search_completion ();
 	update_statusbar ();
 	/* Ensure that buttons images will be shown */
 	GtkSettings *default_settings = gtk_settings_get_default ();

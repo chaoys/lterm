@@ -270,26 +270,13 @@ list_get_nth (char *list, int n, char sep, char *elem)
 	n_cur = 1;
 	while (pstart) {
 		if (n_cur == n) {
-#ifdef DEBUG
-			//printf ("list_get_nth(): n_cur = %d pstart = %s\n", n_cur, pstart);
-#endif
-			tmp = (char *) malloc (strlen (pstart) + 1);
 			strcpy (tmp, pstart);
-#ifdef DEBUG
-			//printf ("list_get_nth(): tmp = %s\n", tmp);
-#endif
 			pend = (char *) strchr (tmp, sep);
-#ifdef DEBUG
-			//printf ("list_get_nth(): pend = %ld\n", pend);
-#endif
 			if (pend) {
 				*pend = 0;
 			}
 			strcpy (elem, tmp);
 			free (tmp);
-#ifdef DEBUG
-			//printf ("list_get_nth(): elem = %s\n", elem);
-#endif
 			break;
 		}
 		pc = (char *) strchr (pstart, sep);
@@ -756,16 +743,10 @@ check_command (char *command)
 	}
 	/* not found, search in known paths */
 	l = strlen ( (char *) getenv ("PATH") );
-#ifdef DEBUG
-	//printf ("check_command(): l = %d\n", l);
-#endif
 	env_path = (char *) malloc (l + 1);
 	strcpy (env_path, (char *) getenv ("PATH") );
 	for (i = 1; i < list_count (env_path, ':') && !found; i++) {
 		list_get_nth (env_path, i, ':', path);
-#ifdef DEBUG
-		//printf ("check_command(): path : %s\n", path);
-#endif
 		found = findin (path, command);
 	}
 	free (env_path);
