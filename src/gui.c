@@ -85,12 +85,9 @@ GtkWidget *hpaned;
 
 GtkUIManager *ui_manager;
 GtkWidget *menubar, *main_toolbar;
-GtkActionGroup *action_group;
+GSimpleActionGroup *action_group;
 GtkEntryCompletion *completion;
-GtkWidget *statusbar, *sb_msg, *sb_protocol, *sb_transfer, *sb_enc;       /* statusbar */
 GtkWidget *notebook;
-
-void update_statusbar();
 
 GdkScreen *g_screen;
 
@@ -118,121 +115,207 @@ typedef struct TabSelection {
 } STabSelection;
 GArray *tabSelectionArray;
 
-GtkActionEntry main_menu_items[] = {
-	{ "ConnectionMenu", NULL, N_ ("_Connection") },
-	{ "Log on", "_Connect", N_ ("Log _on"), "<ctrl>L", "Log on", G_CALLBACK (connection_log_on) },
-	{ "Log off", NULL, N_ ("Log o_ff"), NULL, NULL, G_CALLBACK (connection_log_off) },
-	{ "Duplicate", MY_STOCK_DUPLICATE, N_ ("_Duplicate"), "<shift><ctrl>D", "Duplicate connection", G_CALLBACK (connection_duplicate) },
-	{ "Edit protocols", NULL, N_ ("_Edit protocols"), NULL, NULL, G_CALLBACK (connection_edit_protocols) },
-	{ "Open terminal", MY_STOCK_TERMINAL, N_ ("Open _terminal"), "<ctrl>T", "Open terminal", G_CALLBACK (connection_new_terminal) },
-	{ "ExportMenu", NULL, N_ ("_Export connections") },
-	{ "ExportCSV", NULL, N_ ("To _CSV"), NULL, NULL, G_CALLBACK (connection_export_CSV) },
-	{ "Close tab", "_Close", N_ ("Close tab"), "<ctrl>W", NULL, G_CALLBACK (connection_close_tab) },
-	{ "Quit", "_Quit", N_ ("_Quit"), SHORTCUT_QUIT, NULL, G_CALLBACK (application_quit) },
+GActionEntry main_menu_items[] = {
+	{ "log_on", connection_log_on },
+	{ "log_off", connection_log_off },
+	{ "duplicate", connection_duplicate },
+	{ "edit_proto", connection_edit_protocols },
+	{ "open_term", connection_new_terminal },
+	{ "export_csv", connection_export_CSV },
+	{ "quit", application_quit },
 
-	{ "EditMenu", NULL, N_ ("_Edit") },
-	{ "Copy", "edit-copy", N_ ("_Copy"), SHORTCUT_COPY, "Copy", G_CALLBACK (edit_copy) },
-	{ "Paste", "edit-paste", N_ ("_Paste"), SHORTCUT_PASTE, "Paste", G_CALLBACK (edit_paste) },
-	{ "Copy and paste", NULL, N_ ("C_opy and Paste"), NULL, NULL, G_CALLBACK (edit_copy_and_paste) },
-	{ "Find", "edit-find", N_ ("_Find"), SHORTCUT_FIND, "Find", G_CALLBACK (edit_find) },
-	{ "FindNext", NULL, N_ ("Find _next"), SHORTCUT_FIND_NEXT, NULL, G_CALLBACK (terminal_find_next) },
-	{ "FindPrevious", NULL, N_ ("Find pre_vious"), "<ctrl><alt>G", NULL, G_CALLBACK (terminal_find_previous) },
-	{ "Select all", NULL, N_ ("_Select all"), NULL, NULL, G_CALLBACK (edit_select_all) },
-	{ "EditCurrentProfile", NULL, N_ ("E_dit current profile"), NULL, NULL, G_CALLBACK (edit_current_profile) },
-	{ "Preferences", MY_STOCK_PREFERENCES, N_ ("P_references"), NULL, "Preferences", G_CALLBACK (show_preferences) },
+	{ "copy", edit_copy },
+	{ "paste", edit_paste },
+	{ "copy_paste", edit_copy_and_paste },
+	{ "find", edit_find },
+	{ "findnext", terminal_find_next },
+	{ "findprev", terminal_find_previous },
+	{ "select_all", edit_select_all },
+	{ "edit_current_profile", edit_current_profile },
+	{ "pref", show_preferences },
 
-	{ "ViewMenu", NULL, N_ ("_View") },
-	{ "Fullscreen", "view-fullscreen", N_ ("_Fullscreen"), "F11", "Fullscreen", G_CALLBACK (view_fullscreen) },
-	{ "Go back", "go-previous", N_ ("Go _back"), "<ctrl>Left", "Go back", G_CALLBACK (view_go_back) },
-	{ "Go forward", "go-next", N_ ("Go _forward"), "<ctrl>Right", "Go forward", G_CALLBACK (view_go_forward) },
-	{ "Zoom in", "zoom-in", N_ ("Zoom _in"), "<control>plus", "Zoom in", G_CALLBACK (zoom_in) },
-	{ "Zoom out", "zoom-out", N_ ("Zoom _out"), "<control>minus", "Zoom out", G_CALLBACK (zoom_out) },
-	{ "Zoom 100", "zoom-fit-best", N_ ("Zoom _100"), "<control>0", "Zoom 100", G_CALLBACK (zoom_100) },
+	{ "go_back", view_go_back },
+	{ "go_forward", view_go_forward },
+	{ "zoom_in", zoom_in },
+	{ "zoom_out", zoom_out },
+	{ "zoom_100", zoom_100 },
 
-	{ "TerminalMenu", NULL, N_ ("_Terminal") },
-	{ "ProfileMenu", NULL, N_ ("Change profile") },
-	{ "CharacterEncodingMenu", NULL, N_ ("Character Encoding") },
-	{ "Reset", NULL, N_ ("_Reset"), NULL, NULL, G_CALLBACK (terminal_reset) },
-	{ "DetachRight", MY_STOCK_SPLIT_H, N_ ("_Detach tab to the right"), NULL, "Detach tab to the right", G_CALLBACK (terminal_detach_right) },
-	{ "DetachDown", MY_STOCK_SPLIT_V, N_ ("Detach tab _down"), NULL, "Detach tab down", G_CALLBACK (terminal_detach_down) },
-	{ "AttachCurrent", NULL, N_ ("_Attach to main group"), NULL, NULL, G_CALLBACK (terminal_attach_current_to_main) },
-	{ "RegroupAll", MY_STOCK_REGROUP, N_ ("_Regroup all tabs"), NULL, "Regroup all tabs", G_CALLBACK (terminal_regroup_all) },
-	{ "Cluster", MY_STOCK_CLUSTER, N_ ("Send command to cluster"), NULL, "Send command to cluster", G_CALLBACK (terminal_cluster) },
+	{ "reset", terminal_reset },
+	{ "detach_right", terminal_detach_right },
+	{ "detach_down", terminal_detach_down },
+	{ "attach_current", terminal_attach_current_to_main },
+	{ "regroup_all", terminal_regroup_all },
+	{ "send_cluster", terminal_cluster },
 
-	{ "HelpMenu", NULL, N_ ("_Help") },
-	{ "About", "help-about", N_ ("_About"), NULL, "About", G_CALLBACK (Info) }
+	{ "about", Info }
 };
 
 static GtkToggleActionEntry toggle_entries[] = {
 	{ "Toolbar", NULL, N_ ("_Toolbar"), NULL, NULL, G_CALLBACK (view_toolbar) },
-	{ "Statusbar", NULL, N_ ("_Statusbar"), NULL, NULL, G_CALLBACK (view_statusbar) },
 };
 
 const gchar ui_main_desc[] =
-        "<ui>"
-        "  <menubar name='MainMenu'>"
-        "    <menu action='ConnectionMenu'>"
-        "      <menuitem action='Log on' />"
-        "      <menuitem action='Log off' />"
-        "      <menuitem action='Duplicate' />"
-        "      <separator />"
-        "      <menuitem action='Open terminal' />"
-        "      <separator />"
-        "      <menuitem action='Edit protocols' />"
-        "      <separator />"
-        "      <menu action='ExportMenu'>"
-        "        <menuitem action='ExportCSV' />"
-        "      </menu>"
-        "      <separator />"
-        "      <menuitem action='Close tab' />"
-        "      <separator />"
-        "      <menuitem action='Quit' />"
-        "    </menu>"
-        "    <menu action='EditMenu'>"
-        "      <menuitem action='Copy' />"
-        "      <menuitem action='Paste' />"
-        "      <menuitem action='Copy and paste' />"
-        "      <separator />"
-        "      <menuitem action='Find' />"
-        "      <menuitem action='FindNext' />"
-        "      <menuitem action='FindPrevious' />"
-        "      <separator />"
-        "      <menuitem action='Select all' />"
-        "      <separator />"
-        "      <menuitem action='EditCurrentProfile' />"
-        "      <separator />"
-        "      <menuitem action='Preferences' />"
-        "    </menu>"
-        "    <menu action='ViewMenu'>"
-        "      <menuitem action='Toolbar' />"
-        "      <menuitem action='Statusbar' />"
-        "      <separator />"
-        "      <menuitem action='Fullscreen' />"
-        "      <separator />"
-        "      <menuitem action='Go back' />"
-        "      <menuitem action='Go forward' />"
-        "      <separator />"
-        "      <menuitem action='Zoom in' />"
-        "      <menuitem action='Zoom out' />"
-        "      <menuitem action='Zoom 100' />"
-        "    </menu>"
-        "    <menu action='TerminalMenu'>"
-        "      <menu action='CharacterEncodingMenu' />" /* filled later */
-        "      <separator />"
-        "      <menuitem action='Reset' />"
-        "      <separator />"
-        "      <menuitem action='DetachRight' />"
-        "      <menuitem action='DetachDown' />"
-        "      <menuitem action='AttachCurrent' />"
-        "      <menuitem action='RegroupAll' />"
-        "      <separator />"
-        "      <menuitem action='Cluster' />"
-        "    </menu>"
-
-        "    <menu action='HelpMenu'>"
-        "      <menuitem action='About' />"
-        "    </menu>"
-        "  </menubar>"
+        "<interface>"
+		"<menu id='MainMenu'>"
+        "    <submenu>"
+		"      <attribute name='label'>Connection</attribute>"
+		"      <section>"
+        "        <item>"
+		"          <attribute name='label'>Log on</attribute>"
+		"          <attribute name='action'>lt.log_on</attribute>"
+		"        </item>"
+        "        <item>"
+		"          <attribute name='label'>Log off</attribute>"
+		"          <attribute name='action'>lt.log_off</attribute>"
+		"        </item>"
+        "        <item>"
+		"          <attribute name='label'>Duplicate</attribute>"
+		"          <attribute name='action'>lt.duplicate</attribute>"
+		"        </item>"
+        "        <item>"
+		"          <attribute name='label'>Open terminal</attribute>"
+		"          <attribute name='action'>lt.open_term</attribute>"
+		"        </item>"
+		"      </section>"
+		"      <section>"
+        "        <item>"
+		"          <attribute name='label'>Edit protocols</attribute>"
+		"          <attribute name='action'>lt.edit_proto</attribute>"
+		"        </item>"
+		"      </section>"
+		"      <section>"
+		"        <item>"
+		"          <attribute name='label'>Export</attribute>"
+		"          <attribute name='action'>lt.export_csv</attribute>"
+		"        </item>"
+		"      </section>"
+		"      <section>"
+		"        <item>"
+		"          <attribute name='label'>Quit</attribute>"
+		"          <attribute name='action'>lt.quit</attribute>"
+		"        </item>"
+		"      </section>"
+        "    </submenu>"
+        "    <submenu>"
+		"      <attribute name='label'>Edit</attribute>"
+		"      <section>"
+		"        <item>"
+		"          <attribute name='label'>Copy</attribute>"
+		"          <attribute name='action'>lt.copy</attribute>"
+		"        </item>"
+		"        <item>"
+		"          <attribute name='label'>Paste</attribute>"
+		"          <attribute name='action'>lt.paste</attribute>"
+		"        </item>"
+		"        <item>"
+		"          <attribute name='label'>Copy and paste</attribute>"
+		"          <attribute name='action'>lt.copy_paste</attribute>"
+		"        </item>"
+		"      </section>"
+		"      <section>"
+		"        <item>"
+		"          <attribute name='label'>Find</attribute>"
+		"          <attribute name='action'>lt.find</attribute>"
+		"        </item>"
+		"        <item>"
+		"          <attribute name='label'>FindNext</attribute>"
+		"          <attribute name='action'>lt.findnext</attribute>"
+		"        </item>"
+		"        <item>"
+		"          <attribute name='label'>FindPrevious</attribute>"
+		"          <attribute name='action'>lt.findprev</attribute>"
+		"        </item>"
+		"      </section>"
+		"      <section>"
+		"        <item>"
+		"          <attribute name='label'>Select all</attribute>"
+		"          <attribute name='action'>lt.select_all</attribute>"
+		"        </item>"
+		"      </section>"
+		"      <section>"
+		"        <item>"
+		"          <attribute name='label'>EditCurrentProfile</attribute>"
+		"          <attribute name='action'>lt.edit_current_profile</attribute>"
+		"        </item>"
+		"      </section>"
+		"      <section>"
+		"        <item>"
+		"          <attribute name='label'>Preferences</attribute>"
+		"          <attribute name='action'>lt.pref</attribute>"
+		"        </item>"
+		"      </section>"
+        "    </submenu>"
+        "    <submenu>"
+		"      <attribute name='label'>View</attribute>"
+		"      <section>"
+		"        <item>"
+		"          <attribute name='label'>Toolbar</attribute>"
+		"          <attribute name='action'>lt.toggle_toolbar</attribute>"
+		"        </item>"
+		"      </section>"
+		"      <section>"
+		"        <item>"
+		"          <attribute name='label'>Go back</attribute>"
+		"          <attribute name='action'>lt.go_back</attribute>"
+		"        </item>"
+		"        <item>"
+		"          <attribute name='label'>Go forward</attribute>"
+		"          <attribute name='action'>lt.go_forward</attribute>"
+		"        </item>"
+		"      </section>"
+		"      <section>"
+		"        <item>"
+		"          <attribute name='label'>Zoom in</attribute>"
+		"          <attribute name='action'>lt.zoom_in</attribute>"
+		"        </item>"
+		"        <item>"
+		"          <attribute name='label'>Zoom out</attribute>"
+		"          <attribute name='action'>lt.zoom_out</attribute>"
+		"        </item>"
+		"        <item>"
+		"          <attribute name='label'>Zoom 100</attribute>"
+		"          <attribute name='action'>lt.zoom_100</attribute>"
+		"        </item>"
+		"      </section>"
+        "    </submenu>"
+        "    <submenu>"
+		"      <attribute name='label'>Terminal</attribute>"
+		"        <item>"
+		"          <attribute name='label'>Reset</attribute>"
+		"          <attribute name='action'>lt.reset</attribute>"
+		"        </item>"
+		"        <item>"
+		"          <attribute name='label'>DetachRight</attribute>"
+		"          <attribute name='action'>lt.detach_right</attribute>"
+		"        </item>"
+		"        <item>"
+		"          <attribute name='label'>DetachDown</attribute>"
+		"          <attribute name='action'>lt.detach_down</attribute>"
+		"        </item>"
+		"        <item>"
+		"          <attribute name='label'>AttachCurrent</attribute>"
+		"          <attribute name='action'>lt.attach_current</attribute>"
+		"        </item>"
+		"        <item>"
+		"          <attribute name='label'>RegroupAll</attribute>"
+		"          <attribute name='action'>lt.regroup_all</attribute>"
+		"        </item>"
+		"        <item>"
+		"          <attribute name='label'>Cluster</attribute>"
+		"          <attribute name='action'>lt.send_cluster</attribute>"
+		"        </item>"
+        "    </submenu>"
+        "    <submenu>"
+		"      <attribute name='label'>Help</attribute>"
+		"        <item>"
+		"          <attribute name='label'>About</attribute>"
+		"          <attribute name='action'>lt.about</attribute>"
+		"        </item>"
+        "    </submenu>"
+        "</menu>"
+		"<interface>"
+		;
+#if 0
         "  <toolbar name='MainToolbar'>"
         "    <toolitem action='Open terminal'/>"
         "    <toolitem name='Duplicate session' action='Duplicate'/>"
@@ -248,8 +331,6 @@ const gchar ui_main_desc[] =
         "    <separator />"
         "    <toolitem action='Cluster'/>"
         "    <separator />"
-        "    <toolitem action='Fullscreen'/>"
-        "    <separator />"
         "    <toolitem action='Zoom in'/>"
         "    <toolitem action='Zoom out'/>"
         "    <toolitem action='Zoom 100'/>"
@@ -258,6 +339,7 @@ const gchar ui_main_desc[] =
         "    <toolitem action='Zoom 100'/>"
         "  </toolbar>"
         "</ui>";
+#endif
 
 GtkActionEntry popup_menu_items[] = {
 	{ "Copy", "_Copy", N_ ("_Copy"), "<shift><ctrl>C", NULL, G_CALLBACK (edit_copy) },
@@ -273,10 +355,7 @@ const gchar *ui_popup_desc =
         "    <menuitem action='Copy'/>"
         "    <menuitem action='Paste'/>"
         "    <menuitem action='Copy and paste'/>"
-        "    <menu action='PasteHost' />" /* filled later */
         "    <separator />"
-        //"    <menuitem action='Download files'/>"
-        //"    <separator />"
         "    <menuitem action='Select all' />"
         "  </popup>"
         "</ui>";
@@ -1365,40 +1444,6 @@ view_toolbar ()
 #endif
 }
 
-void
-view_statusbar ()
-{
-#if 0
-	GtkWidget *toggle;
-	toggle = gtk_ui_manager_get_widget (ui_manager, N_ ("/MainMenu/ViewMenu/Statusbar") );
-	if (gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM (toggle) ) ) {
-		gtk_widget_show_all (statusbar);
-		prefs.statusbar = 1;
-	} else {
-		gtk_widget_hide (statusbar);
-		prefs.statusbar = 0;
-	}
-#endif
-}
-
-void
-view_fullscreen ()
-{
-#if 0
-	GtkWidget *toggle;
-	toggle = gtk_ui_manager_get_widget (ui_manager, N_ ("/MainMenu/ViewMenu/Fullscreen") );
-	if (prefs.fullscreen) {
-		gtk_window_unfullscreen (GTK_WINDOW (main_window) );
-		prefs.fullscreen = 0;
-		/* GTK_CHECK_MENU_ITEM (toggle)->active = 0; */
-	} else {
-		gtk_window_fullscreen (GTK_WINDOW (main_window) );
-		prefs.fullscreen = 1;
-		/* GTK_CHECK_MENU_ITEM (toggle)->active = 1; */
-	}
-#endif
-}
-
 void view_go_back ()
 {
 	GtkNotebook *nb = GTK_NOTEBOOK (notebook);
@@ -1845,12 +1890,6 @@ Info ()
 	g_object_unref (G_OBJECT (builder) );
 }
 
-gchar *
-menu_translate (const gchar * path, gpointer data)
-{
-	return _ ( (gchar *) path);
-}
-
 void
 select_encoding_cb (GtkWidget *wgt, gpointer cbdata)
 {
@@ -1862,38 +1901,9 @@ select_encoding_cb (GtkWidget *wgt, gpointer cbdata)
 		if (!strcmp (enc_array[i].name, gtk_menu_item_get_label (GTK_MENU_ITEM (wgt) ) ) ) {
 			//vte_terminal_set_encoding (VTE_TERMINAL (p_current_connection_tab->vte), enc_array[i].id);
 			terminal_set_encoding (p_current_connection_tab, enc_array[i].id);
-			update_statusbar();
 			break;
 		}
 	}
-}
-
-static void
-activate_radio_action (GtkAction *action, GtkRadioAction *current)
-{
-	if (!p_current_connection_tab)
-		return;
-	const gchar *name = gtk_action_get_name (GTK_ACTION (current) );
-	const gchar *typename = G_OBJECT_TYPE_NAME (GTK_ACTION (current) );
-	gboolean active = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION (current) );
-	gint value = gtk_radio_action_get_current_value (GTK_RADIO_ACTION (current) );
-	//vte_terminal_set_encoding (VTE_TERMINAL (p_current_connection_tab->vte), enc_array[value-1].id);
-	terminal_set_encoding (p_current_connection_tab, enc_array[value - 1].id);
-	update_statusbar ();
-}
-
-static void
-profile_radio_action_cb (GtkAction *action, GtkRadioAction *current)
-{
-	int id;
-	if (!p_current_connection_tab)
-		return;
-	const gchar *name = gtk_action_get_name (GTK_ACTION (current) );
-	gboolean active = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION (current) );
-	gint value = gtk_radio_action_get_current_value (GTK_RADIO_ACTION (current) );
-	sscanf (name, "profile-%d", &id);
-	log_debug ("name=%s value=%d id=%d\n", name, value, id);
-	apply_profile (p_current_connection_tab, id);
 }
 
 #if 0
@@ -1941,6 +1951,24 @@ create_stock_objects ()
 #endif
 }
 
+void
+get_main_menu ()
+{
+	GtkBuilder *builder;
+	GMenuModel *menu;
+
+	builder = gtk_builder_new();
+	gtk_builder_add_from_string(builder, ui_main_desc, -1, NULL);
+
+	action_group = g_simple_action_group_new();
+	g_action_map_add_action_entries(G_ACTION_MAP(action_group), main_menu_items, G_N_ELEMENTS(main_menu_items), NULL);
+
+	menu = G_MENU_MODEL(gtk_builder_get_object(builder, "MainMenu"));
+	menubar = gtk_menu_bar_new_from_model(menu);
+
+	gtk_widget_insert_action_group(menubar, "lt", G_ACTION_GROUP(action_group));
+}
+#if 0
 void
 get_main_menu ()
 {
@@ -2001,38 +2029,7 @@ add_toolbar (GtkWidget *box)
 	}
 	setup_toolbar_connect_button (main_toolbar);
 }
-
-/**
- * create_statusbar() - Creates the statusbar
- */
-void create_statusbar()
-{
-	gint cw = -1;
-	PangoLayout *layout;
-	statusbar = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-	sb_msg = gtk_statusbar_new();
-	//gtk_statusbar_set_has_resize_grip (GTK_STATUSBAR (sb_msg), FALSE);
-	layout = gtk_widget_create_pango_layout (sb_msg, "M");
-	if (layout != NULL) {
-		pango_layout_get_pixel_size (layout, &cw, NULL);
-		g_object_unref (G_OBJECT (layout) );
-	}
-	sb_transfer = gtk_statusbar_new ();
-	//gtk_widget_set_size_request (sb_transfer, 20*cw, -1);
-	sb_protocol = gtk_statusbar_new ();
-	//gtk_widget_set_size_request (sb_protocol, 10*cw, -1);
-	sb_enc = gtk_statusbar_new ();
-	//gtk_widget_set_size_request (sb_enc, 8*cw, -1);
-	gtk_box_pack_start (GTK_BOX (statusbar), sb_msg, TRUE, TRUE, 0);
-	gtk_box_pack_end (GTK_BOX (statusbar), sb_enc, FALSE, FALSE, 0);
-	gtk_box_pack_end (GTK_BOX (statusbar), sb_transfer, FALSE, FALSE, 0);
-	gtk_box_pack_end (GTK_BOX (statusbar), sb_protocol, FALSE, FALSE, 0);
-	if (prefs.statusbar) {
-		//gtk_widget_show_all (statusbar);
-		GtkWidget *toggle = gtk_ui_manager_get_widget (ui_manager, N_ ("/MainMenu/ViewMenu/Statusbar") );
-		gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toggle), TRUE);
-	}
-}
+#endif
 
 /**
  * update_title() - Updates the window title
@@ -2056,114 +2053,13 @@ update_title ()
 	gtk_window_set_title (GTK_WINDOW (main_window), title);
 }
 
-void
-statusbar_push (const char *fmt, ...)
-{
-	va_list ap;
-	char msg[2048];
-	gint result;
-	va_start (ap, fmt);
-	vsprintf (msg, fmt, ap);
-	va_end (ap);
-	log_write ("%s\n", msg);
-	gtk_statusbar_push (GTK_STATUSBAR (sb_msg), 0, msg);
-//  while (gtk_events_pending ())
-//    gtk_main_iteration ();
-}
-
-void
-statusbar_pop ()
-{
-	gtk_statusbar_pop (GTK_STATUSBAR (sb_msg), 0);
-//  while (gtk_events_pending ())
-//    gtk_main_iteration ();
-}
-
 /**
- * statusbar_msg()
- */
-void
-statusbar_msg (const char *fmt, ...)
-{
-	va_list ap;
-	char msg[2048];
-	gint result;
-	va_start (ap, fmt);
-	vsprintf (msg, fmt, ap);
-	va_end (ap);
-	log_write ("%s\n", msg);
-	gtk_statusbar_pop (GTK_STATUSBAR (sb_msg), 0);
-	gtk_statusbar_push (GTK_STATUSBAR (sb_msg), 0, msg);
-	///statusbar_pop ();
-	//statusbar_push (msg);
-//  while (gtk_events_pending ())
-//    gtk_main_iteration ();
-}
-
-/**
- * update_statusbar() - Updates the status bar
- */
-void
-update_statusbar ()
-{
-	char s[1024];
-	//char emulation[256];
-	char encoding[256];
-	char protocol[256];
-	//log_debug("Start\n");
-	strcpy (protocol, "");
-	gtk_statusbar_pop (GTK_STATUSBAR (sb_msg), 0);
-	//gtk_statusbar_pop (GTK_STATUSBAR (sb_transfer), 0);
-	gtk_statusbar_pop (GTK_STATUSBAR (sb_enc), 0);
-	gtk_statusbar_pop (GTK_STATUSBAR (sb_protocol), 0);
-	if (p_current_connection_tab) {
-		/* set emulation and encoding */
-		if (VTE_IS_TERMINAL (p_current_connection_tab->vte) ) {
-			//strcpy (emulation, vte_terminal_get_emulation (VTE_TERMINAL (p_current_connection_tab->vte)));
-			//strcpy (emulation, "xterm");
-			strcpy (encoding, vte_terminal_get_encoding (VTE_TERMINAL (p_current_connection_tab->vte) ) );
-		} else {
-			//strcpy (emulation, "");
-			strcpy (encoding, "");
-		}
-		/* set message text */
-		if (/*p_current_connection_tab->connected*/tabIsConnected (p_current_connection_tab) ) {
-			if (p_current_connection_tab->type == CONNECTION_REMOTE) {
-				sprintf (s, "%s@%s (%s)",
-				         p_current_connection_tab->connection.user,
-				         p_current_connection_tab->connection.name,
-				         p_current_connection_tab->connection.host);
-				strcpy (protocol, p_current_connection_tab->connection.protocol);
-			} else { /* local */
-				strcpy (s, "Terminal on local host");
-			}
-		} else {
-			strcpy (s, "Disconnected");
-		}
-	} else {
-		strcpy (s, "");
-		//strcpy (emulation, "");
-		strcpy (encoding, "");
-		strcpy (protocol, "");
-	}
-	//log_debug("set %s %s %s\n", s, encoding, protocol);
-	//log_debug ("Pushing msg...\n");
-	gtk_statusbar_push (GTK_STATUSBAR (sb_msg), 0, s);
-	//log_debug ("Pushing encoding...\n");
-	gtk_statusbar_push (GTK_STATUSBAR (sb_enc), 0, encoding);
-	//log_debug ("Pushing protocol...\n");
-	gtk_statusbar_push (GTK_STATUSBAR (sb_protocol), 0, protocol);
-	//log_debug("End\n");
-}
-
-/**
- * update_screen_info() - Refresh title and statusbar
+ * update_screen_info() - Refresh title
  */
 void
 update_screen_info ()
 {
 	update_title ();
-	update_statusbar ();
 }
 
 void
@@ -2624,6 +2520,7 @@ key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 void
 select_current_profile_menu_item (struct ConnectionTab *p_ct)
 {
+#if 0
 	struct Profile *p = profile_get_by_id (&g_profile_list, p_ct->profile_id);
 	if (p) {
 		char tmp_s[256];
@@ -2632,6 +2529,7 @@ select_current_profile_menu_item (struct ConnectionTab *p_ct)
 		if (toggleAction)
 			gtk_radio_action_set_current_value (GTK_RADIO_ACTION (toggleAction), p_ct->profile_id);
 	}
+#endif
 }
 
 void
@@ -2863,14 +2761,11 @@ start_gtk (int argc, char **argv)
 	gtk_widget_show (menubar);
 	/* Toolbar */
 	log_write ("Creating toolbar...\n");
-	add_toolbar (vbox);
 	/* Paned window */
 	hpaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
-	//hbox_workspace = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 	g_signal_connect (G_OBJECT (hpaned), "notify::position", G_CALLBACK (check_resize_cb), NULL);
 	/* list store for connetions */
 	connection_init_stuff ();
-	//create_connections_list_store ();
 	/* Notebook */
 	notebook = gtk_notebook_new ();
 	gtk_notebook_set_scrollable (GTK_NOTEBOOK (notebook), TRUE);
@@ -2879,18 +2774,10 @@ start_gtk (int argc, char **argv)
 	gtk_notebook_set_show_border (GTK_NOTEBOOK (notebook), TRUE);
 	g_signal_connect (notebook, "switch-page", G_CALLBACK (notebook_switch_page_cb), 0);
 	g_signal_connect (notebook, "page-reordered", G_CALLBACK (notebook_page_reordered_cb), 0);
-	//g_signal_connect (notebook, "reorder-tab", G_CALLBACK (notebook_reorder_tab_cb), 0);
 	gtk_widget_show (notebook);
 	gtk_paned_add2 (GTK_PANED (hpaned), notebook);
-	//gtk_box_pack_start (GTK_BOX (hbox_workspace), notebook, TRUE, TRUE, 0);
 	gtk_box_pack_start (GTK_BOX (vbox), hpaned, TRUE, TRUE, 0);
-	//gtk_box_pack_start (GTK_BOX (vbox), hbox_workspace, TRUE, TRUE, 0);
 	gtk_widget_show (hpaned);
-	//gtk_widget_show (hbox_workspace);
-	/* statusbar */
-	log_write ("Creating statusbar...\n");
-	create_statusbar ();
-	gtk_box_pack_end (GTK_BOX (vbox), statusbar, FALSE, TRUE, 0);
 	g_signal_connect (main_window, "delete_event", G_CALLBACK (delete_event_cb), NULL);
 	g_signal_connect (main_window, "size-allocate", G_CALLBACK (size_allocate_cb), NULL);
 	g_signal_connect (main_window, "key-press-event", G_CALLBACK (key_press_event_cb), NULL);
@@ -2905,7 +2792,6 @@ start_gtk (int argc, char **argv)
 	/* init list of connections for the first time, needed by terminal popup menu */
 	log_write ("Loading connections...\n");
 	load_connections ();
-	update_statusbar ();
 	/* Ensure that buttons images will be shown */
 	GtkSettings *default_settings = gtk_settings_get_default ();
 	g_object_set (default_settings, "gtk-button-images", TRUE, NULL);

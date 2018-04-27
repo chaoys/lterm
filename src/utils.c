@@ -270,6 +270,7 @@ list_get_nth (char *list, int n, char sep, char *elem)
 	n_cur = 1;
 	while (pstart) {
 		if (n_cur == n) {
+			tmp = (char *) malloc (strlen (pstart) + 1);
 			strcpy (tmp, pstart);
 			pend = (char *) strchr (tmp, sep);
 			if (pend) {
