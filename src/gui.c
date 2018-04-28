@@ -113,6 +113,10 @@ typedef struct TabSelection {
 } STabSelection;
 GArray *tabSelectionArray;
 
+void test(void)
+{
+	printf("test\n");
+}
 GActionEntry main_menu_items[] = {
 	{ "log_on", connection_log_on },
 	{ "log_off", connection_log_off },
@@ -145,7 +149,7 @@ GActionEntry main_menu_items[] = {
 	{ "regroup_all", terminal_regroup_all },
 	{ "send_cluster", terminal_cluster },
 
-	{ "about", Info }
+	{ "about", Info },
 };
 
 static GtkToggleActionEntry toggle_entries[] = {
@@ -314,24 +318,24 @@ const gchar ui_main_desc[] =
 		"<interface>"
 		;
 
-GtkActionEntry popup_menu_items[] = {
-	{ "Copy", "_Copy", N_ ("_Copy"), "<shift><ctrl>C", NULL, G_CALLBACK (edit_copy) },
-	{ "Paste", "_Paste", N_ ("_Paste"), "<shift><ctrl>V", NULL, G_CALLBACK (edit_paste) },
-	{ "Copy and paste", NULL, N_ ("C_opy and paste"), NULL, NULL, G_CALLBACK (edit_copy_and_paste) },
-	{ "PasteHost", NULL, N_ ("Paste host") },
-	{ "Select all", NULL, N_ ("_Select all"), NULL, NULL, G_CALLBACK (edit_select_all) },
-};
-
 const gchar *ui_popup_desc =
-        "<ui>"
-        "  <popup name='TermPopupMenu' accelerators='true'>"
-        "    <menuitem action='Copy'/>"
-        "    <menuitem action='Paste'/>"
-        "    <menuitem action='Copy and paste'/>"
-        "    <separator />"
-        "    <menuitem action='Select all' />"
-        "  </popup>"
-        "</ui>";
+"<?xml version='1.0' encoding='UTF-8'?>"
+"<!-- Generated with glade 3.20.0 -->"
+"<interface>"
+"<requires lib='gtk+' version='3.20'/>"
+"<object class='GtkMenu' id='popup_menu'>"
+"  <property name='visible'>True</property>"
+"  <property name='can_focus'>False</property>"
+"  <child>"
+"    <object class='GtkMenuItem' id='pop1'>"
+"      <property name='visible'>True</property>"
+"      <property name='can_focus'>False</property>"
+"      <property name='label' translatable='yes'>Test</property>"
+"      <property name='use_underline'>True</property>"
+"    </object>"
+"  </child>"
+"</object>"
+"</interface>";
 
 struct EncodingEntry {
 	char name[64];
@@ -2021,56 +2025,17 @@ update_screen_info ()
 void
 terminal_popup_menu (GdkEventButton *event)
 {
-#if 0
-	GtkUIManager *ui_manager;
-	GtkActionGroup *action_group;
+	GtkBuilder *builder;
 	GtkWidget *popup;
-	struct Connection *p_conn;
-	char conn_desc[10000], ip_desc[1024], item_s[256];
-	char s_tmp[600];
-	int n_conn, i;
-	/* Build PasteHost submenu */
-	n_conn = count_current_connections ();
-	log_debug ("n_conn=%d\n", n_conn);
-	GtkActionEntry conn_entries[n_conn];
-	strcpy (conn_desc, "<ui>"
-	        "  <popup name='TermPopupMenu'>");
-	/* Add PasteHost menu */
-	strcat (conn_desc, "    <menu action='PasteHost'>");
-	for (i = 0; i < n_conn; i++) {
-		p_conn = get_connection_by_index (i);
-		//sprintf (s_tmp, "pastehost_%d", i);
-		conn_entries[i].name = g_strdup (p_conn->name);
-		conn_entries[i].stock_id = NULL;
-		sprintf (s_tmp, "%s (%s)", p_conn->name, p_conn->host);
-		conn_entries[i].label = g_strdup (s_tmp);
-		conn_entries[i].accelerator = NULL;
-		conn_entries[i].tooltip = NULL;
-		//conn_entries[i].value = i+1;
-		conn_entries[i].callback = G_CALLBACK (paste_host);
-		sprintf (item_s, "<menuitem action='%s' />", conn_entries[i].name);
-		strcat (conn_desc, item_s);
-	}
-	strcat (conn_desc, "    </menu>");
-	strcat (conn_desc, "  </popup>"
-	        "</ui>");
-	//printf ("%s\n", conn_desc);
-	log_debug ("Creating group\n");
-	action_group = gtk_action_group_new ("TermPopupActions");
-	gtk_action_group_add_actions (action_group, popup_menu_items, G_N_ELEMENTS (popup_menu_items), NULL);
-	gtk_action_group_add_actions (action_group, conn_entries, G_N_ELEMENTS (conn_entries), NULL);
-	ui_manager = gtk_ui_manager_new ();
-	gtk_ui_manager_insert_action_group (ui_manager, action_group, 0);
-	log_debug ("Adding ui\n");
-	gtk_ui_manager_add_ui_from_string (ui_manager, ui_popup_desc, -1, NULL);
-	gtk_ui_manager_add_ui_from_string (ui_manager, conn_desc, -1, NULL);
-	//g_object_set_data (G_OBJECT (widget), "ui-manager", ui_manager);
-	popup = gtk_ui_manager_get_widget (ui_manager, "/TermPopupMenu");
-	log_debug ("Show popup menu\n");
-	gtk_menu_popup (GTK_MENU (popup), NULL, NULL, NULL, NULL,
-	                (event != NULL) ? event->button : 0,
-	                gdk_event_get_time ( (GdkEvent *) event) );
-#endif
+	GtkWidget *pop1;
+
+	builder = gtk_builder_new();
+	gtk_builder_add_from_string(builder, ui_popup_desc, -1, NULL);
+	popup = GTK_WIDGET(gtk_builder_get_object (builder, "popup_menu"));
+	gtk_menu_popup_at_pointer (GTK_MENU (popup), (GdkEvent*)event);
+	//test
+	pop1 = GTK_WIDGET(gtk_builder_get_object(builder, "pop1"));
+	g_signal_connect(pop1, "activate", test, NULL);
 }
 
 gint

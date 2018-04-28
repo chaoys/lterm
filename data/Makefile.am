@@ -1,13 +1,13 @@
 EXTRA_DIST = credits.txt lterm.desktop.in lterm.xml \
              preferences.glade profile.glade edit-connection.glade login.glade \
              find.glade credits.glade cluster.glade time.glade \
-             additionals.xml types.xml
+             additionals.xml types.xml toolbar.glade
 
 pkgdatadir = $(datadir)/$(PACKAGE)/data
 pkgdata_DATA = credits.txt lterm.desktop.in lterm.xml \
              preferences.glade profile.glade edit-connection.glade login.glade \
              find.glade credits.glade  cluster.glade time.glade \
-             additionals.xml types.xml
+             additionals.xml types.xml toolbar.glade
 
 desktopdir = $(datadir)/applications
 desktop_in_files = lterm.desktop.in
