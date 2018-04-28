@@ -83,10 +83,8 @@ struct Iteration_Function_Request ifr[ITERATION_MAX];
 GtkWidget *main_window;
 GtkWidget *hpaned;
 
-GtkUIManager *ui_manager;
 GtkWidget *menubar, *main_toolbar;
 GSimpleActionGroup *action_group;
-GtkEntryCompletion *completion;
 GtkWidget *notebook;
 
 GdkScreen *g_screen;
@@ -315,31 +313,6 @@ const gchar ui_main_desc[] =
         "</menu>"
 		"<interface>"
 		;
-#if 0
-        "  <toolbar name='MainToolbar'>"
-        "    <toolitem action='Open terminal'/>"
-        "    <toolitem name='Duplicate session' action='Duplicate'/>"
-        "    <separator />"
-        "    <toolitem action='Copy'/>"
-        "    <toolitem action='Paste'/>"
-        "    <toolitem action='Find'/>"
-        "    <separator />"
-        "    <separator />"
-        "    <toolitem action='DetachRight'/>"
-        "    <toolitem action='DetachDown'/>"
-        "    <toolitem action='RegroupAll'/>"
-        "    <separator />"
-        "    <toolitem action='Cluster'/>"
-        "    <separator />"
-        "    <toolitem action='Zoom in'/>"
-        "    <toolitem action='Zoom out'/>"
-        "    <toolitem action='Zoom 100'/>"
-        "    <separator />"
-        "    <toolitem action='Preferences'/>"
-        "    <toolitem action='Zoom 100'/>"
-        "  </toolbar>"
-        "</ui>";
-#endif
 
 GtkActionEntry popup_menu_items[] = {
 	{ "Copy", "_Copy", N_ ("_Copy"), "<shift><ctrl>C", NULL, G_CALLBACK (edit_copy) },
@@ -1269,24 +1242,6 @@ utils_escape_underscores (const gchar* text, gssize length)
 	return g_string_free (str, FALSE);
 }
 
-static void
-setup_toolbar_connect_button (GtkWidget *toolbar)
-{
-	GtkToolItem *connect_button;
-	GtkAction *action;
-	log_debug ("\n");
-#if (GTK_CHECK_VERSION(3,10,0) == 1)
-	GtkWidget *image = gtk_image_new_from_icon_name ("gtk-connect", GTK_ICON_SIZE_SMALL_TOOLBAR);
-	connect_button = gtk_menu_tool_button_new (image, _ ("Connect") );
-#else
-	connect_button = gtk_menu_tool_button_new_from_stock (GTK_STOCK_CONNECT);
-#endif
-	g_signal_connect (G_OBJECT (connect_button), "clicked", G_CALLBACK (connection_log_on), NULL);
-	gtk_widget_show (GTK_WIDGET (connect_button) );
-	gtk_tool_item_set_tooltip_text (connect_button, _ ("Log on") );
-	gtk_toolbar_insert (GTK_TOOLBAR (toolbar), connect_button, 0);
-}
-
 GtkWidget *
 _get_active_widget()
 {
@@ -1966,7 +1921,8 @@ get_main_menu ()
 	menu = G_MENU_MODEL(gtk_builder_get_object(builder, "MainMenu"));
 	menubar = gtk_menu_bar_new_from_model(menu);
 
-	gtk_widget_insert_action_group(menubar, "lt", G_ACTION_GROUP(action_group));
+	gtk_widget_insert_action_group(main_window, "lt", G_ACTION_GROUP(action_group));
+	//gtk_widget_insert_action_group(menubar, "lt", G_ACTION_GROUP(action_group));
 }
 #if 0
 void
@@ -2015,21 +1971,21 @@ get_main_menu ()
 	gtk_ui_manager_insert_action_group (ui_manager, profile_action_group, 0);
 	g_object_unref (profile_action_group);
 }
+#endif
 
 void
 add_toolbar (GtkWidget *box)
 {
-	main_toolbar = gtk_ui_manager_get_widget (ui_manager, N_ ("/MainToolbar") );
+	GtkBuilder *builder;
+	gchar rscfile[1024];
+
+	sprintf (rscfile, "%s/toolbar.glade", globals.data_dir);
+	builder = gtk_builder_new_from_file(rscfile);
+	main_toolbar = GTK_WIDGET(gtk_builder_get_object (builder, "MainToolbar"));
 	gtk_toolbar_set_style (GTK_TOOLBAR (main_toolbar), GTK_TOOLBAR_ICONS);
 	gtk_box_pack_start (GTK_BOX (box), main_toolbar, FALSE, TRUE, 0);
 	gtk_widget_show (main_toolbar);
-	if (prefs.toolbar) {
-		GtkWidget *toggle = gtk_ui_manager_get_widget (ui_manager, N_ ("/MainMenu/ViewMenu/Toolbar") );
-		gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (toggle), TRUE);
-	}
-	setup_toolbar_connect_button (main_toolbar);
 }
-#endif
 
 /**
  * update_title() - Updates the window title
@@ -2761,6 +2717,7 @@ start_gtk (int argc, char **argv)
 	gtk_widget_show (menubar);
 	/* Toolbar */
 	log_write ("Creating toolbar...\n");
+	add_toolbar(vbox);
 	/* Paned window */
 	hpaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
 	g_signal_connect (G_OBJECT (hpaned), "notify::position", G_CALLBACK (check_resize_cb), NULL);
