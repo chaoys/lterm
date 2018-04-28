@@ -43,7 +43,7 @@
         <property name="action_name">lt.duplicate</property>
         <property name="label" translatable="yes">Duplicate</property>
         <property name="use_underline">True</property>
-        <property name="icon_name">duplicate</property>
+        <property name="icon_name">myduplicate</property>
       </object>
       <packing>
         <property name="expand">False</property>
