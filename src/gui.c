@@ -53,8 +53,6 @@
 #  define SHORTCUT_FIND_NEXT "<shift><ctrl>G"
 #  define SHORTCUT_QUIT "<Alt>X"
 
-#define DEFAULT_WORD_CHARS "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
 #define USERCHARS "-[:alnum:]"
 #define USERCHARS_CLASS "[" USERCHARS "]"
 #define PASSCHARS_CLASS "[-[:alnum:]\\Q,?;.:/!%$^*&~\"#'\\E]"
@@ -73,8 +71,6 @@ extern struct Protocol_List g_prot_list;
 extern struct Connection_List conn_list;
 extern struct ProfileList g_profile_list;
 extern struct GroupTree g_groups;
-
-//char *auth_state_desc[] = { "AUTH_STATE_NOT_LOGGED", "AUTH_STATE_GOT_USER", "AUTH_STATE_GOT_PASSWORD", "AUTH_STATE_LOGGED" };
 
 int ifr_index_first = 0;
 int ifr_index_insert = 1;
@@ -2434,15 +2430,8 @@ apply_preferences ()
 			terminal_set_encoding (p_ct, prefs.character_encoding);
 		else
 			strcpy (prefs.character_encoding, vte_terminal_get_encoding (VTE_TERMINAL (vte) ) );
-		// Set words for vte < 0.40
-#if (VTE_CHECK_VERSION(0,38,3) == 0)
-		strcpy (word_chars, DEFAULT_WORD_CHARS);
-		strcat (word_chars, prefs.extra_word_chars);
-		vte_terminal_set_word_chars (VTE_TERMINAL (vte), word_chars);
-#else
 		//use only default words. I dont know where the exceptions come from.
 		vte_terminal_set_word_char_exceptions (VTE_TERMINAL (vte), "");
-#endif
 		////////vte_terminal_set_size (VTE_TERMINAL (vte), prefs.columns, prefs.rows);
 		//gtk_window_resize (GTK_WINDOW (main_window), prefs.w, prefs.h);
 		//gtk_window_set_position (GTK_WINDOW (main_window), GTK_WIN_POS_CENTER);
