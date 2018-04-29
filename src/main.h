@@ -48,7 +48,6 @@ struct _globals {
 	char app_dir[300];
 	char img_dir[512];
 	char data_dir[512];
-	char serverlist[512];             /* Server list file (deprecated) */
 	char connections_xml[512];    /* Server list file (xml format)*/
 	char conf_file[512];
 	char log_file[512];
@@ -57,8 +56,6 @@ struct _globals {
 	int connected;
 	int original_font_size;
 	char system_font[256];
-	int upgraded; /* 1 if just upgraded package */
-	char start_connections[256]; /* list of files and connections to be opened at startup */
 	struct SSH_List ssh_list;
 	char find_expr[256];
 	int inotifyFd; // For Inotify and FSEvents

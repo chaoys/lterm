@@ -105,21 +105,6 @@ connection_init_stuff ()
 	//expand_connection_tree_view_groups (GTK_TREE_VIEW (tree_view), &g_groups.root);
 }
 
-/**
- * detect_serverlist_file_version() - returns version of file containing server hosts
- * @return version of file
- */
-int
-detect_serverlist_file_version ()
-{
-	FILE *fp;
-	char line[1024];
-	int version;
-	char v2_s[] = ";mtsl-2";
-	version = profile_load_int (globals.serverlist, "CFG", "version", 2);
-	return (version);
-}
-
 int
 is_xml_file (char *filename)
 {
@@ -145,12 +130,6 @@ conn_update_last_user (char *cname, char *last_user)
 {
 	struct Connection *p_conn;
 	log_debug ("updating last_user = %s for conn. %s\n", last_user, cname);
-	/*
-	if (last_user[0] != 0)
-	  return (profile_modify_string (PROFILE_SAVE, globals.serverlist, name, "last_user", last_user));
-	else
-	  return 1;
-	*/
 	p_conn = cl_get_by_name (&conn_list, cname);
 	if (p_conn)
 		strcpy (p_conn->last_user, last_user);

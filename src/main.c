@@ -52,8 +52,6 @@ struct Protocol_List g_prot_list;
 struct ProfileList g_profile_list;
 GApplication *application;
 
-char app_name[256];
-
 void load_settings ();
 void save_settings ();
 void show_version ();
@@ -251,23 +249,10 @@ int timedOut ()
 int
 main (int argc, char *argv[])
 {
-	char argv_0[256];
-	int c, n, rc;
-	int digit_optind;
+	int rc;
 	int opt;
 	int i;
-	sprintf (argv_0, "%s", argv[0]);
-	sprintf (app_name, "%s", basename (argv_0) );
-	/* command line options */
-	if (argc > 1) {
-		if (!strcmp (argv[1], "--version") ) {
-			show_version ();
-			exit (0);
-		} else if (!strcmp (argv[1], "--help") ) {
-			help ();
-			exit (0);
-		}
-	}
+
 	memset (&globals, 0x00, sizeof (globals) );
 	while ( (opt = getopt (argc, argv, "vh") ) != -1) {
 		switch (opt) {
@@ -283,11 +268,7 @@ main (int argc, char *argv[])
 				exit (1);
 		}
 	}
-	for (i = optind; i < argc; i++) {
-		if (i > optind)
-			strcat (globals.start_connections, "#");
-		strcat (globals.start_connections, argv[i]);
-	}
+
 	/* get user's home directory */
 	const char *homeDir = getenv ("HOME");
 	if (!homeDir) {
@@ -297,14 +278,12 @@ main (int argc, char *argv[])
 	}
 	strcpy (globals.home_dir, homeDir);
 	sprintf (globals.app_dir, "%s/.%s", globals.home_dir, PACKAGE_NAME);
-	sprintf (globals.serverlist, "%s/serverlist", globals.app_dir); /* deprecated */
 	sprintf (globals.connections_xml, "%s/connections.xml", globals.app_dir);
 	sprintf (globals.log_file, "%s/lterm.log", globals.app_dir);
 	sprintf (globals.profiles_file, "%s/profiles.xml", globals.app_dir);
 	sprintf (globals.protocols_file, "%s/protocols.xml", globals.app_dir);
 	sprintf (globals.conf_file, "%s/%s.conf", globals.app_dir, PACKAGE_NAME);
 	globals.connected = CONNECTION_NONE;
-	globals.upgraded = 0;
 	strcpy (globals.img_dir, IMGDIR);
 	strcpy (globals.data_dir, PKGDATADIR);
 	log_reset ();
@@ -320,8 +299,8 @@ main (int argc, char *argv[])
 	mkdir (globals.app_dir, S_IRWXU | S_IRWXG | S_IRWXO);
 	log_write ("Loading protocols...\n");
 	pl_init (&g_prot_list);
-	n = load_protocols_from_file_xml (globals.protocols_file, &g_prot_list);
-	log_write ("Loaded protocols: %d\n", n);
+	rc = load_protocols_from_file_xml (globals.protocols_file, &g_prot_list);
+	log_write ("Loaded protocols: %d\n", rc);
 	/* check basic protocols have been loaded and create if not */
 	log_write ("Checking standard protocols ...\n");
 	check_standard_protocols (&g_prot_list);
@@ -348,17 +327,6 @@ main (int argc, char *argv[])
 	ifr_init ();
 	log_write ("Initializing SFTP\n");
 	ssh_init ();
-	/* command line connections */
-	char s_tmp[256];
-	if (list_count (globals.start_connections, '#') ) {
-		for (i = 1; i <= list_count (globals.start_connections, '#'); i++) {
-			list_get_nth (globals.start_connections, i, '#', s_tmp);
-			open_connection (s_tmp);
-		}
-	}
-	/* local shell */
-	if (prefs.startup_local_shell)
-		connection_new_terminal ();
 	/* log on window */
 	if (prefs.startup_show_connections)
 		connection_log_on ();
@@ -394,18 +362,7 @@ load_settings ()
 	if (rc == PROFILE_FILE_NOT_FOUND) {
 		strcpy (last_package_version, "100.100.100");
 	}
-	if (cmpver (last_package_version, VERSION) < 0)
-		globals.upgraded = 1;
-	else
-		globals.upgraded = 0;
-	log_debug ("Actual version is %s, last version was %s %d %s\n",
-	           VERSION, last_package_version, cmpver (last_package_version, VERSION), globals.upgraded ? "(upgraded)" : "");
-	/* if this is an upgrade delete old settings and reset modified ones with new default */
-	if (globals.upgraded) {
-		log_debug ("last-version=%s current-version=%s\n", last_package_version, VERSION);
-		profile_modify_int (PROFILE_DELETE, globals.conf_file, "terminal", "mouse_autohide", 0);
-		profile_modify_int (PROFILE_DELETE, globals.conf_file, "general", "mouse_autohide", 0);
-	}
+	log_debug ("Actual version is %s, last version was %s\n", VERSION, last_package_version);
 	/* load settings */
 	/* emulation_list is not saved on exit, actually */
 	//profile_load_string (globals.conf_file, "general", "emulation_list", prefs.emulation_list, "xterm:vt100:vt220:vt320:vt440");
@@ -550,15 +507,12 @@ void
 help ()
 {
 	char version[64];
-	/* printf ("\n%s\n", PACKAGE); */
 	get_version (version);
 	printf ("\n%s version %s\n", PACKAGE, version);
-	printf (/* "\n" */
-	        "Usage : %s [options] conn:[user[/password]]@connection-name\n"
-	        "Options:\n"
-	        "  -v            : show version\n"
-	        "  -h --help     : help\n",
-	        app_name
+	printf (
+	        "Usage :\n"
+	        "	-v	show version\n"
+	        "	-h	help\n"
 	);
 }
 

@@ -133,11 +133,8 @@ GActionEntry main_menu_items[] = {
 	{ "findnext", terminal_find_next },
 	{ "findprev", terminal_find_previous },
 	{ "select_all", edit_select_all },
-	{ "edit_current_profile", edit_current_profile },
 	{ "pref", show_preferences },
 
-	{ "go_back", view_go_back },
-	{ "go_forward", view_go_forward },
 	{ "zoom_in", zoom_in },
 	{ "zoom_out", zoom_out },
 	{ "zoom_100", zoom_100 },
@@ -150,10 +147,6 @@ GActionEntry main_menu_items[] = {
 	{ "send_cluster", terminal_cluster },
 
 	{ "about", Info },
-};
-
-static GtkToggleActionEntry toggle_entries[] = {
-	{ "Toolbar", NULL, N_ ("_Toolbar"), NULL, NULL, G_CALLBACK (view_toolbar) },
 };
 
 const gchar ui_main_desc[] =
@@ -236,12 +229,6 @@ const gchar ui_main_desc[] =
 		"      </section>"
 		"      <section>"
 		"        <item>"
-		"          <attribute name='label'>EditCurrentProfile</attribute>"
-		"          <attribute name='action'>lt.edit_current_profile</attribute>"
-		"        </item>"
-		"      </section>"
-		"      <section>"
-		"        <item>"
 		"          <attribute name='label'>Preferences</attribute>"
 		"          <attribute name='action'>lt.pref</attribute>"
 		"        </item>"
@@ -249,22 +236,6 @@ const gchar ui_main_desc[] =
         "    </submenu>"
         "    <submenu>"
 		"      <attribute name='label'>View</attribute>"
-		"      <section>"
-		"        <item>"
-		"          <attribute name='label'>Toolbar</attribute>"
-		"          <attribute name='action'>lt.toggle_toolbar</attribute>"
-		"        </item>"
-		"      </section>"
-		"      <section>"
-		"        <item>"
-		"          <attribute name='label'>Go back</attribute>"
-		"          <attribute name='action'>lt.go_back</attribute>"
-		"        </item>"
-		"        <item>"
-		"          <attribute name='label'>Go forward</attribute>"
-		"          <attribute name='action'>lt.go_forward</attribute>"
-		"        </item>"
-		"      </section>"
 		"      <section>"
 		"        <item>"
 		"          <attribute name='label'>Zoom in</attribute>"
@@ -977,7 +948,6 @@ connection_tab_add (struct ConnectionTab *connection_tab)
 	apply_preferences (connection_tab->vte);
 	apply_profile (connection_tab, 0);
 	gtk_widget_grab_focus (connection_tab->vte);
-	select_current_profile_menu_item (connection_tab);
 }
 
 /**
@@ -1375,49 +1345,6 @@ edit_select_all ()
 	if (!p_current_connection_tab)
 		return;
 	vte_terminal_select_all (VTE_TERMINAL (p_current_connection_tab->vte) );
-}
-
-void
-edit_current_profile ()
-{
-	struct Profile *p_profile;
-	if (!p_current_connection_tab)
-		return;
-	if (p_profile = profile_get_by_id (&g_profile_list, p_current_connection_tab->profile_id) )
-		profile_edit (p_profile);
-	apply_profile (p_current_connection_tab, p_current_connection_tab->profile_id);
-}
-void
-view_toolbar ()
-{
-#if 0
-	GtkWidget *toggle;
-	toggle = gtk_ui_manager_get_widget (ui_manager, N_ ("/MainMenu/ViewMenu/Toolbar") );
-	if (gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM (toggle) ) ) {
-		gtk_widget_show_all (main_toolbar);
-		prefs.toolbar = 1;
-	} else {
-		gtk_widget_hide (main_toolbar);
-		prefs.toolbar = 0;
-	}
-#endif
-}
-
-void view_go_back ()
-{
-	GtkNotebook *nb = GTK_NOTEBOOK (notebook);
-	if (gtk_notebook_get_current_page (nb) == 0)
-		gtk_notebook_set_current_page (nb, gtk_notebook_get_n_pages (nb) - 1);
-	else
-		gtk_notebook_prev_page (nb);
-}
-void view_go_forward ()
-{
-	GtkNotebook *nb = GTK_NOTEBOOK (notebook);
-	if (gtk_notebook_get_current_page (nb) == (gtk_notebook_get_n_pages (nb) - 1) )
-		gtk_notebook_set_current_page (nb, 0);
-	else
-		gtk_notebook_next_page (nb);
 }
 
 void zoom_in()
@@ -2439,27 +2366,11 @@ key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 }
 
 void
-select_current_profile_menu_item (struct ConnectionTab *p_ct)
-{
-#if 0
-	struct Profile *p = profile_get_by_id (&g_profile_list, p_ct->profile_id);
-	if (p) {
-		char tmp_s[256];
-		sprintf (tmp_s, "/MainMenu/TerminalMenu/ProfileMenu/profile-%d", p->id);
-		GtkAction *toggleAction = gtk_ui_manager_get_action (ui_manager, tmp_s);
-		if (toggleAction)
-			gtk_radio_action_set_current_value (GTK_RADIO_ACTION (toggleAction), p_ct->profile_id);
-	}
-#endif
-}
-
-void
 update_by_tab (struct ConnectionTab *pTab)
 {
 	update_screen_info ();
 	//connection_tab_set_status (pTab, TAB_STATUS_NORMAL);
 	refreshTabStatus (pTab);
-	select_current_profile_menu_item (pTab);
 	log_debug ("Completed\n");
 }
 
@@ -2707,10 +2618,6 @@ start_gtk (int argc, char **argv)
 	g_signal_connect (G_OBJECT (main_window), "configure-event", G_CALLBACK (configure_event_cb), NULL);
 	gtk_window_set_default_size (GTK_WINDOW (main_window), prefs.w, prefs.h); /* keep this before gtk_widget_show() */
 	gtk_widget_show (main_window);
-	if (globals.upgraded) {
-		profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "package_version", VERSION);
-		msgbox_info ("Congratulations, you just upgraded to version %s", VERSION);
-	}
 	/* init list of connections for the first time, needed by terminal popup menu */
 	log_write ("Loading connections...\n");
 	load_connections ();
