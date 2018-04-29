@@ -49,7 +49,7 @@ int switch_local = 0;     /* start with local shell */
 Globals globals;
 Prefs prefs;
 struct Protocol_List g_prot_list;
-struct ProfileList g_profile_list;
+struct Profile g_profile;
 GApplication *application;
 
 void load_settings ();
@@ -305,15 +305,10 @@ main (int argc, char *argv[])
 	log_write ("Checking standard protocols ...\n");
 	check_standard_protocols (&g_prot_list);
 	log_write ("Loading profiles...\n");
-	profile_list_init (&g_profile_list);
-	rc = load_profiles (&g_profile_list, globals.profiles_file);
-	if (rc != 0 || profile_count (&g_profile_list) == 0) {
-		if (profile_count (&g_profile_list) == 0)
-			log_write ("No profile loaded\n");
-		else
-			log_write ("Profiles file not found: %s\n", globals.profiles_file);
+	rc = load_profile (&g_profile, globals.profiles_file);
+	if (rc != 0) {
 		log_write ("Creating default profile...\n");
-		profile_create_default (&g_profile_list);
+		profile_create_default (&g_profile);
 	}
 	ssh_list_init (&globals.ssh_list);
 	log_write ("Initializing threads...\n");
@@ -339,14 +334,12 @@ main (int argc, char *argv[])
 	log_write ("Saving connections...\n");
 	save_connections_to_file_xml (globals.connections_xml);
 	log_write ("Saving protocols...\n");
-	//save_protocols_to_file (globals.conf_file, &g_prot_list);
 	save_protocols_to_file_xml (globals.protocols_file, &g_prot_list);
 	pl_release (&g_prot_list);
 	log_write ("Saving settings...\n");
 	save_settings ();
 	log_write ("Saving profiles...\n");
-	save_profiles (&g_profile_list, globals.profiles_file);
-	profile_list_release (&g_profile_list);
+	save_profile (&g_profile, globals.profiles_file);
 	g_object_unref (application);
 	log_write ("End\n");
 	return 0;

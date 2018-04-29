@@ -4,7 +4,7 @@
 
 #include "profile.h"
 
-void profile_edit (struct Profile *p_profile);
+void profile_edit (GtkWidget *demo_vte);
 void show_preferences ();
 
 #endif

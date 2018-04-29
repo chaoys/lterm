@@ -48,7 +48,6 @@ typedef struct ConnectionTab {
 	char md5Buffer[1024];
 	int cx, cy; /* cursor position */
 	int window_resized;
-	int profile_id;
 
 	GtkWidget *hbox_terminal; /* vte + scrollbar */
 	GtkWidget *vte;
@@ -208,7 +207,7 @@ struct ConnectionTab *get_current_connection_tab ();
 char *get_remote_directory ();
 int connection_tab_getcwd (struct ConnectionTab *p_ct, char *directory);
 
-void apply_profile (struct ConnectionTab *p_ct, int profile_id);
+void apply_profile (struct ConnectionTab *p_ct);
 void apply_profile_terminal (GtkWidget *terminal, struct Profile *p_profile);
 void update_all_profiles ();
 

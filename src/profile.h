@@ -24,8 +24,6 @@ int profile_delete_section (char *profile_file, char *section);
 /* graphic profile */
 
 struct Profile {
-	int id;
-	char name[256];
 	int font_use_system; /* Use system font for terminal */
 	char font[128];
 	char bg_color[64];
@@ -33,30 +31,10 @@ struct Profile {
 	double alpha;
 	int cursor_shape;
 	int cursor_blinking;
-	int bell_audible;
-	int bell_visible;
-
-	struct Profile* next;
 };
 
-struct ProfileList {
-	int id_default;
-
-	struct Profile *head;
-	struct Profile *tail;
-};
-
-void profile_list_init (struct ProfileList *p_pl);
-void profile_list_release (struct ProfileList *p_pl);
-struct Profile *profile_get_by_id (struct ProfileList *p_pl, int id);
-struct Profile *profile_get_by_position (struct ProfileList *p_pl, int pos);
-struct Profile *profile_get_by_name (struct ProfileList *p_pl, char *name);
-struct Profile *profile_get_default (struct ProfileList *p_pl);
-struct Profile *profile_list_append (struct ProfileList *p_pl, struct Profile *p);
-void profile_list_delete (struct ProfileList *p_pl, struct Profile *p);
-int profile_count (struct ProfileList *p_pl);
-int load_profiles (struct ProfileList *p_pl, char *filename);
-int save_profiles (struct ProfileList *p_pl, char *filename);
-void profile_create_default (struct ProfileList *p_pl);
+int load_profile (struct Profile *pf, char *filename);
+int save_profile (struct Profile *pf, char *filename);
+void profile_create_default (struct Profile *pf);
 
 #endif

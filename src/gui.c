@@ -69,7 +69,7 @@ extern Globals globals;
 extern Prefs prefs;
 extern struct Protocol_List g_prot_list;
 extern struct Connection_List conn_list;
-extern struct ProfileList g_profile_list;
+extern struct Profile g_profile;
 extern struct GroupTree g_groups;
 
 int ifr_index_first = 0;
@@ -942,7 +942,7 @@ connection_tab_add (struct ConnectionTab *connection_tab)
 	if (connection_tab->type == CONNECTION_LOCAL)
 		gtk_label_set_text (GTK_LABEL (connection_tab->label), "local shell");
 	apply_preferences (connection_tab->vte);
-	apply_profile (connection_tab, 0);
+	apply_profile (connection_tab);
 	gtk_widget_grab_focus (connection_tab->vte);
 }
 
@@ -2418,24 +2418,16 @@ apply_preferences ()
 		item = g_list_nth (connection_tab_list, i);
 		p_ct = (struct ConnectionTab *) item->data;
 		vte = p_ct->vte;
-		//gdk_color_parse (prefs.fg_color, &terminal_fore_color);
-		//gdk_color_parse (prefs.bg_color, &terminal_back_color);
-		//vte_terminal_set_colors (VTE_TERMINAL (vte), &terminal_fore_color, &terminal_back_color, NULL, 0);
 		vte_terminal_set_mouse_autohide (VTE_TERMINAL (vte), prefs.mouse_autohide);
 		vte_terminal_set_scrollback_lines (VTE_TERMINAL (vte), prefs.scrollback_lines);
 		vte_terminal_set_scroll_on_keystroke (VTE_TERMINAL (vte), prefs.scroll_on_keystroke);
 		vte_terminal_set_scroll_on_output (VTE_TERMINAL (vte), prefs.scroll_on_output);
 		if (prefs.character_encoding[0] != 0)
-			//vte_terminal_set_encoding (VTE_TERMINAL (vte), prefs.character_encoding);
 			terminal_set_encoding (p_ct, prefs.character_encoding);
 		else
 			strcpy (prefs.character_encoding, vte_terminal_get_encoding (VTE_TERMINAL (vte) ) );
 		//use only default words. I dont know where the exceptions come from.
 		vte_terminal_set_word_char_exceptions (VTE_TERMINAL (vte), "");
-		////////vte_terminal_set_size (VTE_TERMINAL (vte), prefs.columns, prefs.rows);
-		//gtk_window_resize (GTK_WINDOW (main_window), prefs.w, prefs.h);
-		//gtk_window_set_position (GTK_WINDOW (main_window), GTK_WIN_POS_CENTER);
-		//gtk_window_move (GTK_WINDOW (main_window), prefs.x, prefs.y);
 		gtk_window_set_resizable (GTK_WINDOW (main_window), TRUE);
 	}
 	gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook), prefs.tabs_position);
@@ -2448,19 +2440,11 @@ apply_profile_terminal (GtkWidget *terminal, struct Profile *p_profile)
 	GdkRGBA fg, bg;
 	gdk_rgba_parse (&fg, p_profile->fg_color);
 	gdk_rgba_parse (&bg, p_profile->bg_color);
-	//GdkRGBA fg={0, 255, 0, 1}, bg={0, 0, 0, 1};
-	//bg.alpha = p_profile->alpha;
-#if (VTE_CHECK_VERSION(0,38,3) == 1)
 	vte_terminal_set_color_foreground (VTE_TERMINAL (terminal), &fg);
 	vte_terminal_set_color_background (VTE_TERMINAL (terminal), &bg);
-#else
-	vte_terminal_set_colors_rgba (VTE_TERMINAL (terminal), &fg, &bg, NULL, 0);
-#endif
 	if (p_profile->font_use_system) {
-		//vte_terminal_set_font_from_string (VTE_TERMINAL (terminal), globals.system_font);
 		terminal_set_font_from_string (VTE_TERMINAL (terminal), globals.system_font);
 	} else if (p_profile->font[0] != 0) {
-		//vte_terminal_set_font_from_string (VTE_TERMINAL (terminal), p_profile->font);
 		terminal_set_font_from_string (VTE_TERMINAL (terminal), p_profile->font);
 	}
 	if (p_profile->cursor_shape >= 0 && p_profile->cursor_shape <= 2)
@@ -2468,26 +2452,12 @@ apply_profile_terminal (GtkWidget *terminal, struct Profile *p_profile)
 	else
 		p_profile->cursor_shape = vte_terminal_get_cursor_shape (VTE_TERMINAL (terminal) );
 	vte_terminal_set_cursor_blink_mode (VTE_TERMINAL (terminal), p_profile->cursor_blinking ? VTE_CURSOR_BLINK_ON : VTE_CURSOR_BLINK_OFF);
-	vte_terminal_set_audible_bell (VTE_TERMINAL (terminal), p_profile->bell_audible);
-#if (VTE_CHECK_VERSION(0,38,3) == 0)
-	vte_terminal_set_visible_bell (VTE_TERMINAL (terminal), p_profile->bell_visible);
-#endif
 }
 
 void
-apply_profile (struct ConnectionTab *p_ct, int profile_id)
+apply_profile (struct ConnectionTab *p_ct)
 {
-	struct Profile *p_profile;
-	if (profile_id > 0)
-		p_profile = profile_get_by_id (&g_profile_list, profile_id);
-	else
-		p_profile = profile_get_default (&g_profile_list);
-	if (p_profile == NULL) {
-		log_write ("[%s] ***default profile not found\n", __func__);
-		return;
-	}
-	apply_profile_terminal (p_ct->vte, p_profile);
-	p_ct->profile_id = p_profile->id;
+	apply_profile_terminal (p_ct->vte, &g_profile);
 }
 
 void
@@ -2499,7 +2469,7 @@ update_all_profiles ()
 	for (i = 0; i < g_list_length (connection_tab_list); i++) {
 		item = g_list_nth (connection_tab_list, i);
 		p_ct = (struct ConnectionTab *) item->data;
-		apply_profile (p_ct, p_ct->profile_id);
+		apply_profile (p_ct);
 	}
 }
 

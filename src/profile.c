@@ -294,150 +294,13 @@ profile_delete_section (char *profile_file, char *section)
 	return 0;
 }
 
-void
-profile_list_init (struct ProfileList *p_pl)
-{
-	p_pl->id_default = 0;
-	p_pl->head = NULL;
-	p_pl->tail = NULL;
-}
-
-void
-profile_list_release (struct ProfileList *p_pl)
-{
-	struct Profile *p_del, *p = p_pl->head;
-	while (p) {
-		p_del = p;
-		p = p->next;
-		free (p_del);
-	}
-	p_pl->head = NULL;
-	p_pl->tail = NULL;
-}
-
-struct Profile *
-profile_get_by_id (struct ProfileList *p_pl, int id)
-{
-	struct Profile *p;
-	p = p_pl->head;
-	while (p) {
-		if (p->id == id)
-			return (p);
-		p = p->next;
-	}
-	return (NULL);
-}
-
-struct Profile *
-profile_get_by_position (struct ProfileList *p_pl, int pos)
-{
-	struct Profile *p;
-	int i = 0;
-	p = p_pl->head;
-	while (p) {
-		if (i == pos)
-			return (p);
-		i ++;
-		p = p->next;
-	}
-	return (NULL);
-}
-
-struct Profile *
-profile_get_by_name (struct ProfileList *p_pl, char *name)
-{
-	struct Profile *p;
-	p = p_pl->head;
-	while (p) {
-		if (!strcmp (p->name, name) )
-			return (p);
-		p = p->next;
-	}
-	return (NULL);
-}
-
-struct Profile *
-profile_get_default (struct ProfileList *p_pl)
-{
-	return (profile_get_by_id (p_pl, p_pl->id_default) );
-}
-
 int
-profile_get_new_id (struct ProfileList *p_pl)
+load_profile (struct Profile *pf, char *filename)
 {
-	int id = 1;
-	while (profile_get_by_id (p_pl, id) != NULL)
-		id ++;
-	return (id);
-}
-
-struct Profile *
-profile_list_append (struct ProfileList *p_pl, struct Profile *p)
-{
-	struct Profile *p_new;
-	p_new = (struct Profile *) malloc (sizeof (struct Profile) );
-	memset (p_new, 0, sizeof (struct Profile) );
-	//plugin_init (&p_node->plugin);
-	memcpy (p_new, p, sizeof (struct Profile) );
-	if (p_new->id == 0)
-		p_new->id = profile_get_new_id (p_pl);
-	if (p_pl->head == NULL) {
-		p_pl->head = p_new;
-		p_pl->tail = p_new;
-		//strcpy (p_pl->_default, p_new->name);
-	} else {
-		p_pl->tail->next = p_new;
-		p_pl->tail = p_new;
-	}
-	log_debug ("added %d %s\n", p_new->id, p_new->name);
-	return (p_new);
-}
-
-void
-profile_list_delete (struct ProfileList *p_pl, struct Profile *p_del)
-{
-	struct Profile *p, *prec = NULL;
-	p = p_pl->head;
-	while (p) {
-		if (p == p_del) {
-			if (p_del == p_pl->head) {
-				p_pl->head = p_del->next;
-				if (p_pl->head == NULL)
-					p_pl->tail = NULL;
-			} else if (p_del == p_pl->tail)
-				prec->next = NULL;
-			else
-				prec->next = p_del->next;
-			free (p_del);
-			break;
-		}
-		prec = p;
-		p = p->next;
-	}
-}
-
-int
-profile_count (struct ProfileList *p_pl)
-{
-	int n = 0;
-	struct Profile *p;
-	p = p_pl->head;
-	while (p) {
-		n ++;
-		p = p->next;
-	}
-	return (n);
-}
-
-int
-load_profiles (struct ProfileList *p_pl, char *filename)
-{
-	int rc = 0;
 	char *xml;
 	char line[2048];
 	char tmp_s[32], *pc;
 	FILE *fp;
-	struct Profile profile;
 	/* put xml content into a string */
 	fp = fopen (filename, "r");
 	if (fp == NULL)
@@ -462,76 +325,50 @@ load_profiles (struct ProfileList *p_pl, char *filename)
 		log_write ("[%s] can't find root node: lterm-profiles\n", __func__);
 		return 2;
 	}
+	memset (pf, 0, sizeof (struct Profile) );
 	node = xmldoc.cur_root->children;
-	while (node) {
-		if (!strcmp (node->name, "default") ) {
-			strcpy (tmp_s, NVL (xml_node_get_value (node), "0") );
-			p_pl->id_default = atoi (tmp_s);
-		} else if (!strcmp (node->name, "profile") ) {
-			memset (&profile, 0, sizeof (struct Profile) );
-			strcpy (tmp_s, xml_node_get_attribute (node, "id") );
-			profile.id = atoi (tmp_s);
-			strcpy (profile.name, xml_node_get_attribute (node, "name") );
-			if (child = xml_node_get_child (node, "fg-color") )
-				strcpy (profile.fg_color, NVL (xml_node_get_value (child), "") );
-			if (node_2 = xml_node_get_child (node, "fonts") ) {
-				if (child = xml_node_get_child (node_2, "use-system") ) {
-					strcpy (tmp_s, NVL (xml_node_get_value (child), "") );
-					if (tmp_s[0])
-						profile.font_use_system = atoi (tmp_s);
-				}
-				if (child = xml_node_get_child (node_2, "font") )
-					strcpy (profile.font, NVL (xml_node_get_value (child), "") );
+	if (!strcmp (node->name, "profile") ) {
+		if (child = xml_node_get_child (node, "fg-color") )
+			strcpy (pf->fg_color, NVL (xml_node_get_value (child), "") );
+		if (node_2 = xml_node_get_child (node, "fonts") ) {
+			if (child = xml_node_get_child (node_2, "use-system") ) {
+				strcpy (tmp_s, NVL (xml_node_get_value (child), "") );
+				if (tmp_s[0])
+					pf->font_use_system = atoi (tmp_s);
 			}
-			if (node_2 = xml_node_get_child (node, "background") ) {
-				if (child = xml_node_get_child (node_2, "color") )
-					strcpy (profile.bg_color, NVL (xml_node_get_value (child), "") );
-				if (child = xml_node_get_child (node_2, "alpha") ) {
-					strcpy (tmp_s, NVL (xml_node_get_value (child), "") );
-					//if (pc = strchr (tmp_s, ',')) *pc = '.';
-					if (tmp_s[0])
-						profile.alpha = atof (tmp_s);
-				}
-			}
-			if (node_2 = xml_node_get_child (node, "cursor") ) {
-				if (child = xml_node_get_child (node_2, "shape") ) {
-					strcpy (tmp_s, NVL (xml_node_get_value (child), "0") );
-					if (tmp_s[0])
-						profile.cursor_shape = atoi (tmp_s);
-				}
-				if (child = xml_node_get_child (node_2, "blinking") ) {
-					strcpy (tmp_s, NVL (xml_node_get_value (child), "1") );
-					if (tmp_s[0])
-						profile.cursor_blinking = atoi (tmp_s);
-				}
-			}
-			if (node_2 = xml_node_get_child (node, "bell") ) {
-				if (child = xml_node_get_child (node_2, "audible") ) {
-					strcpy (tmp_s, NVL (xml_node_get_value (child), "1") );
-					if (tmp_s[0])
-						profile.bell_audible = atoi (tmp_s);
-				}
-				if (child = xml_node_get_child (node_2, "visible") ) {
-					strcpy (tmp_s, NVL (xml_node_get_value (child), "1") );
-					if (tmp_s[0])
-						profile.bell_visible = atoi (tmp_s);
-				}
-			}
-			profile_list_append (p_pl, &profile);
+			if (child = xml_node_get_child (node_2, "font") )
+				strcpy (pf->font, NVL (xml_node_get_value (child), "") );
 		}
-		node = node->next;
+		if (node_2 = xml_node_get_child (node, "background") ) {
+			if (child = xml_node_get_child (node_2, "color") )
+				strcpy (pf->bg_color, NVL (xml_node_get_value (child), "") );
+			if (child = xml_node_get_child (node_2, "alpha") ) {
+				strcpy (tmp_s, NVL (xml_node_get_value (child), "") );
+				if (tmp_s[0])
+					pf->alpha = atof (tmp_s);
+			}
+		}
+		if (node_2 = xml_node_get_child (node, "cursor") ) {
+			if (child = xml_node_get_child (node_2, "shape") ) {
+				strcpy (tmp_s, NVL (xml_node_get_value (child), "0") );
+				if (tmp_s[0])
+					pf->cursor_shape = atoi (tmp_s);
+			}
+			if (child = xml_node_get_child (node_2, "blinking") ) {
+				strcpy (tmp_s, NVL (xml_node_get_value (child), "1") );
+				if (tmp_s[0])
+					pf->cursor_blinking = atoi (tmp_s);
+			}
+		}
 	}
-	if (p_pl->id_default == 0 && p_pl->head)
-		p_pl->id_default = p_pl->head->id;
 	xml_free (&xmldoc);
 	free (xml);
-	return (rc);
+	return 0;
 }
 
 int
-save_profiles (struct ProfileList *p_pl, char *filename)
+save_profile (struct Profile *pf, char *filename)
 {
-	struct Profile *p;
 	FILE *fp;
 	fp = fopen (filename, "w");
 	if (fp == NULL)
@@ -540,45 +377,33 @@ save_profiles (struct ProfileList *p_pl, char *filename)
 	         "<?xml version = '1.0'?>\n"
 	         "<!DOCTYPE lterm-profiles>\n"
 	         "<lterm-profiles>\n");
-	fprintf (fp, "  <default>%d</default>\n", p_pl->id_default);
-	p = p_pl->head;
-	while (p) {
-		fprintf (fp, "  <profile id='%d' name='%s'>\n"
-		         "    <fonts>\n"
-		         "      <use-system>%d</use-system>\n"
-		         "      <font>%s</font>\n"
-		         "    </fonts>\n"
-		         "    <fg-color>%s</fg-color>\n"
-		         "    <background>\n"
-		         "      <color>%s</color>\n"
-		         "      <alpha>%.2f</alpha>\n"
-		         "    </background>\n"
-		         "    <cursor>\n"
-		         "      <shape>%d</shape>\n"
-		         "      <blinking>%d</blinking>\n"
-		         "    </cursor>\n"
-		         "    <bell>\n"
-		         "      <audible>%d</audible>\n"
-		         "      <visible>%d</visible>\n"
-		         "    </bell>\n"
-		         "  </profile>\n",
-		         p->id, p->name, p->font_use_system, p->font, p->fg_color,
-		         p->bg_color, p->alpha,
-		         p->cursor_shape, p->cursor_blinking,
-		         p->bell_audible, p->bell_visible);
-		p = p->next;
-	}
+	fprintf (fp, "  <profile>\n"
+			 "    <fonts>\n"
+			 "      <use-system>%d</use-system>\n"
+			 "      <font>%s</font>\n"
+			 "    </fonts>\n"
+			 "    <fg-color>%s</fg-color>\n"
+			 "    <background>\n"
+			 "      <color>%s</color>\n"
+			 "      <alpha>%.2f</alpha>\n"
+			 "    </background>\n"
+			 "    <cursor>\n"
+			 "      <shape>%d</shape>\n"
+			 "      <blinking>%d</blinking>\n"
+			 "    </cursor>\n"
+			 "  </profile>\n",
+			 pf->font_use_system, pf->font, pf->fg_color,
+			 pf->bg_color, pf->alpha,
+			 pf->cursor_shape, pf->cursor_blinking);
 	fprintf (fp, "</lterm-profiles>\n");
 	fclose (fp);
 	return (0);
 }
 
 void
-profile_create_default (struct ProfileList *p_pl)
+profile_create_default (struct Profile *pf)
 {
 	struct Profile default_profile = {
-		1,
-		"Default",
 		1, /* Use system font for terminal */
 		"", /* font */
 		"black", /* bg */
@@ -586,10 +411,6 @@ profile_create_default (struct ProfileList *p_pl)
 		1.0, /* transparent */
 		0, /* cursor_shape (block) */
 		1, /* cursor_blinking */
-		1,
-		1,
-		NULL /* next */
 	};
-	profile_list_append (p_pl, &default_profile);
-	p_pl->id_default = default_profile.id;
+	memcpy(pf, &default_profile, sizeof(struct Profile));
 }
