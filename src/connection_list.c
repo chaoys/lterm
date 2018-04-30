@@ -316,16 +316,6 @@ connection_fill_from_string (struct Connection *p_conn, char *connection_string)
 		connection_copy (p_conn, p_conn_saved);
 		strcpy (p_conn->user, user);
 		strcpy (p_conn->password, password);
-		/* ignore protocol for now, can be in conflict with port */
-		/*
-		if (protocol[0])
-		  {
-		    if (get_protocol (&g_prot_list, protocol))
-		      strcpy (p_conn->protocol, protocol);
-		    else
-		      return 1;
-		  }
-		*/
 		log_debug ("%s/%s@%s[%s]\n", p_conn->user, p_conn->password, p_conn->name, p_conn->protocol);
 		return 0;
 	} else

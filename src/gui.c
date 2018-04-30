@@ -66,7 +66,6 @@
 
 extern Globals globals;
 extern Prefs prefs;
-extern struct Protocol_List g_prot_list;
 extern struct Connection_List conn_list;
 extern struct Profile g_profile;
 extern struct GroupTree g_groups;
@@ -792,7 +791,7 @@ connection_tab_close (struct ConnectionTab *p_ct)
 	GtkWidget *child;
 	char prompt[512];
 	//log_debug ("ptr = %d\n", (unsigned int) p_ct);
-	if (/*p_ct->connected*/tabIsConnected (p_ct) ) {
+	if (tabIsConnected (p_ct) ) {
 		log_debug ("%s seems connected\n", p_ct->connection.name);
 		if (p_ct->type == CONNECTION_REMOTE)
 			sprintf (prompt, _ ("Close connection to %s?"), p_ct->connection.name);
@@ -809,12 +808,8 @@ connection_tab_close (struct ConnectionTab *p_ct)
 		// Regroup this tab to adjust the view
 		if (p_ct->notebook != notebook)
 			terminal_attach_to_main (p_ct);
-		if (p_ct->type == CONNECTION_REMOTE && /*p_ct->connected*/tabIsConnected (p_ct) ) {
-			/*int fd = vte_pty_get_fd (vte_terminal_get_pty (VTE_TERMINAL (p_ct->vte)));
-			log_debug ("fd = %d\n", fd);
-			close (vte_pty_get_fd (vte_terminal_get_pty (VTE_TERMINAL (p_ct->vte))));*/
-			//vte_pty_close (vte_terminal_get_pty (VTE_TERMINAL (p_ct->vte))); // Dangerous!
-			lt_ssh_disconnect (&p_ct->ssh_info);
+		if (p_ct->type == CONNECTION_REMOTE && tabIsConnected (p_ct) ) {
+				lt_ssh_disconnect (&p_ct->ssh_info);
 		}
 		page = gtk_notebook_page_num (GTK_NOTEBOOK (p_ct->notebook), p_ct->hbox_terminal);
 		log_write ("page = %d\n", page);
@@ -843,7 +838,6 @@ connection_tab_new ()
 {
 	struct ConnectionTab *connection_tab;
 	connection_tab = g_new0 (struct ConnectionTab, 1);
-	//memset (connection_tab, 0, sizeof (struct ConnectionTab));
 	connection_tab_list = g_list_append (connection_tab_list, connection_tab);
 	connection_tab->vte = vte_terminal_new ();
 	g_signal_connect (connection_tab->vte, "child-exited", G_CALLBACK (child_exited_cb), connection_tab);
@@ -874,14 +868,8 @@ connection_tab_add (struct ConnectionTab *connection_tab)
 	int font_size;
 	gint new_pagenum;
 	connection_tab->hbox_terminal = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0); /* for vte and scrolbar */
-#if (VTE_CHECK_VERSION(0,38,3) == 1)
 	connection_tab->scrollbar = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL,
 	                            gtk_scrollable_get_vadjustment (GTK_SCROLLABLE (connection_tab->vte) ) );
-#else
-	connection_tab->scrollbar = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL,
-	                            vte_terminal_get_adjustment (VTE_TERMINAL (connection_tab->vte) )
-	                            /*gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(connection_tab->vte))*/);
-#endif
 	gtk_box_pack_start (GTK_BOX (connection_tab->hbox_terminal), connection_tab->vte, TRUE, TRUE, 0);
 	gtk_box_pack_end (GTK_BOX (connection_tab->hbox_terminal), connection_tab->scrollbar, FALSE, FALSE, 0);
 	gtk_widget_show_all (connection_tab->hbox_terminal);
@@ -891,11 +879,7 @@ connection_tab_add (struct ConnectionTab *connection_tab)
 	GtkWidget *image_type;
 	/* create label with icon, text and close button */
 	if (connection_tab->type == CONNECTION_REMOTE)
-#if (GTK_CHECK_VERSION(3,6,5) == 1)
 		image_type = gtk_image_new_from_icon_name ("network-workgroup", GTK_ICON_SIZE_MENU);
-#else
-		image_type = gtk_image_new_from_stock (GTK_STOCK_NETWORK, GTK_ICON_SIZE_MENU); // Mac OS X
-#endif
 	else
 		image_type = gtk_image_new_from_icon_name (MY_STOCK_TERMINAL, GTK_ICON_SIZE_MENU);
 	connection_tab->label = gtk_label_new (connection_tab->connection.name);
@@ -903,17 +887,8 @@ connection_tab_add (struct ConnectionTab *connection_tab)
 	gtk_button_set_relief (GTK_BUTTON (close_button), GTK_RELIEF_NONE);
 	gtk_container_set_border_width (GTK_CONTAINER (close_button), 0);
 	GtkWidget *image = gtk_image_new_from_icon_name ("window-close", GTK_ICON_SIZE_MENU);
-	/*
-	gtk_icon_size_lookup_for_settings (gtk_widget_get_settings (close_button), GTK_ICON_SIZE_SMALL_TOOLBAR, &w, &h);
-	gtk_widget_set_size_request (close_button, w+2, h+2);
-	*/
 	gtk_container_add (GTK_CONTAINER (close_button), image);
 	g_signal_connect (close_button, "clicked", G_CALLBACK (close_button_clicked_cb), connection_tab);
-	/*
-	  gtk_box_pack_start (GTK_BOX (tab_hbox), image_type, FALSE, FALSE, 0);
-	  gtk_box_pack_start (GTK_BOX (tab_hbox), connection_tab->label, FALSE, FALSE, 0);
-	  gtk_box_pack_start (GTK_BOX (tab_hbox), close_button, FALSE, FALSE, 0);
-	*/
 	gtk_box_pack_end (GTK_BOX (tab_label), close_button, FALSE, FALSE, 0);
 	gtk_box_pack_end (GTK_BOX (tab_label), connection_tab->label, FALSE, FALSE, 0);
 	gtk_box_pack_end (GTK_BOX (tab_label), image_type, FALSE, FALSE, 0);
@@ -1970,16 +1945,10 @@ size_allocate_cb (GtkWidget *widget, GtkAllocation *allocation, gpointer user_da
 /**
  * child_exited_cb() - This signal is emitted when the terminal detects that a child started using vte_terminal_fork_command() has exited
  */
-#if (VTE_CHECK_VERSION(0,38,2) == 1)
 void
 child_exited_cb (VteTerminal *vteterminal,
                  gint         status,
                  gpointer     user_data)
-#else
-void
-child_exited_cb (VteTerminal *vteterminal,
-                 gpointer     user_data)
-#endif
 {
 	struct ConnectionTab *p_ct;
 	int code;
@@ -1987,11 +1956,6 @@ child_exited_cb (VteTerminal *vteterminal,
 	log_debug ("ptr = %ld\n", (unsigned int) p_ct);
 	log_write ("%s\n", p_ct->connection.name);
 	//log_write ("[%s] : %s status=%d\n", __func__, p_ct->connection.name, status);
-	/*
-	  p_ct->connected = 0;
-	  p_ct->logged = 0;
-	  p_ct->auth_state = AUTH_STATE_NOT_LOGGED;
-	*/
 	tabInitConnection (p_ct);
 	/* in case of remote connection save it and keep tab, else remove tab */
 	if (p_ct->type == CONNECTION_REMOTE) {

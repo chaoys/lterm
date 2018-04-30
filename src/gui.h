@@ -126,15 +126,10 @@ void char_size_changed_cb (VteTerminal *terminal, guint width, guint height, gpo
 void increase_font_size_cb (GtkWidget *widget, gpointer user_data);
 void decrease_font_size_cb (GtkWidget *widget, gpointer user_data);
 void adjust_font_size (GtkWidget *widget, /*gpointer data,*/ gint delta);
-//gboolean commit_cb (VteTerminal *vteterminal, gchar *text, guint size, gpointer userdata);
 void status_line_changed_cb (VteTerminal *vteterminal, gpointer user_data);
 void eof_cb (VteTerminal *vteterminal, gpointer user_data);
 
-#if (VTE_CHECK_VERSION(0,38,2) == 1)
 void child_exited_cb (VteTerminal *vteterminal, gint status, gpointer user_data);
-#else
-void child_exited_cb (VteTerminal *vteterminal, gpointer user_data);
-#endif
 
 void size_allocate_cb (GtkWidget *widget, GtkAllocation *allocation, gpointer user_data);
 gint delete_event_cb (GtkWidget *window, GdkEventAny *e, gpointer data);

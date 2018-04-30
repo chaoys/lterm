@@ -73,16 +73,9 @@ terminal_new (struct ConnectionTab *p_connection_tab, char *directory)
 	log_debug ("Shell: %s\n", av[0]);
 	//spawn_flags = G_SPAWN_CHILD_INHERITS_STDIN|G_SPAWN_SEARCH_PATH|G_SPAWN_FILE_AND_ARGV_ZERO;
 	spawn_flags = G_SPAWN_CHILD_INHERITS_STDIN | G_SPAWN_SEARCH_PATH;
-#if (VTE_CHECK_VERSION(0,38,3) == 1)
-	//GCancellable *cancellable = g_cancellable_new ();
 	success = vte_terminal_spawn_sync (VTE_TERMINAL (p_connection_tab->vte), VTE_PTY_DEFAULT, NULL, av, NULL,
 	                                   spawn_flags,
 	                                   NULL, NULL, &p_connection_tab->pid, NULL, &error);
-#else
-	success = vte_terminal_fork_command_full (VTE_TERMINAL (p_connection_tab->vte), VTE_PTY_DEFAULT, NULL, av, NULL,
-	                spawn_flags,
-	                NULL, NULL, &p_connection_tab->pid, &error);
-#endif
 	if (success == FALSE)
 		strcpy (error_msg, error->message);
 	return (success);
@@ -257,15 +250,9 @@ log_on (struct ConnectionTab *p_conn_tab)
 	GError *error = NULL;
 	GSpawnFlags spawn_flags;
 	spawn_flags = G_SPAWN_SEARCH_PATH;
-#if (VTE_CHECK_VERSION(0,38,3) == 1)
-	//GCancellable *cancellable = g_cancellable_new ();
 	success = vte_terminal_spawn_sync (VTE_TERMINAL (p_conn_tab->vte), VTE_PTY_DEFAULT, NULL, p_params, NULL,
 	                                   spawn_flags,
 	                                   NULL, NULL, &p_conn_tab->pid, NULL, &error);
-#else
-	success = vte_terminal_fork_command_full (VTE_TERMINAL (p_conn_tab->vte), VTE_PTY_DEFAULT, NULL, p_params, NULL,
-	                spawn_flags, NULL, NULL, &p_conn_tab->pid, &error);
-#endif
 	if (success == FALSE)
 		strcpy (error_msg, error->message);
 	log_debug ("Child process id : %d\n", p_conn_tab->pid);
@@ -402,7 +389,6 @@ check_log_in_state (struct ConnectionTab *p_ct, char *line)
 	if (/*p_ct->logged*/tabGetFlag (p_ct, TAB_LOGGED) )
 		return 1;
 	log_debug ("state = %s line = '%s'\n", auth_state_desc[p_ct->auth_state], line);
-	//p_prot = get_protocol (&g_prot_list, p_ct->connection.protocol);
 	vteterminal = VTE_TERMINAL (p_ct->vte);
 	feed_child = 0;
 	/* With authentication by key, password not needed */
@@ -525,7 +511,6 @@ terminal_write_child (const char *text)
 {
 	if (p_current_connection_tab)
 		terminal_write_child_ex (p_current_connection_tab, text);
-	//vte_terminal_feed_child (VTE_TERMINAL(p_current_connection_tab->vte), text, -1);
 }
 
 void
@@ -539,11 +524,7 @@ terminal_set_search_expr (char *expr)
 		log_write ("failed to compile regex: %s\n", expr);
 		return;
 	}
-#if (VTE_CHECK_VERSION(0,38,3) == 1)
 	vte_terminal_search_set_gregex (VTE_TERMINAL (p_current_connection_tab->vte), regex, 0);
-#else
-	vte_terminal_search_set_gregex (VTE_TERMINAL (p_current_connection_tab->vte), regex);
-#endif
 }
 
 void
@@ -565,14 +546,8 @@ terminal_find_previous ()
 int
 terminal_set_encoding (SConnectionTab *pTab, const char *codeset)
 {
-#if (VTE_CHECK_VERSION(0,38,3) == 1)
-	// Since 0.38.3
 	GError *error = NULL;
 	vte_terminal_set_encoding (VTE_TERMINAL (pTab->vte), codeset, &error);
-#else
-	// Until 0.38.2
-	vte_terminal_set_encoding (VTE_TERMINAL (pTab->vte), codeset);
-#endif
 	return 0;
 }
 
