@@ -59,9 +59,6 @@ struct _prefs {
 	int startup_show_connections;
 	int maximize;
 	int x, y, w, h;               /* Window position and dimension */
-	int toolbar;                  /* server toolbar on/off */
-	int statusbar;                /* statusbar on/off */
-	int fullscreen;               /* fullscreen on/off */
 	int rows;
 	int columns;
 	char extra_word_chars[256];

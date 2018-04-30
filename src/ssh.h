@@ -16,7 +16,6 @@
  */
 struct SSH_Node {
 	ssh_session session;
-	//ssh_channel channel;
 	int auth_methods;
 	char host[32];
 	char user[32];

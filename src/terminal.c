@@ -72,7 +72,7 @@ int
 log_on (struct ConnectionTab *p_conn_tab)
 {
 	char expanded_args[1024], temp[64];
-	char /*params[64][512],*/ **p_params;
+	char **p_params;
 	int i, ret;
 	int rc = 0, login_rc = 0;
 	struct Protocol *p_prot = &g_ssh_prot;

@@ -202,15 +202,6 @@ ssh_node_connect (struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth)
 		ssh_free (node.session);
 		return (NULL);
 	}
-	// Verify the server's identity
-	/*
-	if (verify_knownhost (my_ssh_session) < 0)
-	  {
-	    ssh_disconnect (my_ssh_session);
-	    ssh_free (my_ssh_session);
-	    exit(-1);
-	  }
-	*/
 l_auth:
 	/* get authentication methods */
 	if (p_auth->mode == CONN_AUTH_MODE_KEY) {
@@ -390,10 +381,8 @@ lt_ssh_connect (struct SSH_Info *p_ssh, struct SSH_List *p_ssh_list, struct SSH_
 {
 	struct SSH_Node *p_node;
 	int rc = 0;
-	////////////////////////////////
 	lockSSH (__func__, TRUE);
 	if ( (p_node = ssh_node_connect (p_ssh_list, p_auth) ) == NULL) {
-		//sprintf (p_ssh->error_s, "%s", ssh_get_error (p_ssh->ssh_node->session));
 		sprintf (p_ssh->error_s, "%s", p_auth->error_s);
 		rc = p_auth->error_code;
 	} else {
@@ -401,7 +390,6 @@ lt_ssh_connect (struct SSH_Info *p_ssh, struct SSH_List *p_ssh_list, struct SSH_
 		lt_ssh_getenv (p_ssh, "HOME", p_ssh->home);
 	}
 	lockSSH (__func__, FALSE);
-	////////////////////////////////
 	return (rc);
 }
 
@@ -411,13 +399,11 @@ lt_ssh_disconnect (struct SSH_Info *p_ssh)
 	log_debug ("\n");
 	if (p_ssh->ssh_node == NULL)
 		return;
-	////////////////////////////////
 	lockSSH (__func__, TRUE);
 	log_debug ("%s\n", p_ssh->ssh_node->host);
 	ssh_node_unref (p_ssh->ssh_node);
 	p_ssh->ssh_node = NULL;
 	lockSSH (__func__, FALSE);
-	////////////////////////////////
 }
 
 int

@@ -428,13 +428,10 @@ segv_handler (int signum)
 void
 tabInitConnection (SConnectionTab *pConn)
 {
-	//pConn->connected = 0; // DEPRECATED: use connectionStatus
-	//pConn->logged = 0; // DEPRECATED: use flags
 	tabSetConnectionStatus (pConn, TAB_CONN_STATUS_DISCONNECTED);
 	pConn->auth_state = AUTH_STATE_NOT_LOGGED;
 	pConn->auth_attempt = 0;
 	pConn->changes_count = 0;
-//  pConn->status = TAB_STATUS_NORMAL;
 	pConn->flags = 0;
 }
 
@@ -591,11 +588,11 @@ expand_args (struct Connection *p_conn, char *args, char *prefix, char *dest)
 	if (prefix)
 		strcat (dest, " ");
 	i_dest = strlen (dest);
-	while (go_on > 0 && i < strlen (/*p_prot->*/args) ) {
-		c = /*p_prot->*/args[i];
+	while (go_on > 0 && i < strlen (args) ) {
+		c = args[i];
 		if (c == '%') {
 			i ++;
-			c = /*p_prot->*/args[i];
+			c = args[i];
 			switch (c) {
 				/* host */
 				case 'h':
@@ -632,10 +629,7 @@ expand_args (struct Connection *p_conn, char *args, char *prefix, char *dest)
 						sprintf (label, ("Enter password for <b>%s@%s</b>:"), p_conn->user, p_conn->name);
 						go_on = query_value (title, label, "", expanded, QUERY_PASSWORD);
 						strcpy (p_conn->password, expanded);
-						//p_conn->auth_flags |= AUTH_STEP_PASSWORD;
 					}
-					//else
-					//  strcpy (expanded, p_conn->password);
 					break;
 				case '%':
 					strcpy (expanded, "%");

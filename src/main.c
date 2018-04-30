@@ -349,9 +349,6 @@ load_settings ()
 	prefs.w = profile_load_int (globals.conf_file, "GUI", "w", 640);
 	prefs.h = profile_load_int (globals.conf_file, "GUI", "h", 480);
 	prefs.maximize = profile_load_int (globals.conf_file, "GUI", "maximize", 0);
-	prefs.toolbar = profile_load_int (globals.conf_file, "GUI", "toolbar", 1);
-	prefs.statusbar = profile_load_int (globals.conf_file, "GUI", "statusbar", 1);
-	prefs.fullscreen = profile_load_int (globals.conf_file, "GUI", "fullscreen", 0);
 	prefs.tab_alerts = profile_load_int (globals.conf_file, "GUI", "tab_alerts", 1);
 	profile_load_string (globals.conf_file, "GUI", "tab_status_changed_color", prefs.tab_status_changed_color, "blue");
 	profile_load_string (globals.conf_file, "GUI", "tab_status_disconnected_color", prefs.tab_status_disconnected_color, "#707070");
