@@ -3,6 +3,7 @@ DATADIR = $(PREFIX)/share/
 APPDIR = $(DATADIR)/applications/
 PACKAGE = lterm
 VERSION = 1.6.0
+DESKTOP = $(PACKAGE).desktop
 MYDATADIR = $(DATADIR)/$(PACKAGE)/data/
 MYIMGDIR = $(DATADIR)/$(PACKAGE)/img/
 
@@ -22,31 +23,37 @@ all: $(PACKAGE)
 $(PACKAGE): $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-lterm.desktop: data/lterm.desktop.in
-	sed -e 's!IMGDIR!$(DATADIR)/$(PACKAGE)/img!' < $< > $@
+# use FORCE in case PREFIX changed
+$(DESKTOP): data/$(DESKTOP).in FORCE
+	sed -e 's!IMGDIR!$(MYIMGDIR)!' < $< > $@
 
-install: lterm lterm.desktop
+install: $(PACKAGE) $(DESKTOP)
 	install $(PACKAGE) $(BINDIR)/
 	install -d $(MYDATADIR)
 	install -d $(MYIMGDIR)
 	install -d $(APPDIR)
 	install -t $(MYDATADIR) data/*
 	install -t $(MYIMGDIR) img/*
-	install -t $(APPDIR) lterm.desktop
+	install -t $(APPDIR) $(DESKTOP)
 
 uninstall:
 	-rm -f $(BINDIR)/$(PACKAGE)
 	-rm -f $(MYDATADIR)/*
 	-rm -f $(MYIMGDIR)/*
-	-rm -f $(APPDIR)/lterm.desktop
+	-rm -f $(APPDIR)/$(DESKTOP)
 	-rmdir $(MYDATADIR)
 	-rmdir $(MYIMGDIR)
 	-rmdir $(DATADIR)/$(PACKAGE)
 
 clean:
-	-rm -f $(OBJS) lterm
+	-rm -f $(OBJS) $(PACKAGE)
 	-rm -f $(DEPS)
-	-rm -f lterm.desktop
+	-rm -f $(DESKTOP)
 
-.PHONY: all install uninstall clean
+distclean: clean
+	-rm -f Makefile
+
+FORCE:
+
+.PHONY: all install uninstall clean distclean
 
