@@ -30,7 +30,6 @@
 #include "main.h"
 #include "connection.h"
 #include "preferences.h"
-#include "config.h"
 #include "gui.h"
 #include "utils.h"
 #include "terminal.h"

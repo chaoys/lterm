@@ -12,8 +12,6 @@
 
 #define log_debug(format, ...)
 
-#include "config.h"
-
 #define KEY "You may say I'm a dreamer"
 
 #define HOME_PAGE "lterm.sourceforge.net"

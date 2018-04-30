@@ -37,7 +37,6 @@
 #include "connection.h"
 #include "preferences.h"
 #include "profile.h"
-#include "config.h"
 #include "gui.h"
 #include "utils.h"
 #include "terminal.h"
@@ -1599,7 +1598,7 @@ Info ()
 	/* package, platform and copyright */
 	GtkWidget *label_package = GTK_WIDGET (gtk_builder_get_object (builder, "label_package") );
 	GtkWidget *label_platform = GTK_WIDGET (gtk_builder_get_object (builder, "label_platform") );
-	gtk_label_set_text (GTK_LABEL (label_package), PACKAGE_STRING);
+	gtk_label_set_text (GTK_LABEL (label_package), (PACKAGE VERSION));
 	get_system (sys);
 	gtk_label_set_text (GTK_LABEL (label_platform), g_strconcat ("For ", sys, NULL) );
 	/* credits */

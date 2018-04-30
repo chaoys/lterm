@@ -41,7 +41,6 @@
 #include "connection.h"
 #include "ssh.h"
 #include "utils.h"
-#include "config.h"
 
 int switch_local = 0;     /* start with local shell */
 
@@ -262,15 +261,15 @@ main (int argc, char *argv[])
 			homeDir = pwd->pw_dir;
 	}
 	strcpy (globals.home_dir, homeDir);
-	sprintf (globals.app_dir, "%s/.%s", globals.home_dir, PACKAGE_NAME);
+	sprintf (globals.app_dir, "%s/.%s", globals.home_dir, PACKAGE);
 	sprintf (globals.connections_xml, "%s/connections.xml", globals.app_dir);
 	sprintf (globals.log_file, "%s/lterm.log", globals.app_dir);
 	sprintf (globals.profiles_file, "%s/profiles.xml", globals.app_dir);
 	sprintf (globals.protocols_file, "%s/protocols.xml", globals.app_dir);
-	sprintf (globals.conf_file, "%s/%s.conf", globals.app_dir, PACKAGE_NAME);
+	sprintf (globals.conf_file, "%s/%s.conf", globals.app_dir, PACKAGE);
 	globals.connected = 0;
 	strcpy (globals.img_dir, IMGDIR);
-	strcpy (globals.data_dir, PKGDATADIR);
+	strcpy (globals.data_dir, DATADIR);
 	log_reset ();
 	log_write ("Starting %s %s\n", PACKAGE, VERSION);
 	log_write ("GTK version: %d.%d.%d\n", GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
