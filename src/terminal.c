@@ -63,6 +63,19 @@ terminal_connect_ssh (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_
 	return (login_rc);
 }
 
+void spawn_cb(VteTerminal *terminal, GPid pid, GError *error, gpointer user_data)
+{
+	char error_msg[1024];
+	struct ConnectionTab *p_conn_tab = (struct ConnectionTab *)user_data;
+	if (pid == -1) {
+		strcpy(error_msg, error->message);
+		tabSetConnectionStatus (p_conn_tab, TAB_CONN_STATUS_DISCONNECTED);
+		terminal_write_ex (p_conn_tab, "%s\r\n", error_msg);
+		return;
+	}
+	p_conn_tab->pid = pid;
+	tabSetConnectionStatus (p_conn_tab, TAB_CONN_STATUS_CONNECTED);
+}
 /**
  * log_on() - starts a connection with the given protocol (called by connection_log_on())
  * @return 0 if ok, not zero otherwise
@@ -76,8 +89,6 @@ log_on (struct ConnectionTab *p_conn_tab)
 	int rc = 0, login_rc = 0;
 	struct Protocol *p_prot = &g_ssh_prot;
 	struct SSH_Auth_Data auth;
-	gboolean success;
-	char error_msg[1024];
 	p_conn_tab->auth_attempt = 0;
 	p_conn_tab->auth_state = AUTH_STATE_NOT_LOGGED;
 	/* check if command is installed */
@@ -192,25 +203,11 @@ log_on (struct ConnectionTab *p_conn_tab)
 	 */
 	terminal_write_ex (p_conn_tab, "Logging in...\n\r");
 	log_debug ("using vte_terminal_fork_command_full()\n");
-	GError *error = NULL;
-	GSpawnFlags spawn_flags;
-	spawn_flags = G_SPAWN_SEARCH_PATH;
-	success = vte_terminal_spawn_sync (VTE_TERMINAL (p_conn_tab->vte), VTE_PTY_DEFAULT, NULL, p_params, NULL,
-	                                   spawn_flags,
-	                                   NULL, NULL, &p_conn_tab->pid, NULL, &error);
-	if (success == FALSE)
-		strcpy (error_msg, error->message);
-	log_debug ("Child process id : %d\n", p_conn_tab->pid);
+	GSpawnFlags spawn_flags = G_SPAWN_SEARCH_PATH;
+	vte_terminal_spawn_async (VTE_TERMINAL (p_conn_tab->vte), VTE_PTY_DEFAULT, NULL, p_params, NULL,
+			spawn_flags, NULL, NULL, NULL, 10000/* 10s */, NULL, spawn_cb, p_conn_tab);
 	free (p_params);
-	if (success == TRUE) {
-		tabSetConnectionStatus (p_conn_tab, TAB_CONN_STATUS_CONNECTED);
-		rc = 0;
-	} else {
-		tabSetConnectionStatus (p_conn_tab, TAB_CONN_STATUS_DISCONNECTED);
-		msgbox_error ("%s", error_msg);
-		rc = 2;
-	}
-	return (rc);
+	return 0;
 }
 
 

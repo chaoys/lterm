@@ -966,8 +966,7 @@ connection_log_on_param (struct Connection *p_conn)
 		p_current_connection_tab = p_connection_tab;
 		refreshTabStatus (p_current_connection_tab);
 		log_write ("Log on...\n");
-		retcode = log_on (p_connection_tab);
-		log_debug ("log_on() returns %d\n", retcode);
+		log_on (p_connection_tab);
 		refreshTabStatus (p_current_connection_tab);
 	}
 	update_screen_info ();
