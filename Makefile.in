@@ -11,6 +11,7 @@ SRCS = $(wildcard src/*.c)
 OBJS = $(SRCS:.c=.o)
 DEPS = $(OBJS:.o=.d)
 
+CFLAGS += -Wall
 CFLAGS += -DPACKAGE=\"$(PACKAGE)\" -DVERSION=\"$(VERSION)\" -DIMGDIR=\"$(MYIMGDIR)\" -DDATADIR=\"$(MYDATADIR)\"
 
 all: $(PACKAGE)
