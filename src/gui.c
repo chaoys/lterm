@@ -34,7 +34,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "main.h"
-#include "protocol.h"
 #include "connection.h"
 #include "preferences.h"
 #include "profile.h"

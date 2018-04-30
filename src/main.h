@@ -58,8 +58,6 @@ struct _globals {
 	char system_font[256];
 	struct SSH_List ssh_list;
 	char find_expr[256];
-	int inotifyFd; // For Inotify and FSEvents
-	fd_set rfds;
 };
 
 typedef struct _globals Globals;
@@ -91,11 +89,9 @@ struct _prefs {
 	int mouse_autohide;
 	int mouse_copy_on_select;
 	int mouse_paste_on_right_button;
-	//char emulation_list[1024];
 	int tabs_position;
 	int tab_alerts;
 	char tab_status_changed_color [32];
-	//char tab_status_connecting_color [32];
 	char tab_status_disconnected_color [32];
 	char tab_status_disconnected_alert_color [32];
 	char font_fixed [128];
@@ -108,12 +104,24 @@ struct _prefs {
 
 typedef struct _prefs Prefs;
 
+#define PROT_FLAG_NO 0
+#define PROT_FLAG_ASKUSER 1
+#define PROT_FLAG_ASKPASSWORD 2
+#define PROT_FLAG_DISCONNECTCLOSE 4
+#define PROT_FLAG_MASK 255
+
+struct Protocol {
+	char command[256];
+	char args[256];
+	int port;
+	unsigned int flags;
+};
+
 void lockSSH (const char *caller, gboolean flagLock);
 void lterm_iteration ();
 void log_reset ();
 void log_write (const char *fmt, ...);
 gboolean doGTKMainIteration ();
-void notifyMessage (char *message);
 void timerStart (int seconds);
 void timerStop ();
 int timedOut ();
@@ -121,7 +129,5 @@ void threadRequestAlarm ();
 void threadResetAlarm ();
 void addIdleGTKMainIteration ();
 void update_main_window_title ();
-void update_statusbar ();
-int cmpver (char *v1, char *v2);
 
 #endif

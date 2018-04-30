@@ -194,8 +194,6 @@ void Debug ();
 void statusbar_push (const char *fmt, ...);
 void statusbar_pop ();
 void statusbar_msg (const char *fmt, ...);
-void update_statusbar ();
-gboolean update_statusbar_upload_download ();
 void update_screen_info ();
 
 void select_current_profile_menu_item (struct ConnectionTab *p_ct);

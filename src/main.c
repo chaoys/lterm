@@ -39,7 +39,6 @@
 #include "gui.h"
 #include "profile.h"
 #include "connection.h"
-#include "protocol.h"
 #include "ssh.h"
 #include "utils.h"
 #include "config.h"
@@ -180,20 +179,6 @@ lterm_iteration ()
 	g_usleep (1000);
 	//log_debug ("End\n");
 }
-
-void
-notifyMessage (char *message)
-{
-	log_debug ("%s\n", message);
-	GNotification *notification = g_notification_new ("lterm");
-	g_notification_set_body (notification, message);
-	//GIcon *icon = g_themed_icon_new ("dialog-information");
-	//g_notification_set_icon (notification, icon);
-	g_application_send_notification (application, NULL, notification);
-	//g_object_unref (icon);
-	g_object_unref (notification);
-}
-
 
 int sTimeout = 0;
 pthread_t tidAlarm = 0; // Thread that must receive alarms
@@ -432,58 +417,6 @@ show_version ()
 	char version[64];
 	get_version (version);
 	printf ("%s\n", version);
-}
-
-int
-cmpver (char *_v1, char *_v2)
-{
-	int version1, revision1, release1;
-	int version2, revision2, release2;
-	int cmp1, cmp2, cmp3;
-	char v1[16], v2[16];
-	char tmp[8];
-	char *pc;
-	strcpy (v1, _v1);
-	strcpy (v2, _v2);
-	log_debug ("%s vs %s\n", v1, v2);
-	pc = (char *) strpbrk (v1, "-_abcdefghijklmnopqrstuvwxyz");
-	if (pc)
-		*pc = 0;
-	pc = (char *) strpbrk (v2, "-_abcdefghijklmnopqrstuvwxyz");
-	if (pc)
-		*pc = 0;
-	log_debug ("%s vs %s\n", v1, v2);
-	list_get_nth (v1, 1, '.', tmp);
-	version1 = atoi (tmp);
-	list_get_nth (v1, 2, '.', tmp);
-	revision1 = atoi (tmp);
-	list_get_nth (v1, 3, '.', tmp);
-	release1 = atoi (tmp);
-	list_get_nth (v2, 1, '.', tmp);
-	version2 = atoi (tmp);
-	list_get_nth (v2, 2, '.', tmp);
-	revision2 = atoi (tmp);
-	list_get_nth (v2, 3, '.', tmp);
-	release2 = atoi (tmp);
-	if (version1 > version2)
-		return 1;
-	else if (version1 < version2)
-		return -1;
-	else {
-		if (revision1 > revision2)
-			return 1;
-		else if (revision1 < revision2)
-			return -1;
-		else {
-			if (release1 > release2)
-				return 1;
-			else if (release1 < release2)
-				return -1;
-			else
-				return 0;
-		}
-	}
-	return 0;
 }
 
 void

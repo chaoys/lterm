@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include "main.h"
 #include "gui.h"
-#include "protocol.h"
 #include "preferences.h"
 #include "config.h"
 #include "main.h"

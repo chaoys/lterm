@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include "profile.h"
 #include "gui.h"
-#include "protocol.h"
 #include "connection.h"
 #include "config.h"
 #include "connection_list.h"

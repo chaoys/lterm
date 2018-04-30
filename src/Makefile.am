@@ -8,7 +8,6 @@ lterm_SOURCES = \
   main.c main.h \
   preferences.c preferences.h \
   profile.c profile.h \
-  protocol.h \
   utils.c utils.h \
   grouptree.h grouptree.c \
   connection_list.h connection_list.c \

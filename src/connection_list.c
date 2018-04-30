@@ -23,7 +23,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "protocol.h"
 #include "connection.h"
 #include "connection_list.h"
 #include "main.h"

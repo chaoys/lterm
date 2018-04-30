@@ -320,14 +320,6 @@ ssh_node_get_validity (struct SSH_Node *p_ssh_node)
 {
 	return (p_ssh_node->valid);
 }
-/*
-int sTimeout = 0;
-void
-AlarmHandler (int sig)
-{
-  sTimeout = 1;
-}
-*/
 ssh_channel
 ssh_node_open_channel (struct SSH_Node *p_node)
 {
@@ -338,11 +330,6 @@ ssh_node_open_channel (struct SSH_Node *p_node)
 		ssh_node_set_validity (p_node, 0);
 		return (NULL);
 	}
-	/*
-	  signal (SIGALRM, AlarmHandler);
-	  sTimeout = 0;
-	  alarm (2);
-	*/
 	timerStart (2);
 	rc = ssh_channel_open_session (channel);
 	if (timedOut () ) {
