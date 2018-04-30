@@ -37,11 +37,8 @@ typedef struct Connection {
 	char name[256];
 	char host[256];
 	int port;
-	char protocol[64];
-	//char emulation[64];
 	char last_user[32];
 	char user_options[256];
-	//int auth; // deprecated
 	int auth_mode;
 	char auth_user[32];
 	char auth_password[32];
@@ -51,13 +48,10 @@ typedef struct Connection {
 	char password_encrypted[64]; /* base 64 encoded */
 	unsigned int flags;
 	char note[MAX_NOTE_LEN];
-	//int x11Forwarding;
 	char identityFile[1024];
-	//int disableStrictKeyChecking;
 	SSH_Options sshOptions;
 
 	GPtrArray *directories;
-	//struct Bookmarks history;
 
 	/* reserved */
 	unsigned int warnings;

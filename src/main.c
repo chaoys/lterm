@@ -48,7 +48,7 @@ int switch_local = 0;     /* start with local shell */
 
 Globals globals;
 Prefs prefs;
-struct Protocol_List g_prot_list;
+struct Protocol g_ssh_prot = { "ssh", "-p %p -l %u %h", 22, PROT_FLAG_ASKPASSWORD };
 struct Profile g_profile;
 GApplication *application;
 
@@ -297,13 +297,6 @@ main (int argc, char *argv[])
 	log_write ("Loading settings...\n");
 	load_settings ();
 	mkdir (globals.app_dir, S_IRWXU | S_IRWXG | S_IRWXO);
-	log_write ("Loading protocols...\n");
-	pl_init (&g_prot_list);
-	rc = load_protocols_from_file_xml (globals.protocols_file, &g_prot_list);
-	log_write ("Loaded protocols: %d\n", rc);
-	/* check basic protocols have been loaded and create if not */
-	log_write ("Checking standard protocols ...\n");
-	check_standard_protocols (&g_prot_list);
 	log_write ("Loading profiles...\n");
 	rc = load_profile (&g_profile, globals.profiles_file);
 	if (rc != 0) {
@@ -333,9 +326,6 @@ main (int argc, char *argv[])
 	}
 	log_write ("Saving connections...\n");
 	save_connections_to_file_xml (globals.connections_xml);
-	log_write ("Saving protocols...\n");
-	save_protocols_to_file_xml (globals.protocols_file, &g_prot_list);
-	pl_release (&g_prot_list);
 	log_write ("Saving settings...\n");
 	save_settings ();
 	log_write ("Saving profiles...\n");

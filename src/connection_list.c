@@ -32,7 +32,7 @@
 extern Globals globals;
 extern Prefs prefs;
 extern struct Connection_List conn_list;
-extern struct Protocol_List g_prot_list;
+extern struct Protocol g_ssh_prot;
 
 void
 connection_init (SConnection *pConn)
@@ -195,12 +195,8 @@ cl_check (struct Connection_List *p_cl)
 		}
 		if (cl_host_search (p_cl, p_conn->host, p_conn->name) )
 			p_conn->warnings |= CONN_WARNING_HOST_DUPLICATED;
-		if ( (p_protocol = get_protocol (&g_prot_list, p_conn->protocol) ) ) {
-			if (!check_command (p_protocol->command) )
-				p_conn->warnings |= CONN_WARNING_PROTOCOL_COMMAND_NOT_FOUND;
-		} else
-			p_conn->warnings |= CONN_WARNING_PROTOCOL_NOT_FOUND;
-		//log_debug("%s warnings = %d\n", p_conn->name, p_conn->warnings);
+		if (!check_command (g_ssh_prot.command) )
+			p_conn->warnings |= CONN_WARNING_PROTOCOL_COMMAND_NOT_FOUND;
 		p_conn = p_conn->next;
 	}
 }
@@ -247,7 +243,7 @@ cl_dump (struct Connection_List *p_cl)
 	struct Connection *c;
 	c = p_cl->head;
 	while (c) {
-		printf ("%s %s %s %d\n", c->name, c->host, c->protocol, c->port);
+		printf ("%s %s %d\n", c->name, c->host, c->port);
 		c = c->next;
 	}
 }

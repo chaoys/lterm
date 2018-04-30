@@ -117,7 +117,6 @@ GActionEntry main_menu_items[] = {
 	{ "log_on", connection_log_on },
 	{ "log_off", connection_log_off },
 	{ "duplicate", connection_duplicate },
-	{ "edit_proto", connection_edit_protocols },
 	{ "open_term", connection_new_terminal },
 	{ "export_csv", connection_export_CSV },
 	{ "quit", application_quit },
@@ -166,12 +165,6 @@ const gchar ui_main_desc[] =
         "        <item>"
 		"          <attribute name='label'>Open terminal</attribute>"
 		"          <attribute name='action'>lt.open_term</attribute>"
-		"        </item>"
-		"      </section>"
-		"      <section>"
-        "        <item>"
-		"          <attribute name='label'>Edit protocols</attribute>"
-		"          <attribute name='action'>lt.edit_proto</attribute>"
 		"        </item>"
 		"      </section>"
 		"      <section>"
@@ -994,7 +987,7 @@ connection_tab_getcwd (struct ConnectionTab *p_ct, char *directory)
 		if (n < 0)
 			return 3;
 		buffer[n] = 0;
-	} else if (p_ct->type == CONNECTION_REMOTE && /*!strcmp (p_ct->connection.protocol, "ssh")*/p_ct->type == PROT_TYPE_SSH) {
+	} else if (p_ct->type == CONNECTION_REMOTE) {
 		if (p_ct->vte == 0)
 			return 1;
 		if (vte_terminal_get_window_title (VTE_TERMINAL (p_ct->vte) ) )
@@ -1043,7 +1036,6 @@ connection_log_on_param (struct Connection *p_conn)
 		log_write ("Log on...\n");
 		retcode = log_on (p_connection_tab);
 		log_debug ("log_on() returns %d\n", retcode);
-		//connection_tab_set_status (p_current_connection_tab, TAB_STATUS_NORMAL);
 		refreshTabStatus (p_current_connection_tab);
 	}
 	update_screen_info ();
@@ -1064,19 +1056,10 @@ connection_log_off ()
 	log_debug ("\n");
 	if (!p_current_connection_tab)
 		return;
-	//vte_terminal_feed_child (VTE_TERMINAL(vte), "exit\n", -1);
-	if (p_current_connection_tab->type == CONNECTION_REMOTE && /*p_current_connection_tab->connected*/tabIsConnected (p_current_connection_tab) ) {
-		//vte_pty_close (vte_terminal_get_pty (VTE_TERMINAL (p_current_connection_tab->vte))); // Dangerous!
-		//close (vte_terminal_get_pty (VTE_TERMINAL (p_current_connection_tab->vte)));
+	if (p_current_connection_tab->type == CONNECTION_REMOTE && tabIsConnected (p_current_connection_tab) ) {
 		kill (p_current_connection_tab->pid, SIGTERM);
 		lt_ssh_disconnect (&p_current_connection_tab->ssh_info);
 		log_write ("Terminal closed\n");
-		//vte_terminal_set_pty (VTE_TERMINAL (vte), 0);
-		/*
-		      p_current_connection_tab->connected = 0;
-		      p_current_connection_tab->logged = 0;
-		      p_current_connection_tab->auth_state = AUTH_STATE_NOT_LOGGED;
-		*/
 		tabInitConnection (p_current_connection_tab);
 	} else
 		log_write ("Local terminal can't be disconnected");
@@ -1111,12 +1094,6 @@ connection_duplicate ()
 		//p_current_connection_tab->connection.auth --;
 	} else
 		return;
-}
-
-void
-connection_edit_protocols ()
-{
-	manage_protocols (&g_prot_list);
 }
 
 void
@@ -2006,9 +1983,7 @@ child_exited_cb (VteTerminal *vteterminal,
 #endif
 {
 	struct ConnectionTab *p_ct;
-	struct Protocol *p_prot;
 	int code;
-	//code = vte_terminal_get_child_exit_status (vteterminal);
 	p_ct = (struct ConnectionTab *) user_data;
 	log_debug ("ptr = %ld\n", (unsigned int) p_ct);
 	log_write ("%s\n", p_ct->connection.name);
@@ -2027,13 +2002,7 @@ child_exited_cb (VteTerminal *vteterminal,
 		log_debug ("Disconnecting\n");
 		lt_ssh_disconnect (&p_ct->ssh_info);
 		log_debug ("Checking protocol settings\n");
-		p_prot = get_protocol (&g_prot_list, p_ct->connection.protocol);
-		if (p_prot->flags & PROT_FLAG_DISCONNECTCLOSE)
-			// Enqueue tab closing instead of calling connection_tab_close(). Freezes program if called here.
-			//connection_tab_close (p_ct);
-			ifr_add (ITERATION_CLOSE_TAB, p_ct);
-		else
-			terminal_write_ex (p_ct, "\n\rDisconnected. Hit enter to reconnect.\n\r", -1);
+		terminal_write_ex (p_ct, "\n\rDisconnected. Hit enter to reconnect.\n\r", -1);
 	} else {
 		// Enqueue tab closing instead of calling connection_tab_close(). Freezes program if called here.
 		//connection_tab_close (p_ct);
@@ -2131,8 +2100,6 @@ contents_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 	if (p_current_connection_tab == NULL)
 		return;
 	p_ct = (struct ConnectionTab *) user_data;
-	//log_debug ("%s\n", p_ct->connection.name);
-	//p_prot = get_protocol (&g_prot_list, p_ct->connection.protocol);
 	/* save terminal buffer */
 	p_ct->buffer = vte_terminal_get_text (vteterminal, NULL, NULL, NULL);
 	//log_debug ("Buffer read: %d bytes\n", strlen (p_ct->buffer));

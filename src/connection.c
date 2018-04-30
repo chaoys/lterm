@@ -40,13 +40,12 @@
 
 extern Globals globals;
 extern Prefs prefs;
-extern struct Protocol_List g_prot_list;
+extern struct Protocol g_ssh_prot;
 extern GtkWidget *main_window;
 extern struct ConnectionTab *p_current_connection_tab;
 
 struct GroupTree g_groups;
 struct Connection_List conn_list;
-//struct GroupTree g_groups;
 struct GroupNode *g_selected_node;
 GdkPixbuf *postit_img;
 int g_xml_state;
@@ -77,7 +76,6 @@ GtkTreeStore *model;
 enum {
 	NAME_COLUMN,
 	ADDRESS_COLUMN,
-	PROTOCOL_COLUMN,
 	PORT_COLUMN,
 	PIXMAP_COLUMN,
 	N_COLUMNS
@@ -95,7 +93,7 @@ connection_init_stuff ()
 {
 	cl_init (&conn_list);
 	group_tree_init (&g_groups);
-	model = gtk_tree_store_new (N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, GDK_TYPE_PIXBUF);
+	model = gtk_tree_store_new (N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, GDK_TYPE_PIXBUF);
 	postit_img = gdk_pixbuf_new_from_file (g_strconcat (globals.img_dir, "/post-it.png", NULL), NULL);
 	if (postit_img == NULL) {
 		log_debug ("can't load image %s\n", g_strconcat (globals.img_dir, "/post-it.png", NULL) );
@@ -140,7 +138,7 @@ void
 write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 {
 	int i;
-	fprintf (fp, "%*s<connection name='%s' host='%s' protocol='%s' port='%d' flags='%d'>\n"
+	fprintf (fp, "%*s<connection name='%s' host='%s' port='%d' flags='%d'>\n"
 	         //"%*s  <emulation>%s</emulation>\n"
 	         //"%*s  <authentication enabled='%d'>\n"
 	         "%*s  <authentication>\n"
@@ -161,7 +159,7 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         "%*s    <property name='disableStrictKeyChecking'>%d</property>\n"
 	         "%*s    <property name='keepAliveInterval' enabled='%d'>%d</property>\n"
 	         "%*s  </options>\n",
-	         indent, " ", p_conn->name, NVL (p_conn->host, ""), NVL (p_conn->protocol, ""), p_conn->port, p_conn->flags,
+	         indent, " ", p_conn->name, NVL (p_conn->host, ""), p_conn->port, p_conn->flags,
 	         //indent, " ", p_conn->emulation,
 	         indent, " ",
 	         indent, " ", p_conn->auth_mode,
@@ -302,7 +300,6 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 	strcpy (pConn->name, xml_node_get_attribute (node, "name") );
 	//log_debug ("%s\n", pConn->name);
 	strcpy (pConn->host, xml_node_get_attribute (node, "host") );
-	strcpy (pConn->protocol, xml_node_get_attribute (node, "protocol") );
 	strcpy (tmp_s, xml_node_get_attribute (node, "port") );
 	if (tmp_s[0])
 		pConn->port = atoi (tmp_s);
@@ -602,24 +599,14 @@ change_protocol_cb (GtkWidget *entry, gpointer user_data)
 	struct Protocol *p_prot;
 	//SConnectionTab *connTab = (SConnectionTab *)user_data;
 	log_debug ("[start]\n");
-	p_prot = get_protocol (&g_prot_list, (char *) gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (entry) ) );
-	if (p_prot) {
-		gtk_spin_button_set_value (GTK_SPIN_BUTTON (port_spin_button), p_prot->port);
-		gboolean sensitive = p_prot->type == PROT_TYPE_SSH;
-		gtk_widget_set_sensitive (check_x11, sensitive);
-		gtk_widget_set_sensitive (check_agentForwarding, sensitive);
-		gtk_widget_set_sensitive (check_disable_key_checking, sensitive);
-		gtk_widget_set_sensitive (check_keepAliveInterval, sensitive);
-		gtk_widget_set_sensitive (spin_keepAliveInterval, sensitive);
-		gtk_widget_set_sensitive (authWidgets.radio_auth_key, sensitive);
-		//set_private_key_controls (p_prot->type == PROT_TYPE_SSH);
-		// If protocol has been changed from ssh to other, and the key authentication is selected
-		// then change to prompted authentication
-		if (p_prot->type != PROT_TYPE_SSH
-		    && gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (authWidgets.radio_auth_key) ) ) {
-			gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (authWidgets.radio_auth_prompt), TRUE);
-		}
-	}
+	gtk_spin_button_set_value (GTK_SPIN_BUTTON (port_spin_button), p_prot->port);
+	gboolean sensitive = TRUE;
+	gtk_widget_set_sensitive (check_x11, sensitive);
+	gtk_widget_set_sensitive (check_agentForwarding, sensitive);
+	gtk_widget_set_sensitive (check_disable_key_checking, sensitive);
+	gtk_widget_set_sensitive (check_keepAliveInterval, sensitive);
+	gtk_widget_set_sensitive (spin_keepAliveInterval, sensitive);
+	gtk_widget_set_sensitive (authWidgets.radio_auth_key, sensitive);
 	log_debug ("[end]\n");
 }
 
@@ -778,7 +765,7 @@ validate_name (struct GroupNode *p_parent, struct GroupNode *p_node_upd, struct 
 	if (item_name[0] == 0)
 		return (ERR_VALIDATE_MISSING_VALUES);
 	if (p_conn) { /* adding or updating a connection */
-		if (p_conn->protocol[0] == 0 || p_conn->host[0] == 0)
+		if (p_conn->host[0] == 0)
 			return (ERR_VALIDATE_MISSING_VALUES);
 		log_debug ("check existing connections\n");
 		p_conn_ctrl = get_connection (&conn_list, item_name);
@@ -817,7 +804,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	GtkWidget *cancel_button, *ok_button;
 	GtkWidget *table;
 	GtkWidget *name_entry, *host_entry, *user_options_entry;
-	GtkWidget *protocol_combo;
 	//GList *emulation_glist = NULL;
 	gint result;
 	struct Protocol *p;
@@ -858,7 +844,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	host_entry = GTK_WIDGET (gtk_builder_get_object (builder, "entry_host") );
 	if (p_conn)
 		gtk_entry_set_text (GTK_ENTRY (host_entry), p_conn->host);
-	protocol_combo = GTK_WIDGET (gtk_builder_get_object (builder, "combo_protocol") );
 	port_spin_button = GTK_WIDGET (gtk_builder_get_object (builder, "spin_port") );
 	// X11 Forwarding
 	check_x11 = GTK_WIDGET (gtk_builder_get_object (builder, "check_x11forwarding") );
@@ -894,21 +879,7 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	g_signal_connect (G_OBJECT (authWidgets.button_select_private_key), "clicked", G_CALLBACK (select_private_key_cb), NULL);
 	authWidgets.button_clear_private_key = GTK_WIDGET (gtk_builder_get_object (builder, "button_clear_private_key") );
 	g_signal_connect (G_OBJECT (authWidgets.button_clear_private_key), "clicked", G_CALLBACK (clear_private_key_cb), NULL);
-	/* Connect signal now, after port has been created */
-	int sig_handler_prot = g_signal_connect (G_OBJECT (GTK_COMBO_BOX (protocol_combo) ), "changed", G_CALLBACK (change_protocol_cb), NULL);
 	i = 0;
-	p = g_prot_list.head;
-	while (p) {
-		gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (protocol_combo), p->name);
-		if (p_conn) {
-			if (!strcmp (p_conn->protocol, p->name) )
-				gtk_combo_box_set_active (GTK_COMBO_BOX (protocol_combo), i);
-		}
-		i ++;
-		p = p->next;
-	}
-	if (!p_conn)
-		gtk_combo_box_set_active (GTK_COMBO_BOX (protocol_combo), 0);
 	if (p_conn) {
 		gtk_spin_button_set_value (GTK_SPIN_BUTTON (port_spin_button), p_conn->port);
 	}
@@ -929,16 +900,8 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 			}
 			if (p_conn->warnings & CONN_WARNING_PROTOCOL_COMMAND_NOT_FOUND) {
 				char protocol_command[128];
-				struct Protocol *p = get_protocol (&g_prot_list, p_conn->protocol);
-				if (p)
-					strcpy (protocol_command, p->command);
-				else
-					strcpy (protocol_command, "");
+				strcpy (protocol_command, g_ssh_prot.command);
 				sprintf (s_tmp, _ ("Protocol command <b>%s</b> not found\n"), protocol_command);
-				strcat (warnings, s_tmp);
-			}
-			if (p_conn->warnings & CONN_WARNING_PROTOCOL_NOT_FOUND) {
-				sprintf (s_tmp, _ ("Protocol <b>%s</b> not found\n"), p_conn->protocol);
 				strcat (warnings, s_tmp);
 			}
 		}
@@ -1018,21 +981,14 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 			strcpy (conn_new.name, connection_name);
 			strcpy (conn_new.host, gtk_entry_get_text (GTK_ENTRY (host_entry) ) );
 			trim (conn_new.host);
-			strcpy (conn_new.protocol, gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (protocol_combo) ) );
-			trim (conn_new.protocol);
 			conn_new.port = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (port_spin_button) );
-			//strcpy (conn_new.emulation, gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (emulation_combo)));
 			strcpy (conn_new.user_options, gtk_entry_get_text (GTK_ENTRY (user_options_entry) ) );
 			conn_new.sshOptions.x11Forwarding = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_x11) ) ? 1 : 0;
 			conn_new.sshOptions.agentForwarding = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_agentForwarding) ) ? 1 : 0;
 			conn_new.sshOptions.disableStrictKeyChecking = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_disable_key_checking) ) ? 1 : 0;
 			conn_new.sshOptions.flagKeepAlive = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_keepAliveInterval) ) ? 1 : 0;
 			conn_new.sshOptions.keepAliveInterval = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (spin_keepAliveInterval) );
-			//conn_new.flags |= (CONN_FLAG_MASK & gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (ignore_warnings_check)) ? 1 : 0);
 			conn_new.flags = (conn_new.flags & ~ (CONN_FLAG_IGNORE_WARNINGS) ) | ( (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (ignore_warnings_check) ) ? 1 : 0) << 0);
-			//p_prot->flags = (p_prot->flags & ~(PROT_FLAG_ASKUSER)) | ((gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (askuser_check)) ? 1 : 0) << 0);
-			//conn_new.auth = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (auth_check)) ? 1 : 0;
-			//conn_new.auth = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (authWidgets.radio_auth_save)) ? 1 : 0;
 			if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (authWidgets.radio_auth_prompt) ) )
 				conn_new.auth_mode = CONN_AUTH_MODE_PROMPT;
 			else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (authWidgets.radio_auth_save) ) )
@@ -1041,13 +997,7 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 				conn_new.auth_mode = CONN_AUTH_MODE_KEY;
 			strcpy (conn_new.auth_user, gtk_entry_get_text (GTK_ENTRY (authWidgets.user_entry) ) );
 			strcpy (conn_new.auth_password, gtk_entry_get_text (GTK_ENTRY (authWidgets.password_entry) ) );
-			/* encrypt password */
-			/*
-			          p_enc = Encrypt (KEY, conn_new.auth_password, sizeof (conn_new.auth_password));
-			          p_enc_b64 = g_base64_encode (p_enc, strlen (p_enc));
-			          memcpy (conn_new.auth_password_encrypted, p_enc_b64, strlen (p_enc_b64));
-			*/
-			log_debug ("encryption\n");
+						log_debug ("encryption\n");
 			if (conn_new.auth_password[0] != 0)
 				strcpy (conn_new.auth_password_encrypted, des_encrypt_b64 (conn_new.auth_password) );
 			// Private key
@@ -1205,7 +1155,6 @@ append_node_gtk_tree (struct GroupNode *p_node, GtkTreeIter *parentIter)
 				gtk_tree_store_set (model, &child,
 				                    NAME_COLUMN, p_conn->name,
 				                    ADDRESS_COLUMN, p_conn->host,
-				                    PROTOCOL_COLUMN, p_conn->protocol,
 				                    PORT_COLUMN, port_s,
 				                    PIXMAP_COLUMN, p_conn->note[0] != 0 ? postit_img : NULL,
 				                    -1);
@@ -1502,10 +1451,6 @@ create_connections_tree_view ()
 	/* Address */
 	cell = gtk_cell_renderer_text_new ();
 	column = gtk_tree_view_column_new_with_attributes (_ ("Host"), cell, "text", ADDRESS_COLUMN, NULL);
-	gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column) );
-	/* Protocol */
-	cell = gtk_cell_renderer_text_new ();
-	column = gtk_tree_view_column_new_with_attributes (_ ("Protocol"), cell, "text", PROTOCOL_COLUMN, NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column) );
 	/* Port */
 	cell = gtk_cell_renderer_text_new ();
@@ -1904,7 +1849,7 @@ connection_export_CSV ()
 		}
 		struct Connection *p_conn = conn_list.head;
 		while (p_conn) {
-			fprintf (fp, "%s,%s,%s,%d\n", p_conn->name, p_conn->host, p_conn->protocol, p_conn->port);
+			fprintf (fp, "%s,%s,%d\n", p_conn->name, p_conn->host, p_conn->port);
 			p_conn = p_conn->next;
 		}
 		fclose (fp);

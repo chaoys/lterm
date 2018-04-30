@@ -100,7 +100,7 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_lterm_OBJECTS = connection.$(OBJEXT) gui.$(OBJEXT) main.$(OBJEXT) \
-	preferences.$(OBJEXT) profile.$(OBJEXT) protocol.$(OBJEXT) \
+	preferences.$(OBJEXT) profile.$(OBJEXT) \
 	utils.$(OBJEXT) grouptree.$(OBJEXT) connection_list.$(OBJEXT) \
 	xml.$(OBJEXT) ssh.$(OBJEXT) terminal.$(OBJEXT)
 lterm_OBJECTS = $(am_lterm_OBJECTS)
@@ -268,7 +268,7 @@ lterm_SOURCES = \
   main.c main.h \
   preferences.c preferences.h \
   profile.c profile.h \
-  protocol.c protocol.h \
+  protocol.h \
   utils.c utils.h \
   grouptree.h grouptree.c \
   connection_list.h connection_list.c \
