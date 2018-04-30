@@ -4,7 +4,6 @@
 
 #include "gui.h"
 
-gboolean terminal_new (struct ConnectionTab *p_connection_tab, char *directory);
 int log_on (struct ConnectionTab *p_conn_tab);
 char *get_remote_directory_from_vte_title (GtkWidget *vte);
 char *get_remote_directory ();

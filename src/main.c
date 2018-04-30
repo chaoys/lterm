@@ -332,17 +332,10 @@ load_settings ()
 	}
 	log_debug ("Actual version is %s, last version was %s\n", VERSION, last_package_version);
 	/* load settings */
-	/* emulation_list is not saved on exit, actually */
-	//profile_load_string (globals.conf_file, "general", "emulation_list", prefs.emulation_list, "xterm:vt100:vt220:vt320:vt440");
 	prefs.tabs_position = profile_load_int (globals.conf_file, "general", "tabs_position", GTK_POS_TOP);
-	prefs.check_connections = profile_load_int (globals.conf_file, "general", "check_connections", 1);
-	profile_load_string (globals.conf_file, "general", "warnings_color", prefs.warnings_color, "orange");
-	profile_load_string (globals.conf_file, "general", "warnings_error_color", prefs.warnings_error_color, "red");
-	profile_load_string (globals.conf_file, "general", "local_start_directory", prefs.local_start_directory, "");
 	profile_load_string (globals.conf_file, "general", "font_fixed", prefs.font_fixed, DEFAULT_FIXED_FONT);
 	profile_load_string (globals.conf_file, "general", "tempDir", prefs.tempDir, globals.app_dir/*"/tmp"*/);
 	prefs.startup_show_connections = profile_load_int (globals.conf_file, "TERMINAL", "startup_show_connections", 0);
-	prefs.startup_local_shell = switch_local ? 1 : profile_load_int (globals.conf_file, "TERMINAL", "startup_local_shell", 1);
 	profile_load_string (globals.conf_file, "TERMINAL", "extra_word_chars", prefs.extra_word_chars, ":@-./_~?&=%+#");
 	prefs.rows = profile_load_int (globals.conf_file, "TERMINAL", "rows", 80);
 	prefs.columns = profile_load_int (globals.conf_file, "TERMINAL", "columns", 25);
@@ -353,8 +346,6 @@ load_settings ()
 	prefs.mouse_autohide = profile_load_int (globals.conf_file, "MOUSE", "autohide", 1);
 	prefs.mouse_copy_on_select = profile_load_int (globals.conf_file, "MOUSE", "copy_on_select", 0);
 	prefs.mouse_paste_on_right_button = profile_load_int (globals.conf_file, "MOUSE", "paste_on_right_button", 0);
-	/*prefs.x = profile_load_int (globals.conf_file, "GUI", "x", 0);
-	prefs.y = profile_load_int (globals.conf_file, "GUI", "y", 0);*/
 	prefs.w = profile_load_int (globals.conf_file, "GUI", "w", 640);
 	prefs.h = profile_load_int (globals.conf_file, "GUI", "h", 480);
 	prefs.maximize = profile_load_int (globals.conf_file, "GUI", "maximize", 0);
@@ -374,13 +365,9 @@ save_settings ()
 	/* store the version of program witch saved this profile */
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "package_version", VERSION);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "tabs_position", prefs.tabs_position);
-	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "check_connections", prefs.check_connections);
-	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "warnings_color", prefs.warnings_color);
-	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "local_start_directory", prefs.local_start_directory);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "font_fixed", prefs.font_fixed);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "tempDir", prefs.tempDir);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "TERMINAL", "startup_show_connections", prefs.startup_show_connections);
-	profile_modify_int (PROFILE_SAVE, globals.conf_file, "TERMINAL", "startup_local_shell", prefs.startup_local_shell);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "TERMINAL", "scrollback_lines", prefs.scrollback_lines);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "TERMINAL", "scroll_on_keystroke", prefs.scroll_on_keystroke);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "TERMINAL", "scroll_on_output", prefs.scroll_on_output);

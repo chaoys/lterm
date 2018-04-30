@@ -44,43 +44,6 @@ extern GList *connection_tab_list;
 
 char *auth_state_desc[] = { "AUTH_STATE_NOT_LOGGED", "AUTH_STATE_GOT_USER", "AUTH_STATE_GOT_PASSWORD", "AUTH_STATE_LOGGED" };
 
-gboolean
-terminal_new (struct ConnectionTab *p_connection_tab, char *directory)
-{
-	struct Protocol *p_prot;
-	//struct ConnectionTab *p_connection_tab;
-	gboolean success;
-	char error_msg[1024];
-	int rc;
-	if (directory)
-		rc = chdir (directory);
-	else if (prefs.local_start_directory[0] != 0)
-		rc = chdir (prefs.local_start_directory);
-	else
-		rc = chdir (globals.home_dir);
-	log_debug ("Creating terminal ...\n");
-	log_debug ("Using vte_terminal_fork_command_full()\n");
-	GError *error = NULL;
-	GSpawnFlags spawn_flags;
-	const gchar *shell;
-	gchar **av;
-	//char *av[] = { "/bin/bash", NULL };
-	//char **av = 0; g_shell_parse_argv("/bin/bash", 0, &av, 0);
-	shell = g_getenv ("SHELL");
-	av = g_new (char *, 2);
-	av[0] = g_strdup (shell ? shell : "/bin/sh");
-	av[1] = NULL;
-	log_debug ("Shell: %s\n", av[0]);
-	//spawn_flags = G_SPAWN_CHILD_INHERITS_STDIN|G_SPAWN_SEARCH_PATH|G_SPAWN_FILE_AND_ARGV_ZERO;
-	spawn_flags = G_SPAWN_CHILD_INHERITS_STDIN | G_SPAWN_SEARCH_PATH;
-	success = vte_terminal_spawn_sync (VTE_TERMINAL (p_connection_tab->vte), VTE_PTY_DEFAULT, NULL, av, NULL,
-	                                   spawn_flags,
-	                                   NULL, NULL, &p_connection_tab->pid, NULL, &error);
-	if (success == FALSE)
-		strcpy (error_msg, error->message);
-	return (success);
-}
-
 int
 terminal_connect_ssh (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth)
 {

@@ -62,12 +62,6 @@ typedef struct _globals Globals;
  */
 struct _prefs {
 	int startup_show_connections;
-	int startup_local_shell;
-	int check_connections;        /* detect warnings */
-	char warnings_color[128];
-	char warnings_error_color[128];
-	char label_local[128];
-	char local_start_directory[1024];
 	int maximize;
 	int x, y, w, h;               /* Window position and dimension */
 	int toolbar;                  /* server toolbar on/off */

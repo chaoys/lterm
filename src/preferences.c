@@ -159,8 +159,6 @@ show_preferences (void)
 	gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (dialog) ), GTK_WINDOW (main_window) );
 	notebook = GTK_WIDGET (gtk_builder_get_object (builder, "notebook1") );
 	/* startup */
-	GtkWidget *startlocal_check = GTK_WIDGET (gtk_builder_get_object (builder, "check_startlocal") );
-	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (startlocal_check), prefs.startup_local_shell);
 	GtkWidget *startconn_check = GTK_WIDGET (gtk_builder_get_object (builder, "check_connections") );
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (startconn_check), prefs.startup_show_connections);
 	/* tabs */
@@ -170,9 +168,6 @@ show_preferences (void)
 	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (tabs_pos_combo), _ ("Top") );
 	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (tabs_pos_combo), _ ("Bottom") );
 	gtk_combo_box_set_active (GTK_COMBO_BOX (tabs_pos_combo), prefs.tabs_position);
-	/* start directory */
-	GtkWidget *start_directory_entry = GTK_WIDGET (gtk_builder_get_object (builder, "entry_dir") );
-	gtk_entry_set_text (GTK_ENTRY (start_directory_entry), prefs.local_start_directory);
 	GtkWidget *tab_alerts_check = GTK_WIDGET (gtk_builder_get_object (builder, "check_tab_alerts") );
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (tab_alerts_check), prefs.tab_alerts);
 	/* buttons */
@@ -209,11 +204,9 @@ show_preferences (void)
 	gtk_widget_show_all (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) );
 	gint result = gtk_dialog_run (GTK_DIALOG (dialog) );
 	if (result == GTK_RESPONSE_OK) {
-		prefs.startup_local_shell = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (startlocal_check) ) ? 1 : 0;
 		prefs.startup_show_connections = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (startconn_check) ) ? 1 : 0;
 		prefs.tabs_position = gtk_combo_box_get_active (GTK_COMBO_BOX (tabs_pos_combo) );
 		prefs.tab_alerts = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (tab_alerts_check) ) ? 1 : 0;
-		strcpy (prefs.local_start_directory, gtk_entry_get_text (GTK_ENTRY (start_directory_entry) ) );
 		prefs.mouse_copy_on_select = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (mouse_copy_on_select_check) ) ? 1 : 0;
 		prefs.mouse_paste_on_right_button = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (mouse_paste_on_right_button_check) ) ? 1 : 0;
 		prefs.mouse_autohide = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (mouse_autohide_check) ) ? 1 : 0;
