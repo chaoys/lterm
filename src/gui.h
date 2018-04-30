@@ -42,7 +42,6 @@ typedef struct ConnectionTab {
 	unsigned int auth_state;
 	int changes_count;
 	int auth_attempt;
-	int type;
 	unsigned int flags; // logged, changed
 	char *buffer;
 	char md5Buffer[1024];

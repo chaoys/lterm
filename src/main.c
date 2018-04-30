@@ -268,7 +268,7 @@ main (int argc, char *argv[])
 	sprintf (globals.profiles_file, "%s/profiles.xml", globals.app_dir);
 	sprintf (globals.protocols_file, "%s/protocols.xml", globals.app_dir);
 	sprintf (globals.conf_file, "%s/%s.conf", globals.app_dir, PACKAGE_NAME);
-	globals.connected = CONNECTION_NONE;
+	globals.connected = 0;
 	strcpy (globals.img_dir, IMGDIR);
 	strcpy (globals.data_dir, PKGDATADIR);
 	log_reset ();

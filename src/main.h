@@ -30,12 +30,6 @@
 #define CFG_VERSION 3
 #define CFG_XML_VERSION 6
 
-/* types of connection */
-
-#define CONNECTION_NONE 0
-#define CONNECTION_LOCAL 1
-#define CONNECTION_REMOTE 2
-
 # define DEFAULT_FIXED_FONT "Monospace 9"
 
 /*

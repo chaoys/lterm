@@ -115,8 +115,6 @@ GActionEntry main_menu_items[] = {
 	{ "log_on", connection_log_on },
 	{ "log_off", connection_log_off },
 	{ "duplicate", connection_duplicate },
-	{ "open_term", connection_new_terminal },
-	{ "export_csv", connection_export_CSV },
 	{ "quit", application_quit },
 
 	{ "copy", edit_copy },
@@ -159,16 +157,6 @@ const gchar ui_main_desc[] =
         "        <item>"
 		"          <attribute name='label'>Duplicate</attribute>"
 		"          <attribute name='action'>lt.duplicate</attribute>"
-		"        </item>"
-        "        <item>"
-		"          <attribute name='label'>Open terminal</attribute>"
-		"          <attribute name='action'>lt.open_term</attribute>"
-		"        </item>"
-		"      </section>"
-		"      <section>"
-		"        <item>"
-		"          <attribute name='label'>Export</attribute>"
-		"          <attribute name='action'>lt.export_csv</attribute>"
 		"        </item>"
 		"      </section>"
 		"      <section>"
@@ -736,13 +724,13 @@ run_dialog:
 }
 
 int
-connection_tab_count (int type)
+connection_tab_count (void)
 {
 	int n = 0;
 	GList *item;
 	item = g_list_first (connection_tab_list);
 	while (item) {
-		if (tabIsConnected ( (struct ConnectionTab *) item->data) /*->connected*/ && ( (struct ConnectionTab *) item->data)->type == type)
+		if (tabIsConnected ( (struct ConnectionTab *) item->data))
 			n ++;
 		item = g_list_next (item);
 	}
@@ -793,10 +781,7 @@ connection_tab_close (struct ConnectionTab *p_ct)
 	//log_debug ("ptr = %d\n", (unsigned int) p_ct);
 	if (tabIsConnected (p_ct) ) {
 		log_debug ("%s seems connected\n", p_ct->connection.name);
-		if (p_ct->type == CONNECTION_REMOTE)
-			sprintf (prompt, _ ("Close connection to %s?"), p_ct->connection.name);
-		else
-			strcpy (prompt, _ ("Close this terminal?") );
+		sprintf (prompt, _ ("Close connection to %s?"), p_ct->connection.name);
 		retcode = msgbox_yes_no (prompt);
 		if (retcode == GTK_RESPONSE_YES)
 			can_close = 1;
@@ -808,7 +793,7 @@ connection_tab_close (struct ConnectionTab *p_ct)
 		// Regroup this tab to adjust the view
 		if (p_ct->notebook != notebook)
 			terminal_attach_to_main (p_ct);
-		if (p_ct->type == CONNECTION_REMOTE && tabIsConnected (p_ct) ) {
+		if (tabIsConnected (p_ct) ) {
 				lt_ssh_disconnect (&p_ct->ssh_info);
 		}
 		page = gtk_notebook_page_num (GTK_NOTEBOOK (p_ct->notebook), p_ct->hbox_terminal);
@@ -877,11 +862,7 @@ connection_tab_add (struct ConnectionTab *connection_tab)
 	gtk_container_set_border_width (GTK_CONTAINER (tab_label), 0);
 	gtk_box_set_spacing (GTK_BOX (tab_label), 8);
 	GtkWidget *image_type;
-	/* create label with icon, text and close button */
-	if (connection_tab->type == CONNECTION_REMOTE)
-		image_type = gtk_image_new_from_icon_name ("network-workgroup", GTK_ICON_SIZE_MENU);
-	else
-		image_type = gtk_image_new_from_icon_name (MY_STOCK_TERMINAL, GTK_ICON_SIZE_MENU);
+	image_type = gtk_image_new_from_icon_name ("network-workgroup", GTK_ICON_SIZE_MENU);
 	connection_tab->label = gtk_label_new (connection_tab->connection.name);
 	close_button = gtk_button_new ();
 	gtk_button_set_relief (GTK_BUTTON (close_button), GTK_RELIEF_NONE);
@@ -905,9 +886,6 @@ connection_tab_add (struct ConnectionTab *connection_tab)
 	strcpy (globals.system_font, pango_font_description_to_string (font_desc) );
 	pango_font_description_free (font_desc);
 	log_debug ("Original font : %s\n", globals.system_font);
-	//connection_tab_set_status (connection_tab, TAB_STATUS_NORMAL);
-	if (connection_tab->type == CONNECTION_LOCAL)
-		gtk_label_set_text (GTK_LABEL (connection_tab->label), "local shell");
 	apply_preferences (connection_tab->vte);
 	apply_profile (connection_tab);
 	gtk_widget_grab_focus (connection_tab->vte);
@@ -955,26 +933,17 @@ connection_tab_getcwd (struct ConnectionTab *p_ct, char *directory)
 	if (p_ct == 0)
 		return 1;
 	strcpy (directory, "");
-	if (p_ct->type == CONNECTION_LOCAL) {
-		sprintf (filename, "/proc/%d/cwd", p_ct->pid);
-		n = readlink (filename, buffer, 1024);
-		if (n < 0)
-			return 3;
-		buffer[n] = 0;
-	} else if (p_ct->type == CONNECTION_REMOTE) {
-		if (p_ct->vte == 0)
-			return 1;
-		if (vte_terminal_get_window_title (VTE_TERMINAL (p_ct->vte) ) )
-			strcpy (window_title, vte_terminal_get_window_title (VTE_TERMINAL (p_ct->vte) ) );
-		else
-			return 1;
-		pc = (char *) strchr (window_title, ':');
-		if (pc) {
-			*pc ++;
-			strcpy (buffer, pc);
-		}
-	} else
-		return 2;
+	if (p_ct->vte == 0)
+		return 1;
+	if (vte_terminal_get_window_title (VTE_TERMINAL (p_ct->vte) ) )
+		strcpy (window_title, vte_terminal_get_window_title (VTE_TERMINAL (p_ct->vte) ) );
+	else
+		return 1;
+	pc = (char *) strchr (window_title, ':');
+	if (pc) {
+		*pc ++;
+		strcpy (buffer, pc);
+	}
 	strcpy (directory, buffer);
 	return 0;
 }
@@ -986,12 +955,9 @@ connection_log_on_param (struct Connection *p_conn)
 	struct Protocol *p_prot;
 	struct ConnectionTab *p_connection_tab;
 	p_connection_tab = connection_tab_new ();
-	p_connection_tab->type = CONNECTION_REMOTE;
 	if (p_conn) {
 		connection_copy (&p_connection_tab->connection, p_conn);
 		p_connection_tab->auth_attempt = 0;
-		// p_connection_tab->auth_flags = 0;
-		//p_connection_tab->logged = 0;
 		tabResetFlag (p_connection_tab, TAB_LOGGED);
 		log_debug ("user = '%s'\n", p_connection_tab->connection.user);
 	} else
@@ -1005,7 +971,6 @@ connection_log_on_param (struct Connection *p_conn)
 		log_debug ("Adding new tab...\n");
 		connection_tab_add (p_connection_tab);
 		p_current_connection_tab = p_connection_tab;
-		//connection_tab_set_status (p_current_connection_tab, TAB_STATUS_NORMAL);
 		refreshTabStatus (p_current_connection_tab);
 		log_write ("Log on...\n");
 		retcode = log_on (p_connection_tab);
@@ -1030,13 +995,12 @@ connection_log_off ()
 	log_debug ("\n");
 	if (!p_current_connection_tab)
 		return;
-	if (p_current_connection_tab->type == CONNECTION_REMOTE && tabIsConnected (p_current_connection_tab) ) {
+	if (tabIsConnected (p_current_connection_tab) ) {
 		kill (p_current_connection_tab->pid, SIGTERM);
 		lt_ssh_disconnect (&p_current_connection_tab->ssh_info);
 		log_write ("Terminal closed\n");
 		tabInitConnection (p_current_connection_tab);
-	} else
-		log_write ("Local terminal can't be disconnected");
+	}
 	update_screen_info ();
 }
 
@@ -1047,62 +1011,9 @@ connection_duplicate ()
 	char command[1024];
 	if (!p_current_connection_tab)
 		return;
-	if (p_current_connection_tab->type == CONNECTION_LOCAL) {
-		connection_tab_getcwd (p_current_connection_tab, directory);
-		connection_new_terminal_dir (directory);
-	} else if (p_current_connection_tab->type == CONNECTION_REMOTE) {
-		connection_tab_getcwd (p_current_connection_tab, directory);
-		/* force autentication */
-		//p_current_connection_tab->connection.auth ++;
-		//p_current_connection_tab->connection.auth_attempt = 0;
-		connection_log_on_param (&p_current_connection_tab->connection);
-		/* TODO: change directory */
-		/*
-		if (directory[0])
-		  {
-		    sprintf (command, "cd %s\n", directory);
-		    vte_terminal_feed_child (p_current_connection_tab->vte, command, -1);
-		  }
-		*/
-		/* back to original value */
-		//p_current_connection_tab->connection.auth --;
-	} else
-		return;
-}
-
-void
-connection_new_terminal_dir (char *directory)
-{
-	struct Protocol *p_prot;
-	struct ConnectionTab *p_connection_tab;
-	gboolean success;
-	char error_msg[1024];
-	int rc;
-	log_write ("Creating a new terminal\n");
-	p_connection_tab = connection_tab_new ();
-	if (p_connection_tab) {
-		success = terminal_new (p_connection_tab, directory);
-		if (success) {
-			log_debug ("Adding new tab ...\n");
-			//p_connection_tab->connected = 1;
-			tabSetConnectionStatus (p_connection_tab, TAB_CONN_STATUS_CONNECTED);
-			p_connection_tab->type = CONNECTION_LOCAL;
-			strcpy (p_connection_tab->connection.name, prefs.label_local);
-			connection_tab_add (p_connection_tab);
-			p_current_connection_tab = p_connection_tab;
-		} else
-			msgbox_error ("%s", error_msg);
-	}
-	update_screen_info ();
-}
-
-/**
- * connection_new_terminal() - this is the function called by menu item
- */
-void
-connection_new_terminal ()
-{
-	connection_new_terminal_dir (NULL);
+	connection_tab_getcwd (p_current_connection_tab, directory);
+	/* force autentication */
+	connection_log_on_param (&p_current_connection_tab->connection);
 }
 
 void
@@ -1121,7 +1032,7 @@ application_quit ()
 	int n;
 	char message[1024];
 	GList *item;
-	n = connection_tab_count (CONNECTION_REMOTE) + connection_tab_count (CONNECTION_LOCAL);
+	n = connection_tab_count ();
 	if (n) {
 		sprintf (message, _ ("There are %d active terminal/s.\nExit anyway?"), n);
 		retcode = msgbox_yes_no (message);
@@ -1568,8 +1479,8 @@ terminal_cluster ()
 	for (i = 0; i < g_list_length (connection_tab_list); i++) {
 		item = g_list_nth (connection_tab_list, i);
 		p_ct = (struct ConnectionTab *) item->data;
-		char *label = p_ct->type == CONNECTION_LOCAL ? "local shell" : p_ct->connection.name;
-		if (!/*p_ct->connected*/tabIsConnected (p_ct) ) {
+		char *label = p_ct->connection.name;
+		if (!tabIsConnected (p_ct) ) {
 			log_write ("Cluster: tab %s is disconnected\n", label);
 			continue;
 		}
@@ -1958,19 +1869,13 @@ child_exited_cb (VteTerminal *vteterminal,
 	//log_write ("[%s] : %s status=%d\n", __func__, p_ct->connection.name, status);
 	tabInitConnection (p_ct);
 	/* in case of remote connection save it and keep tab, else remove tab */
-	if (p_ct->type == CONNECTION_REMOTE) {
-		connection_copy (&p_ct->last_connection, &p_ct->connection);
-		//connection_tab_set_status (p_ct, TAB_STATUS_DISCONNECTED);
-		refreshTabStatus (p_ct);
-		log_debug ("Disconnecting\n");
-		lt_ssh_disconnect (&p_ct->ssh_info);
-		log_debug ("Checking protocol settings\n");
-		terminal_write_ex (p_ct, "\n\rDisconnected. Hit enter to reconnect.\n\r", -1);
-	} else {
-		// Enqueue tab closing instead of calling connection_tab_close(). Freezes program if called here.
-		//connection_tab_close (p_ct);
-		ifr_add (ITERATION_CLOSE_TAB, p_ct);
-	}
+	connection_copy (&p_ct->last_connection, &p_ct->connection);
+	//connection_tab_set_status (p_ct, TAB_STATUS_DISCONNECTED);
+	refreshTabStatus (p_ct);
+	log_debug ("Disconnecting\n");
+	lt_ssh_disconnect (&p_ct->ssh_info);
+	log_debug ("Checking protocol settings\n");
+	terminal_write_ex (p_ct, "\n\rDisconnected. Hit enter to reconnect.\n\r", -1);
 	update_screen_info ();
 	log_debug ("end\n");
 }
@@ -2026,22 +1931,6 @@ window_title_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 	struct ConnectionTab *p_ct;
 	log_debug ("%s\n", vte_terminal_get_window_title (vteterminal) );
 	p_ct = (struct ConnectionTab *) user_data;
-	if (p_ct->type == CONNECTION_LOCAL) {
-		strcpy (title, vte_terminal_get_window_title (vteterminal) );
-		/* set connection name for window title */
-		strcpy (p_ct->connection.name, title);
-		/* set the tab label */
-		/*
-		      if (strlen (title) > 25)
-		        {
-		          title[25] = 0;
-		          strcat (title, " ...");
-		        }
-		*/
-		char tmpTitle[64];
-		shortenString (title, 25, tmpTitle);
-		gtk_label_set_text (GTK_LABEL (p_ct->label), tmpTitle);
-	}
 	update_title ();
 }
 
@@ -2084,80 +1973,42 @@ contents_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 	free (tmp2);
 	free (bufferTmp);
 	//log_debug ("MD5 = %s\n", md5string);
-	/* remove extra new line at the end of buffer */
-	//////if (p_ct->buffer[strlen (p_ct->buffer)-1] == '\n')
-	//  p_ct->buffer[strlen (p_ct->buffer)-1] = 0;
 	// Get cursor position and current line
 	// FIXME: sometimes gives the wrong row, eg. relogging by enter key
 	vte_terminal_get_cursor_position (vteterminal, &_cx, &_cy);
 	int cursorLine = _cy;
 	//log_debug ("_cx=%ld _cy=%ld\n", _cx, _cy);
-	//////if (_cy > list_count (p_ct->buffer, '\n')-1)
-	//  _cy = list_count (p_ct->buffer, '\n')-1;
-	/* if cursor didn't move don't do anything (e.g. resizing window) */
-	/*
-	if (_cx == p_ct->cx && _cy == p_ct->cy)
-	  return;
-	*/
 	last_x = p_ct->cx;
 	last_y = p_ct->cy;
 	p_ct->cx = _cx;
 	p_ct->cy = _cy;
 	//log_debug ("cursorLine=%d p_ct->cx=%d p_ct->cy=%d\n", cursorLine, p_ct->cx, p_ct->cy);
-	// Alloc line here so can contain the full buffer
-	//char line[strlen (p_ct->buffer)+1];
-	//list_get_nth (p_ct->buffer, p_ct->cy+1, '\n', line);
 	char **lines =
 	        splitString (p_ct->buffer, "\n", FALSE, NULL, FALSE, &nLines);
 	//log_debug ("nLines = %d\n", nLines);
-	//for (int i=0; i<nLines; i++)
-	//  log_debug ("%2d: %s %s %d\n", i, lines[i], i == cursorLine ? "(*)" : "", i == cursorLine ? cursorLine : -1);
 	if (cursorLine < nLines) {
 		char line[strlen (lines[cursorLine]) + 1];
-		//char *line = lines[nLines-1];
 		strcpy (line, lines[cursorLine]);
 		//log_debug ("line %d = '%s'\n", p_ct->cy+1, line); // Beware: crash with very long lines
 		// normalize line for analysis
 		lower (line);
 		trim (line);
-		//feed_child = 0;
 		//log_debug ("%s : logged=%d, type=%d\n", p_ct->connection.name, p_ct->logged, p_current_connection_tab->type);
-		if (p_ct->type == CONNECTION_REMOTE) {
-			if (/*!p_ct->logged*/!tabGetFlag (p_ct, TAB_LOGGED) && (p_ct->cx != last_x || p_ct->cy != last_y) && !check_log_in_state (p_ct, line) ) {
-				//connection_log_off ();
-				return;
-			}
+		if (!tabGetFlag (p_ct, TAB_LOGGED) && (p_ct->cx != last_x || p_ct->cy != last_y) && !check_log_in_state (p_ct, line) ) {
+			return;
 		}
 	}
 	free (lines);
 	//log_debug ("setting status...\n", line);
 	//log_debug ("p_ct != p_current_connection_tab = %d\n", p_ct != p_current_connection_tab);
 	//log_debug ("p_ct->window_resized = %d\n", p_ct->window_resized);
-	/*
-	  if ((p_ct != p_current_connection_tab) && !p_ct->window_resized)
-	    {
-	      //log_debug ("check %s\n", p_ct->connection.name)
-
-	      if ((p_ct->type == CONNECTION_REMOTE && p_ct->status != TAB_STATUS_DISCONNECTED)
-	          || p_ct->type == CONNECTION_LOCAL)
-	        {
-	          //log_debug ("%s has changed\n", p_ct->connection.name);
-	          connection_tab_set_status (p_ct, TAB_STATUS_CHANGED);
-	        }
-	    }
-	*/
 	if (!p_ct->window_resized && tabIsConnected (p_ct) ) {
-		/*if ((p_ct->type == CONNECTION_REMOTE && p_ct->status != TAB_STATUS_DISCONNECTED)
-		    || p_ct->type == CONNECTION_LOCAL)
-		  {*/
 		if (strcmp (p_ct->md5Buffer, md5string) ) {
 			//log_debug ("%s has changed\n", p_ct->connection.name);
 			strcpy (p_ct->md5Buffer, md5string);
-			//connection_tab_set_status (p_ct, TAB_STATUS_CHANGED);
 			tabSetFlag (p_ct, TAB_CHANGED);
 			refreshTabStatus (p_ct);
 		}
-		//}
 	}
 	/* Reset the resize flag */
 	p_ct->window_resized = 0;
@@ -2269,20 +2120,11 @@ key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 		if (!p_current_connection_tab)
 			return FALSE;
 		log_debug ("p_current_connection_tab ok\n");
-		if (/*p_current_connection_tab->connected == 0*/ tabGetConnectionStatus (p_current_connection_tab) == TAB_CONN_STATUS_DISCONNECTED &&
-		                p_current_connection_tab->type == CONNECTION_REMOTE &&
+		if (tabGetConnectionStatus (p_current_connection_tab) == TAB_CONN_STATUS_DISCONNECTED &&
 		                p_current_connection_tab->last_connection.name[0] != 0) {
-			/*if (VTE_IS_TERMINAL (p_current_connection_tab->vte))
-			  vte_terminal_reset (VTE_TERMINAL (p_current_connection_tab->vte), TRUE, FALSE);*/
-			/*
-			          p_current_connection_tab->changes_count = 0;
-			          p_current_connection_tab->auth_attempt = 0;
-			          p_current_connection_tab->logged = 0;
-			*/
 			tabInitConnection (p_current_connection_tab);
 			p_current_connection_tab->enter_key_relogging = 1;
 			log_on (p_current_connection_tab);
-			//connection_tab_set_status (p_current_connection_tab, TAB_STATUS_NORMAL);
 			refreshTabStatus (p_current_connection_tab);
 			update_screen_info ();
 		}
@@ -2295,7 +2137,6 @@ void
 update_by_tab (struct ConnectionTab *pTab)
 {
 	update_screen_info ();
-	//connection_tab_set_status (pTab, TAB_STATUS_NORMAL);
 	refreshTabStatus (pTab);
 	log_debug ("Completed\n");
 }

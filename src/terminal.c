@@ -258,13 +258,10 @@ log_on (struct ConnectionTab *p_conn_tab)
 	log_debug ("Child process id : %d\n", p_conn_tab->pid);
 	free (p_params);
 	if (success == TRUE) {
-		//p_conn_tab->connected = 1;
 		tabSetConnectionStatus (p_conn_tab, TAB_CONN_STATUS_CONNECTED);
-		p_conn_tab->type = CONNECTION_REMOTE;
 		rc = 0;
 	} else {
 		tabSetConnectionStatus (p_conn_tab, TAB_CONN_STATUS_DISCONNECTED);
-		//msgbox_error ("Unable to connect to %s", p_conn_tab->connection.name);
 		msgbox_error ("%s", error_msg);
 		rc = 2;
 	}
@@ -293,8 +290,6 @@ char *
 get_remote_directory ()
 {
 	if (p_current_connection_tab == NULL)
-		return (NULL);
-	if (p_current_connection_tab->type != CONNECTION_REMOTE)
 		return (NULL);
 	return (get_remote_directory_from_vte_title (p_current_connection_tab->vte) );
 }
