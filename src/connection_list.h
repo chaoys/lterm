@@ -11,13 +11,6 @@
 #define CONN_FLAG_NONE 0
 #define CONN_FLAG_IGNORE_WARNINGS 1
 
-#define CONN_WARNING_NONE 0
-#define CONN_WARNING_HOST_DUPLICATED 1
-#define CONN_WARNING_PROTOCOL_NOT_FOUND 2
-#define CONN_WARNING_PROTOCOL_COMMAND_NOT_FOUND 4
-
-#define MAX_NOTE_LEN 1024
-
 #define CONN_SAVE_NORMAL 0
 #define CONN_SAVE_USERPASS 1
 
@@ -47,14 +40,10 @@ typedef struct Connection {
 	char password[32];
 	char password_encrypted[64]; /* base 64 encoded */
 	unsigned int flags;
-	char note[MAX_NOTE_LEN];
 	char identityFile[1024];
 	SSH_Options sshOptions;
 
 	GPtrArray *directories;
-
-	/* reserved */
-	unsigned int warnings;
 
 	struct Connection *next;
 } SConnection;
@@ -69,7 +58,6 @@ void connection_init (SConnection *);
 void cl_init (struct Connection_List *p_cl);
 void cl_remove (struct Connection_List *p_cl, char *name);
 void cl_release (struct Connection_List *p_cl);
-void cl_check (struct Connection_List *p_cl);
 int cl_count (struct Connection_List *p_cl);
 struct Connection * cl_append (struct Connection_List *p_cl, struct Connection *p_new);
 struct Connection *cl_insert_sorted (struct Connection_List *p_cl, struct Connection *p_new);

@@ -47,7 +47,6 @@ extern struct ConnectionTab *p_current_connection_tab;
 struct GroupTree g_groups;
 struct Connection_List conn_list;
 struct GroupNode *g_selected_node;
-GdkPixbuf *postit_img;
 int g_xml_state;
 char g_xml_path[1024];
 char g_xml_path_bak[1024];
@@ -77,7 +76,6 @@ enum {
 	NAME_COLUMN,
 	ADDRESS_COLUMN,
 	PORT_COLUMN,
-	PIXMAP_COLUMN,
 	N_COLUMNS
 };
 
@@ -93,14 +91,9 @@ connection_init_stuff ()
 {
 	cl_init (&conn_list);
 	group_tree_init (&g_groups);
-	model = gtk_tree_store_new (N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, GDK_TYPE_PIXBUF);
-	postit_img = gdk_pixbuf_new_from_file (g_strconcat (globals.img_dir, "/post-it.png", NULL), NULL);
-	if (postit_img == NULL) {
-		log_debug ("can't load image %s\n", g_strconcat (globals.img_dir, "/post-it.png", NULL) );
-	}
+	model = gtk_tree_store_new (N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	load_connections ();
 	rebuild_tree_store ();
-	//expand_connection_tree_view_groups (GTK_TREE_VIEW (tree_view), &g_groups.root);
 }
 
 int
@@ -151,7 +144,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         "%*s  <user>%s</user>\n"
 	         "%*s  <password>%s</password>\n"
 	         "%*s  <user_options>%s</user_options>\n"
-	         "%*s  <note>%s</note>\n"
 	         //"%*s  <x11Forwarding>%d</x11Forwarding>\n",
 	         "%*s  <options>\n"
 	         "%*s    <property name='x11Forwarding'>%d</property>\n"
@@ -171,7 +163,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         indent, " ", NVL (p_conn->user, ""),
 	         indent, " ", NVL (p_conn->password_encrypted, ""),
 	         indent, " ", p_conn->user_options,
-	         indent, " ", p_conn->note[0] ? g_markup_escape_text (p_conn->note, strlen (p_conn->note) ) : "",
 	         indent, " ",
 	         indent, " ", p_conn->sshOptions.x11Forwarding,
 	         indent, " ", p_conn->sshOptions.agentForwarding,
@@ -179,18 +170,9 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         indent, " ", p_conn->sshOptions.flagKeepAlive, p_conn->sshOptions.keepAliveInterval,
 	         indent, " "
 	        );
-	//if (p_conn->history.head)
 	if (p_conn->directories) {
 		//log_debug ("  Writing history...\n");
-		//struct Bookmark *b = p_conn->history.head;
 		fprintf (fp, "%*s  <history>\n", indent, " ");
-		/*while (b)
-		  {
-		    if (strlen (b->item) > 0)
-		      fprintf (fp, "%*s    <item>%s</item>\n", indent, " ", g_markup_escape_text (b->item, strlen (b->item)));
-
-		    b = b->next;
-		  }*/
 		for (i = 0; i < p_conn->directories->len; i++) {
 			char *dir;
 			dir = (gchar *) g_ptr_array_index (p_conn->directories, i);
@@ -199,10 +181,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 		fprintf (fp, "%*s  </history>\n", indent, " ");
 		//log_debug ("  ...done\n");
 	}
-	/*else
-	  {
-	    log_debug ("no bookmark for %s\n", p_conn->name);
-	  }*/
 	fprintf (fp, "%*s</connection>\n", indent, " ");
 }
 
@@ -321,8 +299,6 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 		}
 		//log_debug ("Password: %s\n", pConn->password);
 	}
-	if (child = xml_node_get_child (node, "note") )
-		strcpy (pConn->note, NVL (xml_node_get_value (child), "") );
 	if (node_auth = xml_node_get_child (node, "authentication") ) {
 		if (g_connectionset_version == 4) {
 			strcpy (tmp_s, xml_node_get_attribute (node_auth, "enabled") );
@@ -357,7 +333,6 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 			char *d = (char *) xml_node_get_value (child);
 			if (d) {
 				//log_debug ("Adding %s\n", d);
-				//add_bookmark (&(pConn->history), d); // deprecated
 				add_directory (pConn, d);
 			}
 			child = child->next;
@@ -452,7 +427,6 @@ get_xml_doc (char *filename, XML *xmldoc)
 	fclose (fp);
 	//log_debug ("\n%s\n", xml);
 	/* Parse xml and create the connections tree */
-	//XML xmldoc;
 	xml_parse (xml, xmldoc);
 	//log_debug ("xmldoc.error.code=%d\n", xmldoc.error.code);
 	if (xmldoc->error.code) {
@@ -597,7 +571,6 @@ static void
 change_protocol_cb (GtkWidget *entry, gpointer user_data)
 {
 	struct Protocol *p_prot;
-	//SConnectionTab *connTab = (SConnectionTab *)user_data;
 	log_debug ("[start]\n");
 	gtk_spin_button_set_value (GTK_SPIN_BUTTON (port_spin_button), p_prot->port);
 	gboolean sensitive = TRUE;
@@ -679,13 +652,6 @@ get_parent_node_for_insert ()
 }
 
 void
-clear_note_button_clicked_cb (GtkButton *button, gpointer user_data)
-{
-	GtkTextBuffer *buffer = (GtkTextBuffer *) user_data;
-	gtk_text_buffer_set_text (buffer, "", -1);
-}
-
-void
 select_private_key_cb (GtkButton *button, gpointer user_data)
 {
 	GtkWidget *dialog;
@@ -695,8 +661,6 @@ select_private_key_cb (GtkButton *button, gpointer user_data)
 	                                      "_Cancel", GTK_RESPONSE_CANCEL,
 	                                      "_Open", GTK_RESPONSE_ACCEPT,
 	                                      NULL);
-	/*if (p_conn->upload_dir[0])
-	  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), p_conn->upload_dir);*/
 	gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (dialog), TRUE);
 	gtk_file_chooser_set_select_multiple (GTK_FILE_CHOOSER (dialog), FALSE);
 	result = gtk_dialog_run (GTK_DIALOG (dialog) );
@@ -710,21 +674,6 @@ void
 clear_private_key_cb (GtkButton *button, gpointer user_data)
 {
 	gtk_entry_set_text (GTK_ENTRY (authWidgets.entry_private_key), "");
-}
-
-void
-note_buffer_changed_cb (GtkTextBuffer *buffer, gpointer user_data)
-{
-	GtkTextIter start;
-	GtkTextIter end;
-	gchar *text;
-	gtk_text_buffer_get_bounds (buffer, &start, &end);
-	text = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
-	if (strlen (text) > MAX_NOTE_LEN) {
-		gtk_text_buffer_get_iter_at_offset (buffer, &start, MAX_NOTE_LEN - 1); /* leave room for NULL */
-		gtk_text_buffer_get_iter_at_offset (buffer, &end, MAX_NOTE_LEN );
-		gtk_text_buffer_delete (buffer, &start, &end);
-	}
 }
 
 char *
@@ -804,7 +753,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	GtkWidget *cancel_button, *ok_button;
 	GtkWidget *table;
 	GtkWidget *name_entry, *host_entry, *user_options_entry;
-	//GList *emulation_glist = NULL;
 	gint result;
 	struct Protocol *p;
 	struct Connection *p_conn = NULL;
@@ -882,35 +830,9 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	i = 0;
 	if (p_conn) {
 		gtk_spin_button_set_value (GTK_SPIN_BUTTON (port_spin_button), p_conn->port);
+	} else {
+		gtk_spin_button_set_value (GTK_SPIN_BUTTON (port_spin_button), g_ssh_prot.port);
 	}
-	/* warnings */
-	char warnings[1024];
-	GtkWidget *label_warnings = GTK_WIDGET (gtk_builder_get_object (builder, "label_warnings") );
-	strcpy (warnings, "<i>");
-	if (p_conn) {
-		if (p_conn->warnings == CONN_WARNING_NONE)
-			strcat (warnings, "No warnings");
-		else {
-			if (p_conn->warnings & CONN_WARNING_HOST_DUPLICATED) {
-				p_conn_tmp = cl_host_search (&conn_list, p_conn->host, p_conn->name);
-				if (p_conn_tmp) {
-					sprintf (s_tmp, _ ("Connection <b>%s</b> has the same host\n"), p_conn_tmp->name);
-					strcat (warnings, s_tmp);
-				}
-			}
-			if (p_conn->warnings & CONN_WARNING_PROTOCOL_COMMAND_NOT_FOUND) {
-				char protocol_command[128];
-				strcpy (protocol_command, g_ssh_prot.command);
-				sprintf (s_tmp, _ ("Protocol command <b>%s</b> not found\n"), protocol_command);
-				strcat (warnings, s_tmp);
-			}
-		}
-	}
-	strcat (warnings, "</i>");
-	gtk_label_set_markup (GTK_LABEL (label_warnings), warnings);
-	GtkWidget *ignore_warnings_check = GTK_WIDGET (gtk_builder_get_object (builder, "check_hide_warnings") );
-	if (p_conn)
-		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (ignore_warnings_check), p_conn->flags & CONN_FLAG_IGNORE_WARNINGS);
 	/* Authentication */
 	authWidgets.radio_auth_prompt = GTK_WIDGET (gtk_builder_get_object (builder, "radio_auth_prompt") );
 	authWidgets.radio_auth_save = GTK_WIDGET (gtk_builder_get_object (builder, "radio_auth_save") );
@@ -930,33 +852,12 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	if (p_conn) {
 		gtk_entry_set_text (GTK_ENTRY (user_options_entry), p_conn->user_options);
 	}
-	/* notes */
-	GtkTextBuffer *note_buffer;
-	GtkWidget *note_scrolwin, *note_view;
-	note_view = gtk_text_view_new ();
-	gtk_text_view_set_editable (GTK_TEXT_VIEW (note_view), TRUE);
-	gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW (note_view), GTK_WRAP_WORD);
-	gtk_text_view_set_left_margin (GTK_TEXT_VIEW (note_view), 2);
-	note_buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (note_view) );
-	note_scrolwin = GTK_WIDGET (gtk_builder_get_object (builder, "scrolled_notes") );
-	gtk_container_add (GTK_CONTAINER (note_scrolwin), note_view);
-	if (p_conn) {
-		if (p_conn->note[0])
-			gtk_text_buffer_set_text (note_buffer, p_conn->note, -1);
-	}
-	GtkWidget *clear_note_button = GTK_WIDGET (gtk_builder_get_object (builder, "button_clear") );
-	g_signal_connect (G_OBJECT (clear_note_button), "clicked", G_CALLBACK (clear_note_button_clicked_cb), note_buffer);
-	g_signal_connect (G_OBJECT (note_buffer), "changed", G_CALLBACK (note_buffer_changed_cb), NULL);
 	/* create dialog */
 	dialog = gtk_dialog_new ();
 	gtk_window_set_title (GTK_WINDOW (dialog), title);
 	gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
 	gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (dialog) ), GTK_WINDOW (connections_dialog) );
 	gtk_window_set_position (GTK_WINDOW (dialog), GTK_WIN_POS_CENTER);
-	//gtk_box_set_spacing (GTK_BOX (GTK_DIALOG (dialog)->vbox), 10);
-	//gtk_box_set_spacing (gtk_dialog_get_content_area (GTK_DIALOG (dialog)), 10);
-	//gtk_container_set_border_width (GTK_CONTAINER (dialog), 5);
-	//gtk_box_pack_end (GTK_BOX (GTK_DIALOG (dialog)->vbox), notebook, TRUE, TRUE, 0);
 	gtk_box_pack_end (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), notebook, TRUE, TRUE, 0);
 	cancel_button = gtk_dialog_add_button (GTK_DIALOG (dialog), "_Cancel", GTK_RESPONSE_CANCEL);
 	ok_button = gtk_dialog_add_button (GTK_DIALOG (dialog), "_Ok", GTK_RESPONSE_OK);
@@ -988,7 +889,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 			conn_new.sshOptions.disableStrictKeyChecking = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_disable_key_checking) ) ? 1 : 0;
 			conn_new.sshOptions.flagKeepAlive = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_keepAliveInterval) ) ? 1 : 0;
 			conn_new.sshOptions.keepAliveInterval = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (spin_keepAliveInterval) );
-			conn_new.flags = (conn_new.flags & ~ (CONN_FLAG_IGNORE_WARNINGS) ) | ( (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (ignore_warnings_check) ) ? 1 : 0) << 0);
 			if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (authWidgets.radio_auth_prompt) ) )
 				conn_new.auth_mode = CONN_AUTH_MODE_PROMPT;
 			else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (authWidgets.radio_auth_save) ) )
@@ -1002,21 +902,14 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 				strcpy (conn_new.auth_password_encrypted, des_encrypt_b64 (conn_new.auth_password) );
 			// Private key
 			strcpy (conn_new.identityFile, gtk_entry_get_text (GTK_ENTRY (authWidgets.entry_private_key) ) );
-			/* Notes */
-			GtkTextIter start_iter, end_iter;
-			gtk_text_buffer_get_bounds (note_buffer, &start_iter, &end_iter);
-			strcpy (conn_new.note, gtk_text_buffer_get_text (note_buffer, &start_iter, &end_iter, FALSE) );
 			if (p_node) { /* edit */
 				log_debug ("Edit\n");
 				log_debug ("Validating %s ...\n", p_conn->name);
-				//err_name_validation = validate_name (g_selected_node->parent, g_selected_node, p_conn, connection_name);
 				err_name_validation = validate_name (p_node->parent, p_node, p_conn, connection_name);
 				if (!err_name_validation) {
 					log_debug ("Name validated\n");
 					connection_copy (p_conn, &conn_new);
 					/* update name in the tree */
-					//strcpy (g_selected_node->name, p_conn->name);
-					//p_node_return = g_selected_node;
 					strcpy (p_node->name, p_conn->name);
 					p_node_return = p_node;
 					break;
@@ -1040,7 +933,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 		}
 	}
 	gtk_widget_destroy (dialog);
-	/* cl_check (&conn_list); */
 	return (p_node_return);
 }
 
@@ -1145,7 +1037,6 @@ append_node_gtk_tree (struct GroupNode *p_node, GtkTreeIter *parentIter)
 	for (i = 0; i < MAX_CHILD_GROUPS; i++) {
 		if (p_node->child[i]) {
 			gtk_tree_store_append (model, &child, parentIter);
-			//log_debug ("added %s %s\n", p_node->child[i]->type == GN_TYPE_CONNECTION ? "connection" : "folder", p_node->child[i]->name);
 			if (p_node->child[i]->type == GN_TYPE_CONNECTION) {
 				p_conn = cl_get_by_name (&conn_list, p_node->child[i]->name);
 				if (p_conn->port > 0)
@@ -1156,10 +1047,9 @@ append_node_gtk_tree (struct GroupNode *p_node, GtkTreeIter *parentIter)
 				                    NAME_COLUMN, p_conn->name,
 				                    ADDRESS_COLUMN, p_conn->host,
 				                    PORT_COLUMN, port_s,
-				                    PIXMAP_COLUMN, p_conn->note[0] != 0 ? postit_img : NULL,
 				                    -1);
 			} else {
-				gtk_tree_store_set (model, &child, NAME_COLUMN, p_node->child[i]->name, PIXMAP_COLUMN, NULL, -1);
+				gtk_tree_store_set (model, &child, NAME_COLUMN, p_node->child[i]->name, -1);
 				append_node_gtk_tree (p_node->child[i], &child);
 			}
 		}
@@ -1192,11 +1082,7 @@ void
 rebuild_tree_store ()
 {
 	g_rebuilding_tree_store = 1;
-	/* disable signals */
-	//rows_signals_enabled = 0;
 	gtk_tree_store_clear (model);
-	/* set warnings */
-	cl_check (&conn_list);
 	log_debug ("sorting tree...\n");
 	group_tree_sort (&g_groups, 0);
 	log_debug ("refreshing ...\n");
@@ -1207,13 +1093,10 @@ rebuild_tree_store ()
 void
 refresh_connection_tree_view (GtkTreeView *tree_view)
 {
-	//rebuild_tree_store ();
 	if (tree_view == NULL)
 		return;
 	log_debug ("expanding ...\n");
 	expand_connection_tree_view_groups (tree_view, &g_groups.root);
-	//gtk_tree_view_set_show_expanders (tree_view, TRUE);
-	//gtk_tree_view_set_expander_column (tree_view, NULL);
 }
 
 gboolean
@@ -1235,9 +1118,6 @@ cursor_changed_cb (GtkTreeView *tree_view, gpointer user_data)
 	GtkTreePath *path;
 	GtkTreeIter iter;
 	GtkTreeSelection *selection;
-	//
-	//selection = gtk_tree_view_get_selection (tree_view);
-	//gtk_tree_selection_get_selected (selection, &l_model, &iter);
 	gtk_tree_selection_get_selected (user_data, &l_model, &iter);
 	if (!gtk_tree_selection_get_selected (/*selection*/ user_data, &l_model, &iter) ) {
 		g_selected_node = NULL;
@@ -1291,7 +1171,6 @@ row_activated_cb (GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *
 	selection = gtk_tree_view_get_selection (tree_view);
 	if (get_selected_connection (selection, &conn) )
 		g_dialog_connections_connect = 1;
-	//gtk_dialog_response (GTK_DIALOG (user_data), GTK_RESPONSE_OK);
 }
 
 void
@@ -1305,55 +1184,11 @@ connection_name_cell_data_func (GtkTreeViewColumn *col, GtkCellRenderer *rendere
 	p_conn = (struct Connection *) get_connection (&conn_list, name);
 	if (p_conn) {
 		//log_debug("%s is a connection\n", name);
-		if (p_conn->warnings != CONN_WARNING_NONE) {
-			if ( (p_conn->warnings & CONN_WARNING_PROTOCOL_NOT_FOUND) || (p_conn->warnings & CONN_WARNING_PROTOCOL_COMMAND_NOT_FOUND) )
-				strcpy (color, prefs.warnings_error_color);
-			else
-				strcpy (color, prefs.warnings_color);
-			sprintf (markup_string, "<span color=\"%s\">%s</span>", color, name);
-		} else
-			sprintf (markup_string, "%s", name);
+		sprintf (markup_string, "%s", name);
 	} else {
 		sprintf (markup_string, "<b>%s</b>", name);
 	}
-	//g_object_set (renderer, "text", name, NULL);
 	g_object_set (renderer, "markup", markup_string, NULL);
-}
-
-/**
- * cell_tooltip_callback_config_default() - Shows a tooltip whenever the user puts the mouse over a row
- */
-gboolean
-cell_tooltip_callback (GtkWidget *widget, gint x, gint y,
-                       gboolean keyboard_tip, GtkTooltip *tooltip, gpointer user_data)
-{
-	struct Connection *p_conn;
-	GtkTreeModel *model;
-	GtkTreeIter iter;
-	GtkTreeViewColumn *column;
-	GtkTreePath *path;
-	if (!gtk_tree_view_get_tooltip_context (GTK_TREE_VIEW (widget), &x, &y, keyboard_tip, &model, 0, &iter) ) {
-		return FALSE;
-	}
-	if (!gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (widget), x, y, 0, &column, 0, 0) ) {
-		return FALSE;
-	}
-	/* get connection from iter */
-	path = gtk_tree_model_get_path (GTK_TREE_MODEL (model), &iter);
-	struct GroupNode *p_node;
-	p_node = group_node_find_by_numeric_path (group_tree_get_root (&g_groups), gtk_tree_path_to_string (path), 1);
-	if (p_node) {
-		if (p_node->type == GN_TYPE_CONNECTION) {
-			p_conn = cl_get_by_name (&conn_list, p_node->name);
-			if (p_conn) {
-				if (p_conn->note[0]) {
-					gtk_tooltip_set_text (tooltip, p_conn->note);
-					return TRUE;
-				}
-			}
-		}
-	}
-	return FALSE;
 }
 
 void
@@ -1429,25 +1264,18 @@ create_connections_tree_view ()
 	struct Protocol *p_prot;
 	gint sel_port;
 	gchar *sel_name;
-	//GtkTreeView *tree_view = gtk_tree_view_new ();
 	GtkWidget *tree_view = gtk_tree_view_new ();
 	gtk_tree_view_set_model (GTK_TREE_VIEW (tree_view), GTK_TREE_MODEL (model) );
-	g_object_set (tree_view, "has-tooltip", TRUE, (char *) 0);
-	g_signal_connect (tree_view, "query-tooltip", (GCallback) cell_tooltip_callback, 0);
 	g_signal_connect (tree_view, "test-expand-row", G_CALLBACK (expand_row_cb), NULL);
 	g_signal_connect (tree_view, "test-collapse-row", G_CALLBACK (collapse_row_cb), NULL);
 	/* draw lines interconnecting the expanders */
 	gtk_tree_view_set_enable_tree_lines (GTK_TREE_VIEW (tree_view), TRUE);
-	/* sets which grid lines to draw */
-	//gtk_tree_view_set_grid_lines (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_GRID_LINES_NONE);
 	gtk_widget_show (GTK_WIDGET (tree_view) );
 	/* Name */
 	GtkCellRenderer *name_cell = gtk_cell_renderer_text_new ();
 	GtkTreeViewColumn *name_column = gtk_tree_view_column_new_with_attributes (_ ("Name"), name_cell, "text", NAME_COLUMN, NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (name_column) );
-	//g_object_set (name_cell, "weight", PANGO_WEIGHT_BOLD, "weight-set", TRUE, NULL);
 	gtk_tree_view_column_set_cell_data_func (name_column, name_cell, connection_name_cell_data_func, NULL, NULL);
-	//gtk_tree_view_column_pack_start (column, cell, TRUE);
 	/* Address */
 	cell = gtk_cell_renderer_text_new ();
 	column = gtk_tree_view_column_new_with_attributes (_ ("Host"), cell, "text", ADDRESS_COLUMN, NULL);
@@ -1456,25 +1284,8 @@ create_connections_tree_view ()
 	cell = gtk_cell_renderer_text_new ();
 	column = gtk_tree_view_column_new_with_attributes (_ ("Port"), cell, "text", PORT_COLUMN, NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column) );
-	cell = gtk_cell_renderer_pixbuf_new ();
-	column = gtk_tree_view_column_new_with_attributes ("", cell, "pixbuf", PIXMAP_COLUMN, NULL);
-	//gtk_tree_view_column_set_sizing (GTK_TREE_VIEW_COLUMN (column), GTK_TREE_VIEW_COLUMN_FIXED);
-	gtk_tree_view_column_set_max_width (GTK_TREE_VIEW_COLUMN (column), 30);
-	//gtk_tree_view_column_pack_start (column, cell, FALSE);
-	gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column) );
-	//g_signal_connect (G_OBJECT (tree_view), "row-activated", G_CALLBACK (row_activated_cb), dialog);
-	/* Enable drag and drop */
-	//tree_model = gtk_tree_view_get_model (GTK_TREE_VIEW (tree_view));
-	/* row-inserted callback is common for quick launch window and dialog */
-	//g_signal_connect (tree_model, "row-inserted", G_CALLBACK (on_drag_data_inserted), GTK_TREE_VIEW (tree_view));
-	//g_signal_connect (tree_model, "row-changed", G_CALLBACK (on_drag_data_changed), NULL);
+	//gtk_tree_view_column_set_max_width (GTK_TREE_VIEW_COLUMN (column), 30);
 	gtk_tree_view_set_reorderable (GTK_TREE_VIEW (tree_view), TRUE); /* for drag and drop */
-	/*
-	  gtk_tree_view_enable_model_drag_source (GTK_TREE_VIEW (tree_view), GDK_BUTTON1_MASK, row_targets,
-	                                          G_N_ELEMENTS (row_targets), GDK_ACTION_MOVE);
-	  gtk_tree_view_enable_model_drag_dest (GTK_TREE_VIEW (tree_view), row_targets,
-	                                        G_N_ELEMENTS (row_targets), GDK_ACTION_MOVE);
-	*/
 	return (tree_view);
 }
 
@@ -1506,7 +1317,6 @@ move_cursor_to_node (GtkTreeView *tree_view, struct GroupNode *p_node)
 	char path_s[256];
 	GtkTreePath *path;
 	group_tree_sort (&g_groups, 0);
-	//refresh_connection_tree_view (GTK_TREE_VIEW (tree_view));
 	rebuild_tree_store ();
 	expand_connection_tree_view_groups (tree_view, &g_groups.root);
 	gtk_widget_grab_focus (GTK_WIDGET (tree_view) );
@@ -1542,15 +1352,6 @@ edit_button_clicked_cb (GtkButton *button, gpointer user_data)
 	if (g_selected_node == NULL)
 		return;
 	if (g_selected_node->type == GN_TYPE_CONNECTION) {
-		/*
-		p_conn = cl_get_by_name (&conn_list, g_selected_node->name);
-
-		if (p_conn)
-		  {
-		    if (p_node = add_update_connection (p_conn))
-		      move_cursor = 1;
-		  }
-		*/
 		if (p_node = add_update_connection (g_selected_node, NULL) )
 			move_cursor = 1;
 	} else {

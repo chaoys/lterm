@@ -24,12 +24,9 @@ struct Connection *get_connection_by_index (int index);
 struct Connection *get_connection_by_name (char *name);
 struct Connection *get_connection_by_host (char *host);
 
-//int load_connections_from_file_version (char *filename, struct Connection_List *p_cl, int version);
-//int load_connections_from_file (char *filename, struct Connection_List *p_cl);
 int load_connections_from_file_xml (char *filename);
 GList *load_connection_list_from_file_xml (char *filename);
 int save_connections_to_file (char *, struct Connection_List *, int);
-//int save_connections_to_file_xml_from_list (struct Connection_List *pList, char *filename);
 int save_connections_to_file_xml_from_glist (GList *pList, char *filename);
 int save_connections_to_file_xml (char *filename);
 int load_connections ();

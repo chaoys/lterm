@@ -171,36 +171,6 @@ cl_get_by_name (struct Connection_List *p_cl, char *name)
 	return (p_conn);
 }
 
-/*
-struct Connection *
-cl_get_current () { return (&conn_list); }
-*/
-
-/**
- * cl_check() - check connections and set warnings
- */
-void
-cl_check (struct Connection_List *p_cl)
-{
-	struct Connection *p_conn, *pc;
-	struct Protocol *p_protocol;
-	if (!prefs.check_connections)
-		return;
-	p_conn = p_cl->head;
-	while (p_conn) {
-		p_conn->warnings = CONN_WARNING_NONE;
-		if (p_conn->flags & CONN_FLAG_IGNORE_WARNINGS) {
-			p_conn = p_conn->next;
-			continue;
-		}
-		if (cl_host_search (p_cl, p_conn->host, p_conn->name) )
-			p_conn->warnings |= CONN_WARNING_HOST_DUPLICATED;
-		if (!check_command (g_ssh_prot.command) )
-			p_conn->warnings |= CONN_WARNING_PROTOCOL_COMMAND_NOT_FOUND;
-		p_conn = p_conn->next;
-	}
-}
-
 void
 cl_remove (struct Connection_List *p_cl, char *name)
 {
