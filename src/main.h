@@ -11,12 +11,8 @@
 #include "gtk/gtk.h"
 
 #define log_debug(format, ...)
-#define ENTER_FUNC()
 
 #include "config.h"
-
-#define _(x)   x
-#define N_(x)  x
 
 #define KEY "You may say I'm a dreamer"
 
@@ -24,13 +20,12 @@
 #define HTTP_HOME_PAGE "http://lterm.sourceforge.net"
 
 #define LOG_MSG printf
-/* g_print */
 
 /* Version of configuration files */
 #define CFG_VERSION 3
 #define CFG_XML_VERSION 6
 
-# define DEFAULT_FIXED_FONT "Monospace 9"
+#define DEFAULT_FIXED_FONT "Monospace 9"
 
 /*
   Struct: _globals

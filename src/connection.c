@@ -680,19 +680,19 @@ get_validation_error_string (int error_code)
 {
 	switch (error_code) {
 		case 0:
-			return (_ ("Validation OK") );
+			return (("Validation OK") );
 			break;
 		case ERR_VALIDATE_MISSING_VALUES:
-			return (_ ("Missing values") );
+			return (("Missing values") );
 			break;
 		case ERR_VALIDATE_EXISTING_CONNECTION:
-			return (_ ("An existing connection has the same name") );
+			return (("An existing connection has the same name") );
 			break;
 		case ERR_VALIDATE_EXISTING_ITEM_LEVEL:
-			return (_ ("Existing item with the same name at the same level") );
+			return (("Existing item with the same name at the same level") );
 			break;
 		default:
-			return (_ ("Name is not allowed") );
+			return (("Name is not allowed") );
 			break;
 	}
 }
@@ -772,10 +772,10 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	}
 	log_debug ("Loaded %s\n", ui);
 	if (p_node == NULL) {
-		strcpy (title, _ ("Add connection") );
+		strcpy (title, ("Add connection") );
 		p_conn = p_conn_model;
 	} else {
-		strcpy (title, _ ("Edit connection") );
+		strcpy (title, ("Edit connection") );
 		p_conn = cl_get_by_name (&conn_list, p_node->name);
 		if (p_conn == NULL)
 			return (NULL);
@@ -953,12 +953,12 @@ add_update_folder (struct GroupNode *p_node)
 	struct GroupNode *p_node_return = NULL;
 	struct GroupNode *p_parent;
 	if (p_node == 0)
-		strcpy (title, _ ("Create folder") );
+		strcpy (title, ("Create folder") );
 	else
-		strcpy (title, _ ("Rename folder") );
+		strcpy (title, ("Rename folder") );
 	name_entry = gtk_entry_new ();
 	gtk_entry_set_activates_default (GTK_ENTRY (name_entry), TRUE);
-	GtkWidget *name_hbox = create_entry_control (_ ("Folder name"), name_entry);
+	GtkWidget *name_hbox = create_entry_control (("Folder name"), name_entry);
 	if (p_node) {
 		gtk_entry_set_text (GTK_ENTRY (name_entry), p_node->name);
 	}
@@ -1272,16 +1272,16 @@ create_connections_tree_view ()
 	gtk_widget_show (GTK_WIDGET (tree_view) );
 	/* Name */
 	GtkCellRenderer *name_cell = gtk_cell_renderer_text_new ();
-	GtkTreeViewColumn *name_column = gtk_tree_view_column_new_with_attributes (_ ("Name"), name_cell, "text", NAME_COLUMN, NULL);
+	GtkTreeViewColumn *name_column = gtk_tree_view_column_new_with_attributes (("Name"), name_cell, "text", NAME_COLUMN, NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (name_column) );
 	gtk_tree_view_column_set_cell_data_func (name_column, name_cell, connection_name_cell_data_func, NULL, NULL);
 	/* Address */
 	cell = gtk_cell_renderer_text_new ();
-	column = gtk_tree_view_column_new_with_attributes (_ ("Host"), cell, "text", ADDRESS_COLUMN, NULL);
+	column = gtk_tree_view_column_new_with_attributes (("Host"), cell, "text", ADDRESS_COLUMN, NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column) );
 	/* Port */
 	cell = gtk_cell_renderer_text_new ();
-	column = gtk_tree_view_column_new_with_attributes (_ ("Port"), cell, "text", PORT_COLUMN, NULL);
+	column = gtk_tree_view_column_new_with_attributes (("Port"), cell, "text", PORT_COLUMN, NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column) );
 	//gtk_tree_view_column_set_max_width (GTK_TREE_VIEW_COLUMN (column), 30);
 	gtk_tree_view_set_reorderable (GTK_TREE_VIEW (tree_view), TRUE); /* for drag and drop */
@@ -1487,7 +1487,7 @@ choose_manage_connection (struct Connection *p_conn)
 	gtk_window_set_modal (GTK_WINDOW (dialog_window), TRUE);
 	gtk_window_set_transient_for (GTK_WINDOW (dialog_window), GTK_WINDOW (main_window) );
 	gtk_window_set_position (GTK_WINDOW (dialog_window), GTK_WIN_POS_CENTER_ON_PARENT);
-	gtk_window_set_title (GTK_WINDOW (dialog_window), _ ("Log on") );
+	gtk_window_set_title (GTK_WINDOW (dialog_window), ("Log on") );
 	g_signal_connect (dialog_window, "delete_event", G_CALLBACK (dialog_delete_event_cb), NULL);
 	GtkWidget *dialog_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
 	/* create a tree view for connections before buttons so we can pass it to callback functions */
@@ -1512,16 +1512,16 @@ choose_manage_connection (struct Connection *p_conn)
 	GtkWidget *new_connection_button = gtk_button_new ();
 	gtk_button_set_image (GTK_BUTTON (new_connection_button), gtk_image_new_from_icon_name (MY_STOCK_PLUS, GTK_ICON_SIZE_LARGE_TOOLBAR) );
 	gtk_button_set_image_position (GTK_BUTTON (new_connection_button), GTK_POS_TOP);
-	gtk_button_set_label (GTK_BUTTON (new_connection_button), _ ("Add") );
+	gtk_button_set_label (GTK_BUTTON (new_connection_button), ("Add") );
 	gtk_button_set_relief (GTK_BUTTON (new_connection_button), GTK_RELIEF_NONE);
-	gtk_widget_set_tooltip_text (new_connection_button, _ ("Add a new connection") );
+	gtk_widget_set_tooltip_text (new_connection_button, ("Add a new connection") );
 	gtk_box_pack_start (GTK_BOX (buttons_hbox), new_connection_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (new_connection_button), "clicked", G_CALLBACK (new_connection_button_clicked_cb), tree_view);
 	GtkWidget *delete_button = gtk_button_new ();
 	gtk_button_set_image (GTK_BUTTON (delete_button), gtk_image_new_from_icon_name (MY_STOCK_LESS, GTK_ICON_SIZE_LARGE_TOOLBAR) );
 	gtk_button_set_image_position (GTK_BUTTON (delete_button), GTK_POS_TOP);
-	gtk_button_set_label (GTK_BUTTON (delete_button), _ ("Remove") );
-	gtk_widget_set_tooltip_text (delete_button, _ ("Remove selected connection or group") );
+	gtk_button_set_label (GTK_BUTTON (delete_button), ("Remove") );
+	gtk_widget_set_tooltip_text (delete_button, ("Remove selected connection or group") );
 	gtk_button_set_relief (GTK_BUTTON (delete_button), GTK_RELIEF_NONE);
 	gtk_box_pack_start (GTK_BOX (buttons_hbox), delete_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (delete_button), "clicked", G_CALLBACK (delete_button_clicked_cb), tree_view);
@@ -1530,7 +1530,7 @@ choose_manage_connection (struct Connection *p_conn)
 	gtk_button_set_image_position (GTK_BUTTON (edit_button), GTK_POS_TOP);
 	gtk_button_set_label (GTK_BUTTON (edit_button), "Edit");
 	gtk_button_set_relief (GTK_BUTTON (edit_button), GTK_RELIEF_NONE);
-	gtk_widget_set_tooltip_text (edit_button, _ ("Edit selected connection or group") );
+	gtk_widget_set_tooltip_text (edit_button, ("Edit selected connection or group") );
 	gtk_box_pack_start (GTK_BOX (buttons_hbox), edit_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (edit_button), "clicked", G_CALLBACK (edit_button_clicked_cb), tree_view);
 	GtkWidget *duplicate_connection_button = gtk_button_new ();
@@ -1538,7 +1538,7 @@ choose_manage_connection (struct Connection *p_conn)
 	gtk_button_set_image_position (GTK_BUTTON (duplicate_connection_button), GTK_POS_TOP);
 	gtk_button_set_label (GTK_BUTTON (duplicate_connection_button), "Duplicate");
 	gtk_button_set_relief (GTK_BUTTON (duplicate_connection_button), GTK_RELIEF_NONE);
-	gtk_widget_set_tooltip_text (duplicate_connection_button, _ ("Duplicate selected connection") );
+	gtk_widget_set_tooltip_text (duplicate_connection_button, ("Duplicate selected connection") );
 	gtk_box_pack_start (GTK_BOX (buttons_hbox), duplicate_connection_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (duplicate_connection_button), "clicked", G_CALLBACK (duplicate_connection_button_clicked_cb), tree_view);
 	GtkWidget *new_folder_button = gtk_button_new ();
@@ -1546,7 +1546,7 @@ choose_manage_connection (struct Connection *p_conn)
 	gtk_button_set_image_position (GTK_BUTTON (new_folder_button), GTK_POS_TOP);
 	gtk_button_set_label (GTK_BUTTON (new_folder_button), "Folder");
 	gtk_button_set_relief (GTK_BUTTON (new_folder_button), GTK_RELIEF_NONE);
-	gtk_widget_set_tooltip_text (new_folder_button, _ ("Create a new folder") );
+	gtk_widget_set_tooltip_text (new_folder_button, ("Create a new folder") );
 	gtk_box_pack_start (GTK_BOX (buttons_hbox), new_folder_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (new_folder_button), "clicked", G_CALLBACK (new_folder_button_clicked_cb), tree_view);
 	gtk_box_pack_start (GTK_BOX (dialog_vbox), buttons_hbox, FALSE, FALSE, 0);

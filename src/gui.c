@@ -611,7 +611,7 @@ expand_args (struct Connection *p_conn, char *args, char *prefix, char *dest)
 						strcpy (expanded, p_conn->user);
 					} else {
 						strcpy (title, "Log on");
-						sprintf (label, _ ("Enter user for <b>%s</b>:"), p_conn->name);
+						sprintf (label, ("Enter user for <b>%s</b>:"), p_conn->name);
 						go_on = query_value (title, label, p_conn->last_user, expanded, QUERY_USER);
 						strcpy (p_conn->user, expanded);
 						//p_conn->auth_flags |= AUTH_STEP_USER;
@@ -629,7 +629,7 @@ expand_args (struct Connection *p_conn, char *args, char *prefix, char *dest)
 						strcpy (expanded, p_conn->password);
 					} else {
 						strcpy (title, "Log on");
-						sprintf (label, _ ("Enter password for <b>%s@%s</b>:"), p_conn->user, p_conn->name);
+						sprintf (label, ("Enter password for <b>%s@%s</b>:"), p_conn->user, p_conn->name);
 						go_on = query_value (title, label, "", expanded, QUERY_PASSWORD);
 						strcpy (p_conn->password, expanded);
 						//p_conn->auth_flags |= AUTH_STEP_PASSWORD;
@@ -684,7 +684,7 @@ show_login_mask (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth)
 		gtk_entry_set_text (GTK_ENTRY (entry_user), p_conn_tab->connection.last_user);
 	/* Create dialog */
 	dialog = gtk_dialog_new_with_buttons
-	         (_ ("Authentication"), NULL,
+	         (("Authentication"), NULL,
 	          GTK_DIALOG_MODAL,
 	          "_Cancel", GTK_RESPONSE_CANCEL,
 	          "_Ok", GTK_RESPONSE_OK,
@@ -781,7 +781,7 @@ connection_tab_close (struct ConnectionTab *p_ct)
 	//log_debug ("ptr = %d\n", (unsigned int) p_ct);
 	if (tabIsConnected (p_ct) ) {
 		log_debug ("%s seems connected\n", p_ct->connection.name);
-		sprintf (prompt, _ ("Close connection to %s?"), p_ct->connection.name);
+		sprintf (prompt, ("Close connection to %s?"), p_ct->connection.name);
 		retcode = msgbox_yes_no (prompt);
 		if (retcode == GTK_RESPONSE_YES)
 			can_close = 1;
@@ -1034,7 +1034,7 @@ application_quit ()
 	GList *item;
 	n = connection_tab_count ();
 	if (n) {
-		sprintf (message, _ ("There are %d active terminal/s.\nExit anyway?"), n);
+		sprintf (message, ("There are %d active terminal/s.\nExit anyway?"), n);
 		retcode = msgbox_yes_no (message);
 		if (retcode == GTK_RESPONSE_YES)
 			can_quit = 1;
@@ -1171,7 +1171,7 @@ edit_find ()
 		gtk_entry_set_text (GTK_ENTRY (entry_expr), globals.find_expr);
 	/* Create dialog */
 	dialog = gtk_dialog_new_with_buttons
-	         (_ ("Find"), NULL,
+	         (("Find"), NULL,
 	          GTK_DIALOG_MODAL,
 	          "_Cancel", GTK_RESPONSE_CANCEL,
 	          "_Ok", GTK_RESPONSE_OK,
@@ -1443,7 +1443,7 @@ terminal_cluster ()
 	}
 	/* Create dialog */
 	dialog = gtk_dialog_new_with_buttons
-	         (_ ("Cluster"), NULL,
+	         (("Cluster"), NULL,
 	          GTK_DIALOG_MODAL,
 	          "_Cancel", GTK_RESPONSE_CANCEL,
 	          "_Apply", GTK_RESPONSE_OK,
@@ -1460,11 +1460,11 @@ terminal_cluster ()
 	/* Selected */
 	GtkCellRenderer/*Toggle*/ *toggle_cell = gtk_cell_renderer_toggle_new ();
 	g_signal_connect (toggle_cell, "toggled", G_CALLBACK (terminal_toggled_cb), GTK_TREE_MODEL (list_store_cluster) );
-	column = gtk_tree_view_column_new_with_attributes (_ ("Enabled"), toggle_cell, "active", COLUMN_CLUSTER_TERM_SELECTED, NULL);
+	column = gtk_tree_view_column_new_with_attributes (("Enabled"), toggle_cell, "active", COLUMN_CLUSTER_TERM_SELECTED, NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column) );
 	/* Name */
 	cell = gtk_cell_renderer_text_new ();
-	column = gtk_tree_view_column_new_with_attributes (_ ("Tab"), cell, "text", COLUMN_CLUSTER_TERM_NAME, NULL);
+	column = gtk_tree_view_column_new_with_attributes (("Tab"), cell, "text", COLUMN_CLUSTER_TERM_NAME, NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column) );
 	gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (tree_view), TRUE);
 	// Populate list
@@ -1593,7 +1593,7 @@ Info ()
 		msgbox_error ("Can't load user interface file:\n%s", error->message);
 		return;
 	}
-	dialog = gtk_dialog_new_with_buttons (_ ("About"), GTK_WINDOW (main_window), GTK_DIALOG_MODAL, "_Ok", GTK_RESPONSE_CLOSE, NULL);
+	dialog = gtk_dialog_new_with_buttons (("About"), GTK_WINDOW (main_window), GTK_DIALOG_MODAL, "_Ok", GTK_RESPONSE_CLOSE, NULL);
 	gtk_window_set_resizable (GTK_WINDOW (dialog), FALSE);
 	gtk_window_set_position (GTK_WINDOW (dialog), GTK_WIN_POS_CENTER);
 	gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (dialog) ), GTK_WINDOW (main_window) );

@@ -70,7 +70,7 @@ profile_edit (GtkWidget *demo_vte)
 	}
 	/* Create dialog */
 	dialog = gtk_dialog_new_with_buttons
-	         (_ ("Edit profile"), NULL,
+	         (("Edit profile"), NULL,
 	          GTK_DIALOG_MODAL,
 	          "_Cancel", GTK_RESPONSE_CANCEL,
 	          "_Ok", GTK_RESPONSE_OK,
@@ -151,7 +151,7 @@ show_preferences (void)
 	}
 	/* Create dialog */
 	dialog = gtk_dialog_new_with_buttons
-	         (_ ("Preferences"), NULL,
+	         (("Preferences"), NULL,
 	          GTK_DIALOG_MODAL,
 	          "_Cancel", GTK_RESPONSE_CANCEL,
 	          "_Ok", GTK_RESPONSE_OK,
@@ -163,10 +163,10 @@ show_preferences (void)
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (startconn_check), prefs.startup_show_connections);
 	/* tabs */
 	GtkWidget *tabs_pos_combo = GTK_WIDGET (gtk_builder_get_object (builder, "combo_tabs_pos") );
-	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (tabs_pos_combo), _ ("Left") );
-	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (tabs_pos_combo), _ ("Right") );
-	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (tabs_pos_combo), _ ("Top") );
-	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (tabs_pos_combo), _ ("Bottom") );
+	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (tabs_pos_combo), ("Left") );
+	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (tabs_pos_combo), ("Right") );
+	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (tabs_pos_combo), ("Top") );
+	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (tabs_pos_combo), ("Bottom") );
 	gtk_combo_box_set_active (GTK_COMBO_BOX (tabs_pos_combo), prefs.tabs_position);
 	GtkWidget *tab_alerts_check = GTK_WIDGET (gtk_builder_get_object (builder, "check_tab_alerts") );
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (tab_alerts_check), prefs.tab_alerts);

@@ -48,7 +48,7 @@ int
 terminal_connect_ssh (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth)
 {
 	int login_rc = 0;
-	terminal_write_ex (p_conn_tab, _ ("Connecting to %s...\n\r"), p_conn_tab->connection.host);
+	terminal_write_ex (p_conn_tab, "Connecting to %s...\n\r", p_conn_tab->connection.host);
 	login_rc = lt_ssh_connect (&p_conn_tab->ssh_info, &globals.ssh_list, p_auth);
 	log_debug ("login_rc = %d\n", login_rc);
 	if (login_rc == 0) {
@@ -186,29 +186,12 @@ log_on (struct ConnectionTab *p_conn_tab)
 		strcat (expanded_args, p_conn_tab->connection.user_options);
 	}
 	log_debug ("expand_args : %s\n", expanded_args);
-	/*
-	  strcpy (params[0], p_prot->command);
-
-	  for (i=1; i<=list_count (expanded_args, ' '); i ++)
-	    {
-	      list_get_nth_not_null (expanded_args, i, ' ', params[i]);
-	    }
-
-	  p_params = (char **) malloc ((list_count (expanded_args, ' ')+2) * sizeof (char *));
-
-	  for (i=0; i<=list_count (expanded_args, ' '); i ++)
-	    {
-	      p_params[i] = &params[i][0];
-	    }
-
-	  p_params[i] = NULL; // trailing null
-	*/
 	p_params = splitString (expanded_args, " ", TRUE, "\"", TRUE, NULL);
 	/*
 	 * now the array is something like
 	 * char *params[] = { "ssh", "fabio@localhost", NULL };
 	 */
-	terminal_write_ex (p_conn_tab, _ ("Logging in...\n\r") );
+	terminal_write_ex (p_conn_tab, "Logging in...\n\r");
 	log_debug ("using vte_terminal_fork_command_full()\n");
 	GError *error = NULL;
 	GSpawnFlags spawn_flags;
@@ -310,7 +293,7 @@ asked_for_user (struct ConnectionTab *p_ct, char *log_on_data)
 	log_debug ("\n");
 	vteterminal = VTE_TERMINAL (p_ct->vte);
 	feed_child = 0;
-	sprintf (label, _ ("Enter user for <b>%s</b>:"), p_ct->connection.name);
+	sprintf (label, "Enter user for <b>%s</b>:", p_ct->connection.name);
 	feed_child = check_log_in_parameter (p_ct->connection.auth_mode, p_ct->connection.auth_user,
 	                                     p_ct->connection.user, p_ct->connection.last_user,
 	                                     p_ct->auth_attempt, p_prot->flags, PROT_FLAG_ASKUSER,
@@ -328,7 +311,7 @@ asked_for_password (struct ConnectionTab *p_ct, char *log_on_data)
 	log_debug ("\n");
 	vteterminal = VTE_TERMINAL (p_ct->vte);
 	feed_child = 0;
-	sprintf (label, _ ("Enter password for <b>%s@%s</b>:"), p_ct->connection.user, p_ct->connection.name);
+	sprintf (label, "Enter password for <b>%s@%s</b>:", p_ct->connection.user, p_ct->connection.name);
 	feed_child = check_log_in_parameter (p_ct->connection.auth_mode, p_ct->connection.auth_password,
 	                                     p_ct->connection.password, "",
 	                                     p_ct->auth_attempt, p_prot->flags, AUTH_STATE_GOT_PASSWORD,
