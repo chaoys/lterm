@@ -456,12 +456,13 @@ terminal_set_search_expr (char *expr)
 	GError* err = NULL;
 	if (p_current_connection_tab == NULL)
 		return;
-	GRegex* regex = g_regex_new (expr, 0, 0, &err);
+	VteRegex *regex = vte_regex_new_for_search(expr, -1, 0, &err);
 	if (err) {
 		log_write ("failed to compile regex: %s\n", expr);
+		printf ("failed to compile regex: %s, %s\n", expr, err->message);
 		return;
 	}
-	vte_terminal_search_set_gregex (VTE_TERMINAL (p_current_connection_tab->vte), regex, 0);
+	vte_terminal_search_set_regex (VTE_TERMINAL (p_current_connection_tab->vte), regex, 0);
 }
 
 void
