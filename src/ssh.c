@@ -174,7 +174,7 @@ ssh_node_connect (struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth)
 		ssh_channel c;
 		log_write ("Tryng to open a channel on %s@%s\n", p_auth->user, p_auth->host);
 		if ((c = ssh_node_open_channel (p_node))) {
-			log_write ("Channel successfully opened, close it and return\n");
+			log_debug ("Channel successfully opened, close it and return\n");
 			ssh_channel_close (c);
 			ssh_channel_free (c);
 			ssh_node_ref (p_node);
@@ -314,7 +314,7 @@ ssh_node_open_channel (struct SSH_Node *p_node)
 {
 	ssh_channel channel;
 	int rc;
-	log_write ("Opening channel on %s@%s\n", p_node->user, p_node->host);
+	log_debug ("Opening channel on %s@%s\n", p_node->user, p_node->host);
 	if ( (channel = ssh_channel_new (p_node->session) ) == NULL) {
 		ssh_node_set_validity (p_node, 0);
 		return (NULL);
@@ -322,17 +322,12 @@ ssh_node_open_channel (struct SSH_Node *p_node)
 	timerStart (2);
 	rc = ssh_channel_open_session (channel);
 	if (timedOut () ) {
-		log_write ("Timeout!\n");
+		log_debug ("Timeout!\n");
 		rc = SSH_ERROR;
 	}
-	/*
-	  signal (SIGALRM, SIG_DFL);
-	  sTimeout = 0;
-	  alarm (0);
-	*/
 	timerStop ();
 	if (rc == SSH_ERROR) {
-		log_write ("error: can't open channel on %s@%s\n", p_node->user, p_node->host);
+		log_debug ("error: can't open channel on %s@%s\n", p_node->user, p_node->host);
 		ssh_channel_free (channel);
 		ssh_node_set_validity (p_node, 0);
 		return (NULL);

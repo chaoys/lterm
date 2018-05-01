@@ -30,8 +30,6 @@ enum { TAB_CONN_STATUS_DISCONNECTED = 0, TAB_CONN_STATUS_CONNECTING, TAB_CONN_ST
 #define TAB_CHANGED 1
 #define TAB_LOGGED 2
 
-//#define GET_UI_ELEMENT(TYPE, ELEMENT) TYPE *ELEMENT = (TYPE *) gtk_builder_get_object (builder, #ELEMENT);
-
 typedef struct ConnectionTab {
 	struct Connection connection;
 	struct Connection last_connection;
@@ -43,10 +41,6 @@ typedef struct ConnectionTab {
 	int changes_count;
 	int auth_attempt;
 	unsigned int flags; // logged, changed
-	char *buffer;
-	char md5Buffer[1024];
-	int cx, cy; /* cursor position */
-	int window_resized;
 
 	GtkWidget *hbox_terminal; /* vte + scrollbar */
 	GtkWidget *vte;

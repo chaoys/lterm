@@ -750,19 +750,6 @@ get_connection_tab_from_child (GtkWidget *child)
 }
 
 void
-set_window_resized_all (int value)
-{
-	int i;
-	GList *item;
-	struct ConnectionTab *p_ct = NULL;
-	for (i = 0; i < g_list_length (connection_tab_list); i++) {
-		item = g_list_nth (connection_tab_list, i);
-		p_ct = (struct ConnectionTab *) item->data;
-		p_ct->window_resized = value;
-	}
-}
-
-void
 connection_tab_close (struct ConnectionTab *p_ct)
 {
 	int page, retcode, can_close;
@@ -815,16 +802,11 @@ connection_tab_new ()
 	g_signal_connect (connection_tab->vte, "eof", G_CALLBACK (eof_cb), connection_tab);
 	g_signal_connect (connection_tab->vte, "increase-font-size", G_CALLBACK (increase_font_size_cb), NULL);
 	g_signal_connect (connection_tab->vte, "decrease-font-size", G_CALLBACK (decrease_font_size_cb), NULL);
-	g_signal_connect (connection_tab->vte, "char-size-changed", G_CALLBACK (char_size_changed_cb), main_window);
-	g_signal_connect (connection_tab->vte, "maximize-window", G_CALLBACK (maximize_window_cb), main_window);
 	g_signal_connect (connection_tab->vte, "button-press-event", G_CALLBACK (button_press_event_cb), connection_tab->vte);
 	g_signal_connect (connection_tab->vte, "window-title-changed", G_CALLBACK (window_title_changed_cb), connection_tab);
 	g_signal_connect (connection_tab->vte, "selection-changed", G_CALLBACK (selection_changed_cb), connection_tab);
-	g_signal_connect (connection_tab->vte, "contents-changed", G_CALLBACK (contents_changed_cb), connection_tab);
 	g_signal_connect (connection_tab->vte, "grab-focus", G_CALLBACK (terminal_focus_cb), connection_tab);
 	tabInitConnection (connection_tab);
-	connection_tab->cx = -1;
-	connection_tab->cy = -1;
 	memset (&connection_tab->connection, 0, sizeof (struct Connection) );
 	return (connection_tab);
 }
@@ -1734,28 +1716,6 @@ delete_event_cb (GtkWidget *window, GdkEventAny *e, gpointer data)
 	return TRUE;
 }
 
-void
-size_allocate_cb (GtkWidget *widget, GtkAllocation *allocation, gpointer user_data)
-{
-	if (allocation) {
-		/* Set resize flag for all the tabs. Will be checked in contents_changed_cb() */
-		if (allocation->width != prefs.w || allocation->height != prefs.h)
-			set_window_resized_all (1);
-		/* store new size */
-		prefs.w = allocation->width;
-		prefs.h = allocation->height;
-	}
-	if (p_current_connection_tab) {
-		if (tabIsConnected (p_current_connection_tab) ) {
-			if (VTE_IS_TERMINAL (p_current_connection_tab->vte) ) {
-				/* store rows and columns */
-				prefs.rows = vte_terminal_get_row_count (VTE_TERMINAL (p_current_connection_tab->vte) );
-				prefs.columns = vte_terminal_get_column_count (VTE_TERMINAL (p_current_connection_tab->vte) );
-			}
-		}
-	}
-}
-
 /**
  * child_exited_cb() - This signal is emitted when the terminal detects that a child started using vte_terminal_fork_command() has exited
  */
@@ -1832,71 +1792,7 @@ selection_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 }
 
 void
-contents_changed_cb (VteTerminal *vteterminal, gpointer user_data)
-{
-	struct ConnectionTab *p_ct;
-	glong _cx, _cy, last_x, last_y;
-	int nLines, i;
-	if (p_current_connection_tab == NULL)
-		return;
-	p_ct = (struct ConnectionTab *) user_data;
-	/* save terminal buffer */
-	p_ct->buffer = vte_terminal_get_text (vteterminal, NULL, NULL, NULL);
-	char *bufferTmp, *tmp1, *tmp2;
-	tmp1 = replace_str (p_ct->buffer, "\n", "");
-	tmp2 = replace_str (tmp1, "\r", "");
-	bufferTmp = replace_str (tmp2, " ", "");
-	unsigned char digest[MD5_DIGEST_LENGTH];
-	MD5_CTX mdContext;
-	MD5_Init (&mdContext);
-	MD5_Update (&mdContext, bufferTmp, strlen (bufferTmp) );
-	MD5_Final (digest, &mdContext);
-	char md5string[1024];
-	for (i = 0; i < 16; ++i)
-		sprintf (&md5string[i * 2], "%02x", (unsigned int) digest[i]);
-	free (tmp1);
-	free (tmp2);
-	free (bufferTmp);
-	// Get cursor position and current line
-	// FIXME: sometimes gives the wrong row, eg. relogging by enter key
-	vte_terminal_get_cursor_position (vteterminal, &_cx, &_cy);
-	int cursorLine = _cy;
-	last_x = p_ct->cx;
-	last_y = p_ct->cy;
-	p_ct->cx = _cx;
-	p_ct->cy = _cy;
-	char **lines =
-	        splitString (p_ct->buffer, "\n", FALSE, NULL, FALSE, &nLines);
-	if (cursorLine < nLines) {
-		char line[strlen (lines[cursorLine]) + 1];
-		strcpy (line, lines[cursorLine]);
-		// normalize line for analysis
-		lower (line);
-		trim (line);
-		if (!tabGetFlag (p_ct, TAB_LOGGED) && (p_ct->cx != last_x || p_ct->cy != last_y) && !check_log_in_state (p_ct, line) ) {
-			return;
-		}
-	}
-	free (lines);
-	if (!p_ct->window_resized && tabIsConnected (p_ct) ) {
-		if (strcmp (p_ct->md5Buffer, md5string) ) {
-			strcpy (p_ct->md5Buffer, md5string);
-			tabSetFlag (p_ct, TAB_CHANGED);
-			refreshTabStatus (p_ct);
-		}
-	}
-	/* Reset the resize flag */
-	p_ct->window_resized = 0;
-}
-
-gboolean
-commit_cb (VteTerminal *vteterminal, gchar *text, guint size, gpointer userdata)
-{
-	return FALSE;
-}
-
-void
-adjust_font_size (GtkWidget *widget, /*gpointer data,*/ gint delta)
+adjust_font_size (GtkWidget *widget, gint delta)
 {
 	VteTerminal *terminal;
 	PangoFontDescription *desired;
@@ -1907,7 +1803,6 @@ adjust_font_size (GtkWidget *widget, /*gpointer data,*/ gint delta)
 	columns = vte_terminal_get_column_count (terminal);
 	rows = vte_terminal_get_row_count (terminal);
 	/* Take into account padding and border overhead. */
-	//gtk_window_get_size(GTK_WINDOW(data), &owidth, &oheight);
 	gtk_window_get_size (GTK_WINDOW (main_window), &owidth, &oheight);
 	owidth -= vte_terminal_get_char_width (terminal) * columns;
 	oheight -= vte_terminal_get_char_height (terminal) * rows;
@@ -1922,48 +1817,19 @@ adjust_font_size (GtkWidget *widget, /*gpointer data,*/ gint delta)
 	/* Change the font, then resize the window so that we have the same
 	 * number of rows and columns. */
 	vte_terminal_set_font (terminal, desired);
-	//gtk_window_resize(GTK_WINDOW(data), columns * terminal->char_width + owidth, rows * terminal->char_height + oheight);
 	pango_font_description_free (desired);
 }
 
 void
 increase_font_size_cb (GtkWidget *widget, gpointer user_data)
 {
-	adjust_font_size (widget, /*user_data,*/ 1);
+	adjust_font_size (widget, 1);
 }
 
 void
 decrease_font_size_cb (GtkWidget *widget, gpointer user_data)
 {
-	adjust_font_size (widget, /*user_data,*/ -1);
-}
-
-void
-char_size_changed_cb (VteTerminal *terminal, guint width, guint height, gpointer user_data)
-{
-	if (prefs.maximize)
-		return;
-}
-
-void
-maximize_window_cb (VteTerminal *terminal, gpointer user_data)
-{
-	prefs.maximize = 1;
-	/* Set resize flag for all the tabs. Will be checked in contents_changed_cb() */
-	set_window_resized_all (1);
-}
-
-gboolean
-window_state_event_cb (GtkWidget *widget, GdkEventWindowState *event, gpointer user_data)
-{
-	if (event->new_window_state & GDK_WINDOW_STATE_MAXIMIZED) {
-		prefs.maximize = 1;
-	} else {
-		prefs.maximize = 0;
-	}
-	/* Set resize flag for all the tabs. Will be checked in contents_changed_cb() */
-	set_window_resized_all (1);
-	return FALSE;
+	adjust_font_size (widget, -1);
 }
 
 gboolean
@@ -2114,21 +1980,6 @@ open_connection (char *connection)
 	return 0;
 }
 
-void
-check_resize_cb (GtkPaned *widget)
-{
-	/* Set resize flag for all the tabs. Will be checked in contents_changed_cb() */
-	set_window_resized_all (1);
-}
-
-gboolean
-configure_event_cb (GtkWindow *window, GdkEvent *event, gpointer data)
-{
-	/* Set resize flag for all the tabs. Will be checked in contents_changed_cb() */
-	set_window_resized_all (1);
-	return (FALSE);
-}
-
 /*
   Function: start_gtk
   Creates the main user interface
@@ -2166,7 +2017,6 @@ start_gtk (int argc, char **argv)
 	add_toolbar(vbox);
 	/* Paned window */
 	hpaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
-	g_signal_connect (G_OBJECT (hpaned), "notify::position", G_CALLBACK (check_resize_cb), NULL);
 	/* list store for connetions */
 	connection_init_stuff ();
 	/* Notebook */
@@ -2182,10 +2032,7 @@ start_gtk (int argc, char **argv)
 	gtk_box_pack_start (GTK_BOX (vbox), hpaned, TRUE, TRUE, 0);
 	gtk_widget_show (hpaned);
 	g_signal_connect (main_window, "delete_event", G_CALLBACK (delete_event_cb), NULL);
-	g_signal_connect (main_window, "size-allocate", G_CALLBACK (size_allocate_cb), NULL);
 	g_signal_connect (main_window, "key-press-event", G_CALLBACK (key_press_event_cb), NULL);
-	g_signal_connect (G_OBJECT (main_window), "window-state-event", G_CALLBACK (window_state_event_cb), NULL);
-	g_signal_connect (G_OBJECT (main_window), "configure-event", G_CALLBACK (configure_event_cb), NULL);
 	gtk_window_set_default_size (GTK_WINDOW (main_window), prefs.w, prefs.h); /* keep this before gtk_widget_show() */
 	gtk_widget_show (main_window);
 	/* init list of connections for the first time, needed by terminal popup menu */
