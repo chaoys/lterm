@@ -75,7 +75,7 @@ else
 	echo "libssh dev package missing, please install it"
 	exit 1
 fi
-LDFLAGS="$LDFLAGS -lssh_threads -lpthread -lX11"
+LDFLAGS="$LDFLAGS -lssh_threads -lpthread"
 
 printf %s "generating makefile... "
 echo "PREFIX = $prefix" > Makefile
