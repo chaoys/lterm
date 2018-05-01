@@ -165,7 +165,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         indent, " "
 	        );
 	if (p_conn->directories) {
-		//log_debug ("  Writing history...\n");
 		fprintf (fp, "%*s  <history>\n", indent, " ");
 		for (i = 0; i < p_conn->directories->len; i++) {
 			char *dir;
@@ -173,7 +172,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 			fprintf (fp, "%*s    <item>%s</item>\n", indent, " ", g_markup_escape_text (dir, strlen (dir) ) );
 		}
 		fprintf (fp, "%*s  </history>\n", indent, " ");
-		//log_debug ("  ...done\n");
 	}
 	fprintf (fp, "%*s</connection>\n", indent, " ");
 }
@@ -187,7 +185,6 @@ append_node_to_file_xml (FILE *fp, struct GroupNode *p_node, int indent)
 		if (p_node->child[i]) {
 			if (p_node->child[i]->type == GN_TYPE_CONNECTION) {
 				p_conn = cl_get_by_name (&conn_list, p_node->child[i]->name);
-				//log_debug ("Writing %s\n", p_conn->name);
 				write_connection_node (fp, p_conn, indent);
 			} else {
 				fprintf (fp, "%*s<folder name='%s' expanded='%d'>\n", indent, " ", p_node->child[i]->name, p_node->child[i]->expanded);
@@ -202,7 +199,6 @@ int
 save_connections_to_file_xml (char *filename)
 {
 	FILE *fp;
-	log_debug ("\n");
 	fp = fopen (filename, "w");
 	if (fp == 0)
 		return 1;
@@ -220,7 +216,6 @@ int
 save_connections_to_file_xml_from_glist (GList *pList, char *filename)
 {
 	FILE *fp;
-	log_debug ("%s\n", filename);
 	fp = fopen (filename, "w");
 	if (fp == 0)
 		return 1;
@@ -234,7 +229,6 @@ save_connections_to_file_xml_from_glist (GList *pList, char *filename)
 	item = g_list_first (pList);
 	while (item) {
 		p_conn = (struct Connection *) item->data;
-		//log_debug ("Writing %s\n", p_conn->name);
 		write_connection_node (fp, p_conn, 2);
 		item = g_list_next (item);
 	}
@@ -317,23 +311,14 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 			strcpy (pConn->identityFile, NVL (xml_node_get_value (child), "") );
 	}
 	if ((node_hist = xml_node_get_child (node, "history"))) {
-		//log_debug ("Reading history...\n");
 		child = node_hist->children;
 		while (child) {
 			char *d = (char *) xml_node_get_value (child);
 			if (d) {
-				//log_debug ("Adding %s\n", d);
 				add_directory (pConn, d);
 			}
 			child = child->next;
 		}
-	}
-	// Deprecated: use options node
-	if ((child = xml_node_get_child (node, "x11Forwarding"))) {
-		//log_debug ("x11Forwarding\n");
-		strcpy (tmp_s, NVL (xml_node_get_value (child), "0") );
-		if (tmp_s[0])
-			pConn->sshOptions.x11Forwarding = atoi (tmp_s);
 	}
 	if ((child = xml_node_get_child (node, "options"))) {
 		XMLNode *propNode = child->children;
@@ -354,7 +339,6 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 			propNode = propNode->next;
 		}
 	}
-	//log_debug ("Node read\n");
 }
 
 void
@@ -414,10 +398,8 @@ get_xml_doc (char *filename, XML *xmldoc)
 		strcat (xml, line);
 	}
 	fclose (fp);
-	//log_debug ("\n%s\n", xml);
 	/* Parse xml and create the connections tree */
 	xml_parse (xml, xmldoc);
-	//log_debug ("xmldoc.error.code=%d\n", xmldoc.error.code);
 	if (xmldoc->error.code) {
 		log_write ("%s\n", xmldoc->error.message);
 		return 1;
@@ -433,7 +415,6 @@ load_connections_from_file_xml (char *filename)
 {
 	int rc = 0;
 	char tmp_s[32];
-	log_debug ("%s\n", filename);
 	cl_release (&conn_list);
 	cl_init (&conn_list);
 	group_tree_release (&g_groups);
@@ -451,11 +432,9 @@ load_connections_from_file_xml (char *filename)
 		strcpy (tmp_s, xml_node_get_attribute (xmldoc.cur_root, "version") );
 		if (tmp_s[0])
 			g_connectionset_version = atoi (tmp_s);
-		log_debug ("connectionset version: %d\n", g_connectionset_version);
 		read_xml_connection_item (xmldoc.cur_root->children);
 		xml_free (&xmldoc);
 	}
-	//free (xml);
 	return (rc);
 }
 
@@ -469,10 +448,8 @@ load_connection_list_from_file_xml (char *filename)
 {
 	int rc = 0;
 	struct Connection *pConn;
-	//char *xml;
 	XMLNode *node;
 	GList *list = NULL;
-	log_debug ("%s\n", filename);
 	XML xmldoc;
 	rc = get_xml_doc (filename, &xmldoc);
 	if (rc != 0)
@@ -489,7 +466,6 @@ load_connection_list_from_file_xml (char *filename)
 				pConn = (struct Connection *) malloc (sizeof (struct Connection) );
 				read_connection_node (node, pConn);
 				list = g_list_append (list, pConn);
-				//struct Connection *c1 = (struct Connection *) g_list_last (list);
 				//log_debug ("%s@%s\n", pConn->user, pConn->host);
 			}
 			node = node->next;
@@ -583,7 +559,6 @@ create_entry_control (char *label, GtkWidget *entry)
 void
 radio_auth_save_cb (GtkToggleButton *togglebutton, gpointer user_data)
 {
-	log_debug ("\n");
 	gtk_widget_set_state_flags (authWidgets.user_entry,
 	                            gtk_toggle_button_get_active (togglebutton) ? GTK_STATE_FLAG_NORMAL : GTK_STATE_FLAG_INSENSITIVE,
 	                            TRUE);
@@ -595,7 +570,6 @@ radio_auth_save_cb (GtkToggleButton *togglebutton, gpointer user_data)
 void
 radio_auth_key_cb (GtkToggleButton *togglebutton, gpointer user_data)
 {
-	log_debug ("\n");
 	set_private_key_controls (gtk_toggle_button_get_active (togglebutton) );
 }
 
@@ -1012,7 +986,6 @@ expand_connection_tree_view_groups (GtkTreeView *tree_view, struct GroupNode *p_
 				strcpy (path_s, "");
 				group_tree_get_node_path (&g_groups, p_parent->child[i], path_s);
 				path = gtk_tree_path_new_from_string (path_s);
-				//log_debug ("expanding %s (%s)\n", p_parent->child[i]->name, path_s);
 				if (gtk_tree_view_expand_row (tree_view, path, FALSE) == FALSE) {
 					log_debug ("can't expand %s\n", p_parent->child[i]->name);
 				}
@@ -1067,18 +1040,15 @@ cursor_changed_cb (GtkTreeView *tree_view, gpointer user_data)
 		return;
 	}
 	gtk_tree_view_get_cursor (tree_view, &path, NULL);
-	//log_debug ("path = %s\n", gtk_tree_path_to_string (path));
 	gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (tree_view), path, NULL, FALSE, 0.5, 0);
 	struct GroupNode *p_node;
 	p_node = group_node_find_by_numeric_path (group_tree_get_root (&g_groups), gtk_tree_path_to_string (path), 1);
 	if (p_node) {
 		g_selected_node = p_node;
-		//log_debug ("%s %s\n", p_node->type == GN_TYPE_FOLDER ? "folder" : "connection", g_selected_node->name);
 	} else {
 		g_selected_node = NULL;
 		log_debug ("node not found\n");
 	}
-	//
 }
 
 gboolean
@@ -1088,7 +1058,6 @@ expand_row_cb (GtkTreeView *tree_view, GtkTreeIter *iter, GtkTreePath *path, gpo
 	p_node = group_node_find_by_numeric_path (group_tree_get_root (&g_groups), gtk_tree_path_to_string (path), 1);
 	if (p_node) {
 		p_node->expanded = 1;
-		//log_debug ("expanded %s\n", p_node->name);
 	}
 	return (FALSE);
 }
@@ -1126,7 +1095,6 @@ connection_name_cell_data_func (GtkTreeViewColumn *col, GtkCellRenderer *rendere
 	gtk_tree_model_get (model, iter, NAME_COLUMN, &name, -1);
 	p_conn = (struct Connection *) get_connection (&conn_list, name);
 	if (p_conn) {
-		//log_debug("%s is a connection\n", name);
 		sprintf (markup_string, "%s", name);
 	} else {
 		sprintf (markup_string, "<b>%s</b>", name);
@@ -1174,7 +1142,6 @@ on_drag_data_deleted (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user
 	if (g_rebuilding_tree_store) return;
 	ifr_add (ITERATION_REBUILD_TREE_STORE, NULL);
 	if (tree_view != NULL) {
-		//log_debug ("pointer = %ld\n", GTK_TREE_VIEW (tree_view));
 		ifr_add (ITERATION_REFRESH_TREE_VIEW, GTK_TREE_VIEW (tree_view) );
 	}
 	/* enable signals callback functions again */
@@ -1250,7 +1217,6 @@ move_cursor_to_node (GtkTreeView *tree_view, struct GroupNode *p_node)
 		group_tree_get_node_path (&g_groups, p_node, path_s);
 	} else
 		strcpy (path_s, "0");
-	log_debug ("path = %s\n", path_s);
 	/* move to right connection */
 	path = gtk_tree_path_new_from_string (path_s);
 	if (path)

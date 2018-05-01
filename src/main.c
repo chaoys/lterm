@@ -108,10 +108,8 @@ log_write (const char *fmt, ...)
 gboolean
 doGTKMainIteration ()
 {
-	//log_debug ("[thread 0x%08x] Start\n", pthread_self());
 	while (gtk_events_pending () )
 		gtk_main_iteration ();
-	//log_debug ("[thread 0x%08x] End\n", pthread_self());
 	return (G_SOURCE_REMOVE);
 }
 
@@ -125,7 +123,6 @@ void
 lterm_iteration ()
 {
 	struct Iteration_Function_Request ifr_function;
-	//log_debug ("Start\n");
 	doGTKMainIteration ();
 	while (ifr_get (&ifr_function) ) {
 		log_debug ("Requested iteration function: %d\n", ifr_function.id);
@@ -145,7 +142,6 @@ lterm_iteration ()
 	}
 	/* prevent from 100% cpu usage */
 	g_usleep (1000);
-	//log_debug ("End\n");
 }
 
 int sTimeout = 0;
@@ -242,7 +238,6 @@ main (int argc, char *argv[])
 	log_write ("Starting %s %s\n", PACKAGE, VERSION);
 	log_write ("GTK version: %d.%d.%d\n", GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
 	log_write ("libssh version %s\n", ssh_version (0) );
-	log_write ("Desktop environment: %s\n", get_desktop_environment_name (get_desktop_environment () ) );
 	log_debug ("globals.home_dir=%s\n", globals.home_dir);
 	log_debug ("globals.img_dir=%s\n", globals.img_dir);
 	log_debug ("globals.data_dir=%s\n", globals.data_dir);
@@ -290,14 +285,6 @@ main (int argc, char *argv[])
 void
 load_settings ()
 {
-	int rc;
-	char last_package_version[16];
-	rc = profile_load_string (globals.conf_file, "general", "package_version", last_package_version, "0.0.0");
-	/* no profile found means this is the first installation */
-	if (rc == PROFILE_FILE_NOT_FOUND) {
-		strcpy (last_package_version, "100.100.100");
-	}
-	log_debug ("Actual version is %s, last version was %s\n", VERSION, last_package_version);
 	/* load settings */
 	prefs.tabs_position = profile_load_int (globals.conf_file, "general", "tabs_position", GTK_POS_TOP);
 	profile_load_string (globals.conf_file, "general", "font_fixed", prefs.font_fixed, DEFAULT_FIXED_FONT);

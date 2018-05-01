@@ -142,18 +142,14 @@ cl_get_by_index (struct Connection_List *p_cl, int index)
 {
 	struct Connection *p_conn;
 	int i;
-	//
-	//log_debug("list address: %ld\n", p_cl);
 	p_conn = (struct Connection *) p_cl->head;
 	i = 0;
-	//log_debug("searching...\n");
 	while (p_conn) {
 		if (i == index)
 			break;
 		p_conn = p_conn->next;
 		i ++;
 	}
-	//
 	return (p_conn);
 }
 
@@ -338,7 +334,6 @@ search_directory (SConnection *pConn, gchar *item)
 		dir = (gchar *) g_ptr_array_index (pConn->directories, i);
 		if (dir == 0)
 			continue;
-		//log_debug ("%s vs %s\n", dir, item);
 		if (!g_strcmp0 (dir, item) )
 			return i;
 	}
@@ -351,7 +346,6 @@ add_directory (SConnection *pConn, char *item)
 	int i;
 	gchar *pDir;
 	gpointer ptr;
-	//log_debug ("%s\n", item);
 	if (item == 0)
 		return;
 	if (pConn->directories == 0)
@@ -359,11 +353,9 @@ add_directory (SConnection *pConn, char *item)
 	// If bookmark is present, remove it so it will go at the end of the list
 	i = search_directory (pConn, item);
 	if (i >= 0) {
-		//log_debug ("Removing %d %s\n", i, item);
 		ptr = g_ptr_array_remove_index (pConn->directories, i);
 		g_free (ptr);
 	}
-	//log_debug ("Adding %s\n", item);
 	//pDir = (gchar *) malloc (strlen (item) + 1);
 	pDir = g_strdup (item);
 	g_ptr_array_add (pConn->directories, (gpointer) pDir);

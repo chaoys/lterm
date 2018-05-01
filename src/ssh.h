@@ -78,7 +78,6 @@ int ssh_node_keepalive (struct SSH_Node *p_ssh_node);
 void ssh_node_update_time (struct SSH_Node *p_ssh_node);
 
 void lt_ssh_init (struct SSH_Info *p_ssh);
-//int lt_ssh_connect_old (struct SSH_Info *p_ssh);
 int lt_ssh_connect (struct SSH_Info *p_ssh, struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth);
 void lt_ssh_disconnect (struct SSH_Info *p_ssh);
 int lt_ssh_is_connected (struct SSH_Info *p_ssh);

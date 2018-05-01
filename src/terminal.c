@@ -155,20 +155,8 @@ log_on (struct ConnectionTab *p_conn_tab)
 				rc = 0;
 				break;
 			}
-			if (rc == 0) {
-				login_rc = terminal_connect_ssh (p_conn_tab, &auth);
-				if (login_rc == 0)
-					break;
-				else if (login_rc == SSH_ERR_CONNECT)
-					return (1);
-				else if (login_rc == SSH_ERR_UNKNOWN_AUTH_METHOD)
-					break;
-				else
-					p_conn_tab->auth_attempt ++;
-			} else { // cancel
-				tabSetConnectionStatus (p_conn_tab, TAB_CONN_STATUS_DISCONNECTED);
-				return (1);
-			}
+			tabSetConnectionStatus (p_conn_tab, TAB_CONN_STATUS_DISCONNECTED);
+			return (1);
 		}
 		if (p_conn_tab->auth_attempt >= 3)
 			login_rc = 1;
@@ -273,12 +261,11 @@ check_log_in_parameter (int auth_mode, char *auth_param, char *param, char *defa
                         char *label, int query_type, char *log_on_data)
 {
 	int feed_child;
-	if (auth_mode == CONN_AUTH_MODE_SAVE && auth_param[0] /*&& attempt == 1*/) {
+	if (auth_mode == CONN_AUTH_MODE_SAVE && auth_param[0]) {
 		//log_debug ("write auth_param '%s'\n", auth_param);
 		strcpy (log_on_data, auth_param);
 		feed_child = 1;
-	} else if (param[0] /*&& attempt == 1*/) {
-		//log_debug ("to be written '%s'\n", param);
+	} else if (param[0]) {
 		strcpy (log_on_data, param);
 		feed_child = 1;
 	} else if (prot_flags & required_flags) {
@@ -294,7 +281,6 @@ asked_for_user (struct ConnectionTab *p_ct, char *log_on_data)
 	int feed_child;
 	char label[512];
 	struct Protocol *p_prot = &g_ssh_prot;
-	log_debug ("\n");
 	feed_child = 0;
 	sprintf (label, "Enter user for <b>%s</b>:", p_ct->connection.name);
 	feed_child = check_log_in_parameter (p_ct->connection.auth_mode, p_ct->connection.auth_user,
@@ -310,7 +296,6 @@ asked_for_password (struct ConnectionTab *p_ct, char *log_on_data)
 	int feed_child;
 	char label[512];
 	struct Protocol *p_prot = &g_ssh_prot;
-	log_debug ("\n");
 	feed_child = 0;
 	sprintf (label, "Enter password for <b>%s@%s</b>:", p_ct->connection.user, p_ct->connection.name);
 	feed_child = check_log_in_parameter (p_ct->connection.auth_mode, p_ct->connection.auth_password,
@@ -324,11 +309,9 @@ int
 check_log_in_state (struct ConnectionTab *p_ct, char *line)
 {
 	int feed_child;
-	//char label[256];
 	char log_on_data[128];
-	//struct Protocol *p_prot;
 	VteTerminal *vteterminal;
-	if (/*p_ct->logged*/tabGetFlag (p_ct, TAB_LOGGED) )
+	if (tabGetFlag (p_ct, TAB_LOGGED) )
 		return 1;
 	log_debug ("state = %s line = '%s'\n", auth_state_desc[p_ct->auth_state], line);
 	vteterminal = VTE_TERMINAL (p_ct->vte);
@@ -380,7 +363,6 @@ check_log_in_state (struct ConnectionTab *p_ct, char *line)
 				if (feed_child == -1)
 					return 0;
 				if (feed_child > 0) {
-					//p_ct->auth_attempt ++;
 					strcpy (p_ct->connection.user, log_on_data);
 					p_ct->auth_state = AUTH_STATE_GOT_USER;
 				}
@@ -395,7 +377,6 @@ check_log_in_state (struct ConnectionTab *p_ct, char *line)
 				}
 			} else if (p_ct->changes_count > strlen ("login:") ) {
 				log_debug ("authentication ok %d > %d\n", p_ct->changes_count, (int) strlen ("login:") );
-				//p_ct->logged = 1;
 				tabSetFlag (p_ct, TAB_LOGGED);
 				feed_child = 0;
 				p_ct->auth_state = AUTH_STATE_LOGGED;

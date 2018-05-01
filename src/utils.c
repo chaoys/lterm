@@ -468,7 +468,6 @@ splitString (char *str, char *delimiters, int skipNulls, char *quotes, int trail
 		return 0;
 	while (i < strlen (str) ) {
 		pstart = &str[i];
-//printf("pstart = %s\n", pstart);
 		// Get next token
 		insideQuotes = 0;
 		k = 0;
@@ -500,18 +499,14 @@ splitString (char *str, char *delimiters, int skipNulls, char *quotes, int trail
 			}
 		}
 		tmp[t] = 0;
-//printf("i = %d k = %d tmp = %s\n", i, k, tmp);
 		i += k;
-		//if (!skipNulls || (skipNulls && tmp[0])) {
 		if (tmp[0] || (tmp[0] == 0 && !skipNulls) ) {
 			splitted = realloc (splitted, sizeof (char *) * n + 1);
 			splitted[n] = (char *) malloc (strlen (tmp) + 1);
 			memcpy (splitted[n], tmp, strlen (tmp) + 1);
 			free (tmp);
-			//printf ("i = %d splitted[%d] = '%s'\n", i, n, splitted[n]);
 			n ++;
 		}
-//printf("i=%d strlen(str)=%d\n", i, strlen(str));
 	}
 	if (trailingNull) {
 		splitted = realloc (splitted, sizeof (char *) * n + 1);
@@ -519,61 +514,9 @@ splitString (char *str, char *delimiters, int skipNulls, char *quotes, int trail
 	}
 	if (pCount)
 		*pCount = n;
-//for (int i = 0; i < (n); ++i)
-//  printf ("splitted[%d] = %s\n", i, splitted[i]);
 	return (splitted);
 }
 
-
-int
-get_desktop_environment ()
-{
-	int de = DE_UNKNOWN;
-	char *value;
-	/* try desktop_session value */
-	if ((value = getenv ("DESKTOP_SESSION"))) {
-		if (!strcmp (value, "gnome") )
-			return (DE_GNOME);
-		else if (!strcmp (value, "xfce") || !strcmp (value, "xubuntu") )
-			return (DE_XFCE);
-		else if (strstr (value, "kde") != NULL)
-			return (DE_KDE);
-	}
-	/* try more */
-	if ((value = getenv ("GNOME_KEYRING_PID")))
-		return (DE_GNOME);
-	if (getenv ("CINNAMON_VERSION") )
-		return (DE_CINNAMON);
-	if (getenv ("KDE_FULL_SESSION") )
-		return (DE_KDE);
-	return (de);
-}
-
-char *
-get_desktop_environment_name (int id)
-{
-	switch (id) {
-		case DE_GNOME:
-			return "GNOME";
-			break;
-		case DE_KDE:
-			return "KDE";
-			break;
-		case DE_XFCE:
-			return "XFCE";
-			break;
-		case DE_CINNAMON:
-			return "Cinnamon";
-			break;
-		case DE_MAC_OS_X:
-			return "MAC OS X";
-			break;
-		default:
-			return "unknown";
-			break;
-	}
-	return ("unknown");
-}
 
 char *
 shortenString (char *original, int threshold, char *shortened)

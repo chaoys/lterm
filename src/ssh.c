@@ -419,7 +419,6 @@ lt_ssh_is_connected (struct SSH_Info *p_ssh)
 		connected = 0;
 	if (connected && (!ssh_is_connected (p_ssh->ssh_node->session) || !ssh_node_get_validity (p_ssh->ssh_node) ) )
 		connected = 0;
-	//log_debug ("connected=%d\n", connected);
 	return (connected);
 }
 
@@ -480,7 +479,6 @@ lt_ssh_exec (struct SSH_Info *p_ssh, char *command, char *output, int outlen, ch
 	lockSSH (__func__, TRUE);
 	if ( (channel = ssh_node_open_channel (p_ssh->ssh_node) ) == NULL)
 		return (1);
-	//ssh_channel_request_shell (channel);
 	rc = ssh_channel_request_exec (channel, command);
 	if (rc != SSH_OK) {
 		log_debug ("error\n");

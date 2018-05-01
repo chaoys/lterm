@@ -696,20 +696,18 @@ show_login_mask (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth)
 	}
 	result = gtk_dialog_run (GTK_DIALOG (dialog) );
 	if (result == GTK_RESPONSE_OK) {
-		log_debug ("Clicked OK\n");
 		lt_ssh_init (&p_conn_tab->ssh_info);
 		strcpy (p_auth->user, gtk_entry_get_text (GTK_ENTRY (entry_user) ) );
 		strcpy (p_auth->password, gtk_entry_get_text (GTK_ENTRY (entry_password) ) );
 		strcpy (p_auth->host, p_conn_tab->connection.host);
 		p_auth->port = p_conn_tab->connection.port;
+		log_debug ("got user input: %s/%s\n", p_auth->user, p_auth->password);
 		rc = 0;
 	} else {
 		rc = -1;
 	}
-	log_debug ("Closing window\n");
 	gtk_widget_destroy (dialog);
 	g_object_unref (G_OBJECT (builder) );
-	log_debug ("Returning\n");
 	while (gtk_events_pending () )
 		gtk_main_iteration ();
 	return (rc);
@@ -755,7 +753,6 @@ set_window_resized_all (int value)
 {
 	int i;
 	GList *item;
-	//log_debug ("value=%d\n", value);
 	struct ConnectionTab *p_ct = NULL;
 	for (i = 0; i < g_list_length (connection_tab_list); i++) {
 		item = g_list_nth (connection_tab_list, i);
@@ -769,9 +766,7 @@ connection_tab_close (struct ConnectionTab *p_ct)
 {
 	int page, retcode, can_close;
 	char prompt[512];
-	//log_debug ("ptr = %d\n", (unsigned int) p_ct);
 	if (tabIsConnected (p_ct) ) {
-		log_debug ("%s seems connected\n", p_ct->connection.name);
 		sprintf (prompt, ("Close connection to %s?"), p_ct->connection.name);
 		retcode = msgbox_yes_no (prompt);
 		if (retcode == GTK_RESPONSE_YES)
@@ -873,7 +868,6 @@ connection_tab_add (struct ConnectionTab *connection_tab)
 	globals.original_font_size = pango_font_description_get_size (font_desc) / PANGO_SCALE;
 	strcpy (globals.system_font, pango_font_description_to_string (font_desc) );
 	pango_font_description_free (font_desc);
-	log_debug ("Original font : %s\n", globals.system_font);
 	apply_preferences (connection_tab->vte);
 	apply_profile (connection_tab);
 	gtk_widget_grab_focus (connection_tab->vte);
@@ -944,7 +938,7 @@ connection_log_on_param (struct Connection *p_conn)
 		connection_copy (&p_connection_tab->connection, p_conn);
 		p_connection_tab->auth_attempt = 0;
 		tabResetFlag (p_connection_tab, TAB_LOGGED);
-		log_debug ("user = '%s'\n", p_connection_tab->connection.user);
+		log_debug ("connection '%s' log on with user '%s'\n", p_connection_tab->connection.name, p_connection_tab->connection.user);
 	} else
 		retcode = choose_manage_connection (&p_connection_tab->connection);
 	if (retcode == 0) {
@@ -953,7 +947,6 @@ connection_log_on_param (struct Connection *p_conn)
 		if (p_connection_tab->connection.auth_mode == CONN_AUTH_MODE_SAVE && p_connection_tab->connection.auth_password[0])
 			strcpy (p_connection_tab->connection.password, p_connection_tab->connection.auth_password);
 		/* Add the new tab */
-		log_debug ("Adding new tab...\n");
 		connection_tab_add (p_connection_tab);
 		p_current_connection_tab = p_connection_tab;
 		refreshTabStatus (p_current_connection_tab);
@@ -976,7 +969,6 @@ connection_log_on ()
 void
 connection_log_off ()
 {
-	log_debug ("\n");
 	if (!p_current_connection_tab)
 		return;
 	if (tabIsConnected (p_current_connection_tab) ) {
@@ -1066,7 +1058,6 @@ _get_active_widget()
 	while (item) {
 		active = GTK_WINDOW (item->data);
 		if (gtk_window_is_active (active) ) {
-			log_debug ("Active window: %s\n", gtk_window_get_title (active) );
 			GtkWidget *w = gtk_window_get_focus (active);
 			return (w);
 		}
@@ -1207,9 +1198,6 @@ terminal_reset ()
 void
 moveTab (struct ConnectionTab *connTab, GtkWidget *child, GtkWidget *notebookFrom, GtkWidget *notebookTo)
 {
-	//GtkWidget *child = gtk_notebook_get_nth_page (notebookFrom, gtk_notebook_get_current_page (notebookFrom));
-	//GtkWidget *child = p_current_connection_tab->hbox_terminal;
-	//log_debug("%s\n", child == p_current_connection_tab->hbox_terminal ? "YES" : "NO");
 	// Detach tab label
 	GtkWidget *tab_label = gtk_notebook_get_tab_label (GTK_NOTEBOOK (notebookFrom), child);
 	g_object_ref (tab_label);
@@ -1217,11 +1205,8 @@ moveTab (struct ConnectionTab *connTab, GtkWidget *child, GtkWidget *notebookFro
 	// Move terminal to the new notebook
 	g_object_ref (child);
 	gtk_container_remove (GTK_CONTAINER (notebookFrom), child);
-	//gtk_container_add(GTK_CONTAINER(notebookTo), child);
 	gtk_notebook_append_page_menu (GTK_NOTEBOOK (notebookTo), child, tab_label, gtk_label_new (p_current_connection_tab->connection.name) );
 	connTab->notebook = notebookTo;
-	// Assign the tab label
-	//gtk_notebook_set_tab_label (GTK_NOTEBOOK(notebookTo), child, tab_label);
 }
 
 void
@@ -1248,15 +1233,12 @@ terminal_detach (GtkOrientation orientation)
 	// Re-parent main notebook
 	g_object_ref (notebook);
 	gtk_container_remove (GTK_CONTAINER (parent), notebook);
-	//gtk_container_add(GTK_CONTAINER(hpaned_split), notebook);
 	gtk_paned_add1 (GTK_PANED (hpaned_split), notebook);
 	// Create a new notebook
 	GtkWidget *notebook_new = gtk_notebook_new ();
 	gtk_paned_add2 (GTK_PANED (hpaned_split), notebook_new);
 	// Move connection tab
 	moveTab (currentTab, child, notebook, notebook_new);
-	// Assign the tab label
-	//gtk_notebook_set_tab_label (GTK_NOTEBOOK(notebook_new), child, tab_label);
 	gtk_widget_show_all (hpaned_split);
 	// Add the new paned window to the main one
 	if (parent == hpaned)
@@ -1267,8 +1249,6 @@ terminal_detach (GtkOrientation orientation)
 	lterm_iteration ();
 	GtkAllocation allocation;
 	gtk_widget_get_allocation (hpaned_split, &allocation);
-	log_debug ("naturalSize.width = %d\n", allocation.width);
-	log_debug ("naturalSize.height = %d\n", allocation.height);
 	gtk_paned_set_position (GTK_PANED (hpaned_split),
 	                        orientation == GTK_ORIENTATION_HORIZONTAL ? allocation.width / 2 : allocation.height / 2);
 	switch_tab_enabled = TRUE;
@@ -1293,7 +1273,6 @@ terminal_attach_to_main (struct ConnectionTab *connectionTab)
 		return;
 	GtkWidget *notebookCurrent = connectionTab->notebook;
 	if (notebookCurrent == notebook) {
-		log_debug ("%s is already the main notebook\n", vte_terminal_get_window_title (VTE_TERMINAL (connectionTab->vte) ) );
 		return;
 	}
 	log_write ("Attaching %s\n", vte_terminal_get_window_title (VTE_TERMINAL (connectionTab->vte) ) );
@@ -1362,7 +1341,7 @@ cluster_set_selected (int i, gboolean value)
 	gtk_tree_model_get_iter (model, &iter, path);
 	STabSelection *selectedTab = &g_array_index (tabSelectionArray, STabSelection, i);
 	selectedTab->selected = value;
-	log_debug ("%s %s %d\n", path_str, selectedTab->pTab->connection.name, selectedTab->selected);
+	log_debug ("send-cluster: %s %d\n", selectedTab->pTab->connection.name, selectedTab->selected);
 	gtk_list_store_set (GTK_LIST_STORE (model), &iter, COLUMN_CLUSTER_TERM_SELECTED, selectedTab->selected, -1);
 }
 
@@ -1802,7 +1781,6 @@ delete_event_cb (GtkWidget *window, GdkEventAny *e, gpointer data)
 void
 size_allocate_cb (GtkWidget *widget, GtkAllocation *allocation, gpointer user_data)
 {
-	//log_debug ("\n");
 	if (allocation) {
 		/* Set resize flag for all the tabs. Will be checked in contents_changed_cb() */
 		if (allocation->width != prefs.w || allocation->height != prefs.h)
@@ -1812,7 +1790,7 @@ size_allocate_cb (GtkWidget *widget, GtkAllocation *allocation, gpointer user_da
 		prefs.h = allocation->height;
 	}
 	if (p_current_connection_tab) {
-		if (/*p_current_connection_tab->connected*/tabIsConnected (p_current_connection_tab) ) {
+		if (tabIsConnected (p_current_connection_tab) ) {
 			if (VTE_IS_TERMINAL (p_current_connection_tab->vte) ) {
 				/* store rows and columns */
 				prefs.rows = vte_terminal_get_row_count (VTE_TERMINAL (p_current_connection_tab->vte) );
@@ -1833,16 +1811,14 @@ child_exited_cb (VteTerminal *vteterminal,
 	struct ConnectionTab *p_ct;
 	p_ct = (struct ConnectionTab *) user_data;
 	log_write ("%s\n", p_ct->connection.name);
-	//log_write ("[%s] : %s status=%d\n", __func__, p_ct->connection.name, status);
 	tabInitConnection (p_ct);
 	/* in case of remote connection save it and keep tab, else remove tab */
 	connection_copy (&p_ct->last_connection, &p_ct->connection);
 	refreshTabStatus (p_ct);
-	log_debug ("Disconnecting\n");
+	log_debug ("connection '%s' disconnecting\n", p_ct->connection.name);
 	lt_ssh_disconnect (&p_ct->ssh_info);
 	terminal_write_ex (p_ct, "\n\rDisconnected. Hit enter to reconnect.\n\r", -1);
 	update_screen_info ();
-	log_debug ("end\n");
 }
 
 /**
@@ -1852,7 +1828,6 @@ void
 eof_cb (VteTerminal *vteterminal, gpointer user_data)
 {
 	struct ConnectionTab *p_ct;
-	log_debug ("\n");
 	p_ct = (struct ConnectionTab *) user_data;
 	log_write ("[%s] : %s\n", __func__, p_ct->connection.name);
 	connection_copy (&p_ct->last_connection, &p_ct->connection);
@@ -1890,14 +1865,12 @@ button_press_event_cb (GtkWidget *widget, GdkEventButton *event, gpointer userda
 void
 window_title_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 {
-	log_debug ("%s\n", vte_terminal_get_window_title (vteterminal) );
 	update_title ();
 }
 
 void
 selection_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 {
-	//log_debug ("\n");
 	if (prefs.mouse_copy_on_select)
 		vte_terminal_copy_clipboard_format (vteterminal, VTE_FORMAT_TEXT);
 }
@@ -1908,19 +1881,15 @@ contents_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 	struct ConnectionTab *p_ct;
 	glong _cx, _cy, last_x, last_y;
 	int nLines, i;
-	//GArray *attrs;
 	if (p_current_connection_tab == NULL)
 		return;
 	p_ct = (struct ConnectionTab *) user_data;
 	/* save terminal buffer */
 	p_ct->buffer = vte_terminal_get_text (vteterminal, NULL, NULL, NULL);
-	//log_debug ("Buffer read: %d bytes\n", strlen (p_ct->buffer));
-	//log_debug ("p_ct->buffer = '%s'\n", p_ct->buffer);
 	char *bufferTmp, *tmp1, *tmp2;
 	tmp1 = replace_str (p_ct->buffer, "\n", "");
 	tmp2 = replace_str (tmp1, "\r", "");
 	bufferTmp = replace_str (tmp2, " ", "");
-	//log_debug ("bufferTmp = '%s'\n", bufferTmp);
 	unsigned char digest[MD5_DIGEST_LENGTH];
 	MD5_CTX mdContext;
 	MD5_Init (&mdContext);
@@ -1932,39 +1901,29 @@ contents_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 	free (tmp1);
 	free (tmp2);
 	free (bufferTmp);
-	//log_debug ("MD5 = %s\n", md5string);
 	// Get cursor position and current line
 	// FIXME: sometimes gives the wrong row, eg. relogging by enter key
 	vte_terminal_get_cursor_position (vteterminal, &_cx, &_cy);
 	int cursorLine = _cy;
-	//log_debug ("_cx=%ld _cy=%ld\n", _cx, _cy);
 	last_x = p_ct->cx;
 	last_y = p_ct->cy;
 	p_ct->cx = _cx;
 	p_ct->cy = _cy;
-	//log_debug ("cursorLine=%d p_ct->cx=%d p_ct->cy=%d\n", cursorLine, p_ct->cx, p_ct->cy);
 	char **lines =
 	        splitString (p_ct->buffer, "\n", FALSE, NULL, FALSE, &nLines);
-	//log_debug ("nLines = %d\n", nLines);
 	if (cursorLine < nLines) {
 		char line[strlen (lines[cursorLine]) + 1];
 		strcpy (line, lines[cursorLine]);
-		//log_debug ("line %d = '%s'\n", p_ct->cy+1, line); // Beware: crash with very long lines
 		// normalize line for analysis
 		lower (line);
 		trim (line);
-		//log_debug ("%s : logged=%d, type=%d\n", p_ct->connection.name, p_ct->logged, p_current_connection_tab->type);
 		if (!tabGetFlag (p_ct, TAB_LOGGED) && (p_ct->cx != last_x || p_ct->cy != last_y) && !check_log_in_state (p_ct, line) ) {
 			return;
 		}
 	}
 	free (lines);
-	//log_debug ("setting status...\n", line);
-	//log_debug ("p_ct != p_current_connection_tab = %d\n", p_ct != p_current_connection_tab);
-	//log_debug ("p_ct->window_resized = %d\n", p_ct->window_resized);
 	if (!p_ct->window_resized && tabIsConnected (p_ct) ) {
 		if (strcmp (p_ct->md5Buffer, md5string) ) {
-			//log_debug ("%s has changed\n", p_ct->connection.name);
 			strcpy (p_ct->md5Buffer, md5string);
 			tabSetFlag (p_ct, TAB_CHANGED);
 			refreshTabStatus (p_ct);
@@ -1972,7 +1931,6 @@ contents_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 	}
 	/* Reset the resize flag */
 	p_ct->window_resized = 0;
-	//log_debug ("end\n");
 }
 
 gboolean
@@ -2027,16 +1985,7 @@ decrease_font_size_cb (GtkWidget *widget, gpointer user_data)
 void
 char_size_changed_cb (VteTerminal *terminal, guint width, guint height, gpointer user_data)
 {
-	log_debug ("Desktop environment is %s\n", get_desktop_environment_name (get_desktop_environment () ) );
-	log_debug ("width=%d, height=%d\n", width, height);
 	if (prefs.maximize)
-		return;
-	/*
-	 * Here we must detect desktop environment.
-	 * In KDE and XFCE resizing is not needed (and doesn't works fine!).
-	 */
-	log_debug ("Desktop environment id: %d\n", get_desktop_environment () );
-	if (get_desktop_environment () == DE_KDE || get_desktop_environment () == DE_XFCE)
 		return;
 }
 
@@ -2068,12 +2017,10 @@ key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 	gboolean rc = FALSE;
 	keyReturn = GDK_KEY_Return;
 	keyEnter = GDK_KEY_KP_Enter;
-	//log_debug("keyval=%d\n", event->keyval);
 	if (event->keyval == keyReturn || event->keyval == keyEnter) {
-		log_debug ("Enter/Return\n");
 		if (!p_current_connection_tab)
 			return FALSE;
-		log_debug ("p_current_connection_tab ok\n");
+		log_debug ("Enter/Return key pressed\n");
 		if (tabGetConnectionStatus (p_current_connection_tab) == TAB_CONN_STATUS_DISCONNECTED &&
 		                p_current_connection_tab->last_connection.name[0] != 0) {
 			tabInitConnection (p_current_connection_tab);
@@ -2083,7 +2030,6 @@ key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 			update_screen_info ();
 		}
 	}
-	log_debug ("end\n");
 	return (rc);
 }
 
@@ -2092,7 +2038,6 @@ update_by_tab (struct ConnectionTab *pTab)
 {
 	update_screen_info ();
 	refreshTabStatus (pTab);
-	log_debug ("Completed\n");
 }
 
 void
@@ -2135,7 +2080,6 @@ apply_preferences ()
 	GList *item;
 	GtkWidget *vte;
 	struct ConnectionTab *p_ct = NULL;
-	log_debug ("\n");
 	for (i = 0; i < g_list_length (connection_tab_list); i++) {
 		item = g_list_nth (connection_tab_list, i);
 		p_ct = (struct ConnectionTab *) item->data;
@@ -2204,7 +2148,7 @@ open_connection (char *connection)
 	if (!memcmp (connection, "conn:", 5) ) {
 		pc = (char *) &connection[5];
 		strcpy (connection_string, pc);
-		log_debug ("connection_string = %s\n", connection_string);
+		log_debug ("open connection_'%s'\n", connection_string);
 		rc = connection_fill_from_string (&c, connection_string);
 		if (rc == 0)
 			connection_log_on_param (&c);
@@ -2217,7 +2161,6 @@ open_connection (char *connection)
 void
 check_resize_cb (GtkPaned *widget)
 {
-	//log_debug ("\n");
 	/* Set resize flag for all the tabs. Will be checked in contents_changed_cb() */
 	set_window_resized_all (1);
 }
@@ -2225,7 +2168,6 @@ check_resize_cb (GtkPaned *widget)
 gboolean
 configure_event_cb (GtkWindow *window, GdkEvent *event, gpointer data)
 {
-	//log_debug ("\n");
 	/* Set resize flag for all the tabs. Will be checked in contents_changed_cb() */
 	set_window_resized_all (1);
 	return (FALSE);

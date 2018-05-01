@@ -393,16 +393,6 @@ xml_node_to_string (XMLNode *node)
 		return g_strdup ("");
 	}
 	ret = g_string_new ("<");
-	/*
-	  ret = g_string_new ("");
-
-	  int i;
-
-	  for (i=0; i<g_indent; i++)
-	    g_string_append_c (ret, ' ');
-
-	  g_string_append (ret, "<");
-	*/
 	g_string_append (ret, node->name);
 	for (l = node->attributes; l; l = l->next) {
 		KeyValuePair *kvp = (KeyValuePair *) l->data;
@@ -431,12 +421,6 @@ xml_node_to_string (XMLNode *node)
 	g_indent += 2;
 	for (child = node->children; child; child = child->next) {
 		gchar *child_str = xml_node_to_string (child);
-		/*
-		    int i;
-
-		    for (i=0; i<g_indent; i++)
-				  g_string_append_c (ret, ' ');
-		*/
 		g_string_append (ret, child_str);
 		g_free (child_str);
 	}
@@ -444,20 +428,6 @@ xml_node_to_string (XMLNode *node)
 	g_string_append_printf (ret, "</%s>\n", node->name);
 	return g_string_free (ret, FALSE);
 }
-
-/*
-XMLNode *
-xml_node_get_first_child (XMLNode *node)
-{
-	return (node->children);
-}
-
-XMLNode *
-xml_node_get_next (XMLNode *node)
-{
-	return (node->next);
-}
-*/
 
 void
 xml_init (XML *p_xml)
