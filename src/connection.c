@@ -844,6 +844,7 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 		}
 	}
 	gtk_widget_destroy (dialog);
+	g_object_unref (G_OBJECT (builder) );
 	return (p_node_return);
 }
 

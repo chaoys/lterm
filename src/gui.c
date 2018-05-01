@@ -662,6 +662,7 @@ show_login_mask (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth)
 	sprintf (image_auth_filename, "%s/keys-64.png", globals.img_dir);
 	if (gtk_builder_add_from_file (builder, ui, &error) == 0) {
 		msgbox_error ("Can't load user interface file:\n%s", error->message);
+		g_object_unref (G_OBJECT (builder) );
 		return (1);
 	}
 	GtkWidget *hbox_main = GTK_WIDGET (gtk_builder_get_object (builder, "hbox_main") );
@@ -1133,6 +1134,7 @@ edit_find ()
 	sprintf (ui, "%s/find.glade", globals.data_dir);
 	if (gtk_builder_add_from_file (builder, ui, &error) == 0) {
 		msgbox_error ("Can't load user interface file:\n%s", error->message);
+		g_object_unref (G_OBJECT (builder) );
 		return;
 	}
 	GtkWidget *vbox_main = GTK_WIDGET (gtk_builder_get_object (builder, "vbox_main") );
@@ -1394,6 +1396,7 @@ terminal_cluster ()
 	sprintf (ui, "%s/cluster.glade", globals.data_dir);
 	if (gtk_builder_add_from_file (builder, ui, &error) == 0) {
 		msgbox_error ("Can't load user interface file:\n%s", error->message);
+		g_object_unref (G_OBJECT (builder) );
 		return;
 	}
 	/* Create dialog */
@@ -1539,6 +1542,7 @@ Info ()
 	sprintf (ui, "%s/credits.glade", globals.data_dir);
 	if (gtk_builder_add_from_file (builder, ui, &error) == 0) {
 		msgbox_error ("Can't load user interface file:\n%s", error->message);
+		g_object_unref (G_OBJECT (builder) );
 		return;
 	}
 	dialog = gtk_dialog_new_with_buttons (("About"), GTK_WINDOW (main_window), GTK_DIALOG_MODAL, "_Ok", GTK_RESPONSE_CLOSE, NULL);
@@ -1659,57 +1663,8 @@ get_main_menu ()
 	menubar = gtk_menu_bar_new_from_model(menu);
 
 	gtk_widget_insert_action_group(main_window, "lt", G_ACTION_GROUP(action_group));
-	//gtk_widget_insert_action_group(menubar, "lt", G_ACTION_GROUP(action_group));
+	g_object_unref (G_OBJECT (builder) );
 }
-#if 0
-void
-get_main_menu ()
-{
-	GtkAccelGroup *accel_group;
-	int i, n_enc;
-	char enc_desc[10000], item_s[256], s_tmp[256];
-	/* build character encoding menu with actions */
-	n_enc = sizeof (enc_array) / sizeof (struct EncodingEntry);
-	GtkRadioActionEntry radio_enc_entries[n_enc];
-	strcpy (enc_desc, "<ui>"
-	        "  <menubar name='MainMenu'>"
-	        "    <menu action='TerminalMenu'>"
-	        "      <menu action='CharacterEncodingMenu'>");
-	for (i = 0; i < n_enc; i++) {
-		radio_enc_entries[i].name = g_strdup (enc_array[i].id);
-		radio_enc_entries[i].stock_id = NULL;
-		radio_enc_entries[i].label = g_strdup (enc_array[i].name);
-		radio_enc_entries[i].accelerator = NULL;
-		radio_enc_entries[i].tooltip = NULL;
-		radio_enc_entries[i].value = i + 1;
-		sprintf (item_s, "<menuitem action='%s' />", enc_array[i].id);
-		strcat (enc_desc, item_s);
-	}
-	strcat (enc_desc, "    </menu></menu>"
-	        "  </menubar>"
-	        "</ui>");
-	/* build main menu */
-	action_group = gtk_action_group_new ("MenuActions");
-	gtk_action_group_add_actions (action_group, main_menu_items, G_N_ELEMENTS (main_menu_items), NULL);
-	gtk_action_group_add_toggle_actions (action_group, toggle_entries, G_N_ELEMENTS (toggle_entries), NULL);
-	gtk_action_group_add_radio_actions (action_group, radio_enc_entries, G_N_ELEMENTS (radio_enc_entries), 1, G_CALLBACK (activate_radio_action), NULL);
-	ui_manager = gtk_ui_manager_new ();
-	gtk_ui_manager_insert_action_group (ui_manager, action_group, 0);
-	accel_group = gtk_ui_manager_get_accel_group (ui_manager);
-	gtk_window_add_accel_group (GTK_WINDOW (main_window), accel_group);
-	gtk_ui_manager_add_ui_from_string (ui_manager, ui_main_desc, -1, NULL);
-	gtk_ui_manager_add_ui_from_string (ui_manager, enc_desc, -1, NULL);
-	//g_object_set_data (G_OBJECT (widget), "ui-manager", ui_manager);
-	menubar = gtk_ui_manager_get_widget (ui_manager, "/MainMenu");
-	/* gtk_ui_manager_set_add_tearoffs (ui_manager, TRUE); */
-	/* create action group for profiles */
-	profile_action_group = gtk_action_group_new ("ProfileActions");
-	gtk_action_group_set_translation_domain (profile_action_group, NULL);
-	gtk_ui_manager_insert_action_group (ui_manager, profile_action_group, 0);
-	g_object_unref (profile_action_group);
-}
-#endif
-
 void
 add_toolbar (GtkWidget *box)
 {
@@ -1722,6 +1677,7 @@ add_toolbar (GtkWidget *box)
 	gtk_toolbar_set_style (GTK_TOOLBAR (main_toolbar), GTK_TOOLBAR_ICONS);
 	gtk_box_pack_start (GTK_BOX (box), main_toolbar, FALSE, TRUE, 0);
 	gtk_widget_show (main_toolbar);
+	g_object_unref (G_OBJECT (builder) );
 }
 
 /**

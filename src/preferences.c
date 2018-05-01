@@ -65,6 +65,7 @@ profile_edit (GtkWidget *demo_vte)
 	sprintf (ui, "%s/profile.glade", globals.data_dir);
 	if (gtk_builder_add_from_file (builder, ui, &error) == 0) {
 		msgbox_error ("Can't load user interface file:\n%s", error->message);
+		g_object_unref (G_OBJECT (builder) );
 		return;
 	}
 	/* Create dialog */
@@ -143,6 +144,7 @@ show_preferences (void)
 	sprintf (ui, "%s/preferences.glade", globals.data_dir);
 	if (gtk_builder_add_from_file (builder, ui, &error) == 0) {
 		msgbox_error ("Can't load user interface file:\n%s", error->message);
+		g_object_unref (G_OBJECT (builder) );
 		return;
 	}
 	/* Create dialog */
