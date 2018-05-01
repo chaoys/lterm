@@ -22,7 +22,7 @@ all: $(PACKAGE)
 	@$(CPP) $(CFLAGS) $< -MM -MT $(@:.d=.o) > $@
 
 %.o: %.c
-	@$(CC) -c $(CFLAGS) $<
+	@$(CC) -c $(CFLAGS) $< -o $@
 	@echo CC $<
 
 $(PACKAGE): $(OBJS)
