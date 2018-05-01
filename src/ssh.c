@@ -208,12 +208,10 @@ l_auth:
 		log_write ("Authentication by key\n");
 		if (p_auth->identityFile[0])
 			ssh_options_set (node.session, SSH_OPTIONS_IDENTITY, p_auth->identityFile);
-#if LIBSSH_VERSION_INT >= SSH_VERSION_INT(0, 6, 0)
 		rc = ssh_userauth_publickey_auto (node.session, NULL, NULL);
-#else
-		rc = ssh_userauth_autopubkey (node.session, NULL);
-#endif
 	} else {
+		/* auth_none is required before auth_list */
+		ssh_userauth_none(node.session, NULL);
 		node.auth_methods = ssh_userauth_list (node.session, NULL);
 		log_write ("auth methods for %s@%s: %d\n", p_auth->user, p_auth->host, node.auth_methods);
 		if (node.auth_methods & SSH_AUTH_METHOD_PASSWORD) {
