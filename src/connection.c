@@ -130,8 +130,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 {
 	int i;
 	fprintf (fp, "%*s<connection name='%s' host='%s' port='%d' flags='%d'>\n"
-	         //"%*s  <emulation>%s</emulation>\n"
-	         //"%*s  <authentication enabled='%d'>\n"
 	         "%*s  <authentication>\n"
 	         "%*s    <mode>%d</mode>\n"
 	         "%*s    <auth_user>%s</auth_user>\n"
@@ -142,7 +140,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         "%*s  <user>%s</user>\n"
 	         "%*s  <password>%s</password>\n"
 	         "%*s  <user_options>%s</user_options>\n"
-	         //"%*s  <x11Forwarding>%d</x11Forwarding>\n",
 	         "%*s  <options>\n"
 	         "%*s    <property name='x11Forwarding'>%d</property>\n"
 	         "%*s    <property name='agentForwarding'>%d</property>\n"
@@ -150,7 +147,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         "%*s    <property name='keepAliveInterval' enabled='%d'>%d</property>\n"
 	         "%*s  </options>\n",
 	         indent, " ", p_conn->name, NVL (p_conn->host, ""), p_conn->port, p_conn->flags,
-	         //indent, " ", p_conn->emulation,
 	         indent, " ",
 	         indent, " ", p_conn->auth_mode,
 	         indent, " ", NVL (p_conn->auth_user, ""),
@@ -923,14 +919,13 @@ add_update_folder (struct GroupNode *p_node)
 	if (p_node) {
 		gtk_entry_set_text (GTK_ENTRY (name_entry), p_node->name);
 	}
-	//strcpy (original_name, p_node->name);
 	/* create dialog */
 	dialog = gtk_dialog_new ();
+	gtk_dialog_add_buttons(GTK_DIALOG(dialog), "Cancel", GTK_RESPONSE_CANCEL, "Ok", GTK_RESPONSE_OK, NULL);
 	gtk_window_set_title (GTK_WINDOW (dialog), title);
 	gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
 	gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (dialog) ), GTK_WINDOW (connections_dialog) );
 	gtk_window_set_position (GTK_WINDOW (dialog), GTK_WIN_POS_CENTER);
-	//gtk_box_set_spacing (GTK_BOX (GTK_DIALOG (dialog)->vbox), 10);
 	gtk_box_set_spacing (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), 10);
 	gtk_container_set_border_width (GTK_CONTAINER (dialog), 5);
 	gtk_box_pack_end (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), name_hbox, TRUE, TRUE, 0);
@@ -955,15 +950,6 @@ add_update_folder (struct GroupNode *p_node)
 			} else { /* add */
 				p_parent = get_parent_node_for_insert ();
 				log_debug ("p_parent = %s\n", p_parent->name);
-				/*
-				              if (group_node_find_child (p_parent, folder_name))
-				                msgbox_error (_("Item with the same name already existing"));
-				              else
-				                {
-				                  p_node_return = group_node_add_child (p_parent, GN_TYPE_FOLDER, folder_name);
-				                  break;
-				                }
-				*/
 				err_name_validation = validate_name (p_parent, NULL, NULL, folder_name);
 				if (!err_name_validation) {
 					p_node_return = group_node_add_child (p_parent, GN_TYPE_FOLDER, folder_name);
