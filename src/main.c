@@ -70,18 +70,6 @@ lockSSH (const char *caller, gboolean flagLock)
 	}
 }
 
-void *malloc ();
-
-/* Allocate an N-byte block of memory from the heap.
-   If N is zero, allocate a 1-byte block.  */
-
-void* rpl_malloc (size_t n)
-{
-	if (n == 0)
-		n = 1;
-	return malloc (n);
-}
-
 void
 log_reset ()
 {
@@ -168,7 +156,7 @@ void
 threadRequestAlarm ()
 {
 	tidAlarm = pthread_self ();
-	log_debug ("0x%08x\n", tidAlarm);
+	log_debug ("0x%ld\n", tidAlarm);
 }
 
 void
@@ -180,10 +168,10 @@ threadResetAlarm ()
 void
 AlarmHandler (int sig)
 {
-	log_debug ("[thread 0x%08x] %d\n", pthread_self (), sig);
+	log_debug ("[thread %ld] %d\n", pthread_self (), sig);
 	sTimeout = 1;
 	if (tidAlarm && tidAlarm != pthread_self () ) {
-		log_debug ("Send alarm to thread 0x%08x\n", tidAlarm);
+		log_debug ("Send alarm to thread %ld\n", tidAlarm);
 		pthread_kill (tidAlarm, sig);
 	}
 }

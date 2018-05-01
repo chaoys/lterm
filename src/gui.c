@@ -1832,17 +1832,14 @@ child_exited_cb (VteTerminal *vteterminal,
 {
 	struct ConnectionTab *p_ct;
 	p_ct = (struct ConnectionTab *) user_data;
-	log_debug ("ptr = %ld\n", (unsigned int) p_ct);
 	log_write ("%s\n", p_ct->connection.name);
 	//log_write ("[%s] : %s status=%d\n", __func__, p_ct->connection.name, status);
 	tabInitConnection (p_ct);
 	/* in case of remote connection save it and keep tab, else remove tab */
 	connection_copy (&p_ct->last_connection, &p_ct->connection);
-	//connection_tab_set_status (p_ct, TAB_STATUS_DISCONNECTED);
 	refreshTabStatus (p_ct);
 	log_debug ("Disconnecting\n");
 	lt_ssh_disconnect (&p_ct->ssh_info);
-	log_debug ("Checking protocol settings\n");
 	terminal_write_ex (p_ct, "\n\rDisconnected. Hit enter to reconnect.\n\r", -1);
 	update_screen_info ();
 	log_debug ("end\n");
@@ -1856,13 +1853,11 @@ eof_cb (VteTerminal *vteterminal, gpointer user_data)
 {
 	struct ConnectionTab *p_ct;
 	log_debug ("\n");
-	//g_signal_connect (G_OBJECT (vteterminal), "contents-changed", NULL, NULL);
 	p_ct = (struct ConnectionTab *) user_data;
 	log_write ("[%s] : %s\n", __func__, p_ct->connection.name);
 	connection_copy (&p_ct->last_connection, &p_ct->connection);
 	tabInitConnection (p_ct);
 	update_screen_info ();
-	//connection_tab_set_status (p_ct, TAB_STATUS_DISCONNECTED);
 	refreshTabStatus (p_ct);
 	lt_ssh_disconnect (&p_ct->ssh_info);
 }

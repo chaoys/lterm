@@ -10,7 +10,11 @@
 #include "ssh.h"
 #include "gtk/gtk.h"
 
-#define log_debug(format, ...)
+#ifdef DEBUG
+#define log_debug printf
+#else
+#define log_debug(fmt, ...)
+#endif
 
 #define KEY "You may say I'm a dreamer"
 
