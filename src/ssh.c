@@ -126,7 +126,7 @@ ssh_list_dump (struct SSH_List *p_ssh_list)
 		valid = ssh_is_connected (node->session) && node->valid;
 		if (valid) {
 			ssh_channel c;
-			if (c = ssh_node_open_channel (node) ) {
+			if ((c = ssh_node_open_channel (node))) {
 				ssh_channel_close (c);
 				ssh_channel_free (c);
 			} else
@@ -163,7 +163,7 @@ ssh_node_connect (struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth)
 	GError *error = NULL;
 	int rc, valid = 0;
 	memset (&node, 0, sizeof (struct SSH_Node) );
-	if (p_node = ssh_list_search (p_ssh_list, p_auth->host, p_auth->user) ) {
+	if ((p_node = ssh_list_search (p_ssh_list, p_auth->host, p_auth->user))) {
 		log_write ("Found ssh node for %s@%s\n", p_auth->user, p_auth->host);
 		if (p_auth->mode == CONN_AUTH_MODE_PROMPT && strcmp (p_auth->password, p_node->password) != 0) {
 			strcpy (p_auth->error_s, "Wrong password");
@@ -173,7 +173,7 @@ ssh_node_connect (struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth)
 		/* check node validity */
 		ssh_channel c;
 		log_write ("Tryng to open a channel on %s@%s\n", p_auth->user, p_auth->host);
-		if (c = ssh_node_open_channel (p_node) ) {
+		if ((c = ssh_node_open_channel (p_node))) {
 			log_write ("Channel successfully opened, close it and return\n");
 			ssh_channel_close (c);
 			ssh_channel_free (c);

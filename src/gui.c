@@ -463,7 +463,7 @@ void tabSetFlag (SConnectionTab *pConn, unsigned int bitmask)
 
 void tabResetFlag (SConnectionTab *pConn, unsigned int bitmask)
 {
-	pConn->flags = pConn->flags &= ~bitmask;
+	pConn->flags &= ~bitmask;
 }
 
 unsigned int tabGetFlag (SConnectionTab *pConn, unsigned int bitmask)
@@ -656,7 +656,7 @@ show_login_mask (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth)
 	GtkBuilder *builder;
 	GError *error = NULL;
 	char ui[1024], image_auth_filename[1024];
-	int result, rc = 0, i;
+	int result, rc = 0;
 	builder = gtk_builder_new ();
 	sprintf (ui, "%s/login.glade", globals.data_dir);
 	sprintf (image_auth_filename, "%s/keys-64.png", globals.img_dir);
@@ -694,7 +694,6 @@ show_login_mask (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth)
 		gtk_widget_hide (GTK_WIDGET (entry_password) );
 		gtk_widget_hide (GTK_WIDGET (label_password) );
 	}
-run_dialog:
 	result = gtk_dialog_run (GTK_DIALOG (dialog) );
 	if (result == GTK_RESPONSE_OK) {
 		log_debug ("Clicked OK\n");
@@ -769,7 +768,6 @@ void
 connection_tab_close (struct ConnectionTab *p_ct)
 {
 	int page, retcode, can_close;
-	GtkWidget *child;
 	char prompt[512];
 	//log_debug ("ptr = %d\n", (unsigned int) p_ct);
 	if (tabIsConnected (p_ct) ) {
@@ -805,7 +803,6 @@ connection_tab_close (struct ConnectionTab *p_ct)
 void
 close_button_clicked_cb (GtkButton *button, gpointer user_data)
 {
-	int page, retcode, can_close;
 	struct ConnectionTab *p_ct;
 	p_ct = (struct ConnectionTab *) user_data;
 	connection_tab_close (p_ct);
@@ -841,9 +838,7 @@ connection_tab_add (struct ConnectionTab *connection_tab)
 {
 	GtkWidget *tab_label;
 	GtkWidget *close_button;
-	gint w, h;
 	PangoFontDescription *font_desc;
-	int font_size;
 	gint new_pagenum;
 	connection_tab->hbox_terminal = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0); /* for vte and scrolbar */
 	connection_tab->scrollbar = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL,
@@ -919,10 +914,8 @@ int
 connection_tab_getcwd (struct ConnectionTab *p_ct, char *directory)
 {
 	char buffer[1024];
-	char filename[1024];
 	char window_title[1024];
 	char *pc;
-	int n;
 	if (p_ct == 0)
 		return 1;
 	strcpy (directory, "");
@@ -934,7 +927,7 @@ connection_tab_getcwd (struct ConnectionTab *p_ct, char *directory)
 		return 1;
 	pc = (char *) strchr (window_title, ':');
 	if (pc) {
-		*pc ++;
+		pc ++;
 		strcpy (buffer, pc);
 	}
 	strcpy (directory, buffer);
@@ -945,7 +938,6 @@ void
 connection_log_on_param (struct Connection *p_conn)
 {
 	int retcode = 0;
-	struct Protocol *p_prot;
 	struct ConnectionTab *p_connection_tab;
 	p_connection_tab = connection_tab_new ();
 	if (p_conn) {
@@ -1000,7 +992,6 @@ void
 connection_duplicate ()
 {
 	char directory[1024];
-	char command[1024];
 	if (!p_current_connection_tab)
 		return;
 	connection_tab_getcwd (p_current_connection_tab, directory);
@@ -1023,7 +1014,6 @@ application_quit ()
 	int can_quit = 1;
 	int n;
 	char message[1024];
-	GList *item;
 	n = connection_tab_count ();
 	if (n) {
 		sprintf (message, ("There are %d active terminal/s.\nExit anyway?"), n);
@@ -1089,13 +1079,12 @@ void
 edit_copy ()
 {
 	int done = 0;
-	GtkClipboard *clipboard;
 	/* Get the active widget */
 	GtkWidget *w = _get_active_widget ();
 	if (p_current_connection_tab) {
 		/* Check if the terminal has the focus or the current widget is null (popup menu) */
 		if (gtk_widget_has_focus (p_current_connection_tab->vte) || w == NULL) {
-			vte_terminal_copy_clipboard (VTE_TERMINAL (p_current_connection_tab->vte) );
+			vte_terminal_copy_clipboard_format (VTE_TERMINAL (p_current_connection_tab->vte), VTE_FORMAT_TEXT );
 			done = 1;
 		}
 	}
@@ -1135,8 +1124,6 @@ edit_copy_and_paste ()
 {
 	if (!p_current_connection_tab)
 		return;
-	//vte_terminal_copy_clipboard (VTE_TERMINAL (p_current_connection_tab->vte));
-	//vte_terminal_paste_clipboard (VTE_TERMINAL (p_current_connection_tab->vte));
 	edit_copy ();
 	edit_paste ();
 }
@@ -1148,7 +1135,7 @@ edit_find ()
 	GtkBuilder *builder;
 	GError *error = NULL;
 	char ui[1024];
-	int result, rc = 0, i;
+	int result, rc = 0;
 	if (p_current_connection_tab == NULL)
 		return;
 	builder = gtk_builder_new ();
@@ -1174,7 +1161,6 @@ edit_find ()
 	gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (dialog) ), GTK_WINDOW (main_window) );
 	gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), vbox_main);
 	gtk_widget_show_all (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) );
-run_dialog:
 	result = gtk_dialog_run (GTK_DIALOG (dialog) );
 	if (result == GTK_RESPONSE_OK) {
 		strcpy (globals.find_expr, gtk_entry_get_text (GTK_ENTRY (entry_expr) ) );
@@ -1407,7 +1393,6 @@ cluster_invert_selection_cb (GtkButton *button, gpointer user_data)
 void
 terminal_toggled_cb (GtkCellRendererToggle *cell_renderer, gchar *path_str, gpointer data)
 {
-	GtkTreePath *path = gtk_tree_path_new_from_string (path_str);
 	cluster_set_selected (atoi (path_str), !cluster_get_selected (atoi (path_str) ) );
 }
 
@@ -1420,7 +1405,6 @@ terminal_cluster ()
 {
 	GtkBuilder *builder;
 	GError *error = NULL;
-	GtkWidget *button_ok, *button_cancel;
 	GtkWidget *dialog;
 	char ui[1024];
 	if (g_list_length (connection_tab_list) == 0) {
@@ -1442,11 +1426,8 @@ terminal_cluster ()
 	          NULL);
 	GtkWidget *vbox = GTK_WIDGET (gtk_builder_get_object (builder, "vbox_cluster") );
 	/* Terminal list */
-	//g_selected_profile = NULL;
-	GtkTreeSelection *select;
 	GtkCellRenderer *cell;
 	GtkTreeViewColumn *column;
-	GtkTreeModel *tree_model;
 	GtkWidget *tree_view = gtk_tree_view_new ();
 	list_store_cluster = gtk_list_store_new (N_CLUSTER_COLUMNS, G_TYPE_BOOLEAN, G_TYPE_STRING);
 	/* Selected */
@@ -1570,12 +1551,8 @@ Info ()
 {
 	int major, minor, micro;
 	char sys[256], image_filename[1024];
-	char s[1024], text[1024];
 	char s_linked[1024];
-	struct utsname info;
 	GtkWidget *dialog;
-	GtkWidget *hbox_title, *vbox_versions;
-	FILE *fp;
 	GtkBuilder *builder;
 	GError *error = NULL;
 	char ui[1024];
@@ -1854,7 +1831,6 @@ child_exited_cb (VteTerminal *vteterminal,
                  gpointer     user_data)
 {
 	struct ConnectionTab *p_ct;
-	int code;
 	p_ct = (struct ConnectionTab *) user_data;
 	log_debug ("ptr = %ld\n", (unsigned int) p_ct);
 	log_write ("%s\n", p_ct->connection.name);
@@ -1919,10 +1895,7 @@ button_press_event_cb (GtkWidget *widget, GdkEventButton *event, gpointer userda
 void
 window_title_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 {
-	char title[1024];
-	struct ConnectionTab *p_ct;
 	log_debug ("%s\n", vte_terminal_get_window_title (vteterminal) );
-	p_ct = (struct ConnectionTab *) user_data;
 	update_title ();
 }
 
@@ -1931,7 +1904,7 @@ selection_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 {
 	//log_debug ("\n");
 	if (prefs.mouse_copy_on_select)
-		vte_terminal_copy_clipboard (vteterminal);
+		vte_terminal_copy_clipboard_format (vteterminal, VTE_FORMAT_TEXT);
 }
 
 void
@@ -2059,9 +2032,6 @@ decrease_font_size_cb (GtkWidget *widget, gpointer user_data)
 void
 char_size_changed_cb (VteTerminal *terminal, guint width, guint height, gpointer user_data)
 {
-	GtkWindow *window;
-	GdkGeometry geometry;
-	int xpad, ypad;
 	log_debug ("Desktop environment is %s\n", get_desktop_environment_name (get_desktop_environment () ) );
 	log_debug ("width=%d, height=%d\n", width, height);
 	if (prefs.maximize)
@@ -2073,9 +2043,6 @@ char_size_changed_cb (VteTerminal *terminal, guint width, guint height, gpointer
 	log_debug ("Desktop environment id: %d\n", get_desktop_environment () );
 	if (get_desktop_environment () == DE_KDE || get_desktop_environment () == DE_XFCE)
 		return;
-	//terminal = VTE_TERMINAL(widget);
-	window = GTK_WINDOW (user_data);
-	/* maybe no more useful */
 }
 
 void
@@ -2170,9 +2137,6 @@ void
 apply_preferences ()
 {
 	int i;
-	char word_chars[1024];
-	GdkColor terminal_fore_color;
-	GdkColor terminal_back_color;
 	GList *item;
 	GtkWidget *vte;
 	struct ConnectionTab *p_ct = NULL;
@@ -2199,7 +2163,6 @@ apply_preferences ()
 void
 apply_profile_terminal (GtkWidget *terminal, struct Profile *p_profile)
 {
-	GObject *object;
 	GdkRGBA fg, bg;
 	gdk_rgba_parse (&fg, p_profile->fg_color);
 	gdk_rgba_parse (&bg, p_profile->bg_color);
@@ -2253,6 +2216,7 @@ open_connection (char *connection)
 		else
 			msgbox_error ("can't open connection %s\nError id: %d", connection_string, rc);
 	}
+	return 0;
 }
 
 void
@@ -2279,18 +2243,9 @@ configure_event_cb (GtkWindow *window, GdkEvent *event, gpointer data)
 void
 start_gtk (int argc, char **argv)
 {
-	int i;
-	char s_tmp[256];
 	GtkWidget *vbox;          /* main vbox */
-	GtkWidget *hbox_terminal; /* vte + scrollbar */
-	GtkWidget *scrollbar;
-	PangoFontDescription *font_desc;
-	int font_size;
-	struct Iteration_Function_Request ifr_function;
 	signal (SIGCHLD, child_exit); /* a child process ends */
 	signal (SIGSEGV, segv_handler); /* Segmentation fault */
-	/* Initialize i18n support */
-	//gtk_set_locale ();
 	connection_tab_list = NULL;
 	p_current_connection_tab = NULL;
 	gtk_init (&argc, &argv);

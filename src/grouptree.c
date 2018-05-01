@@ -112,7 +112,7 @@ group_node_find (struct GroupNode *p_parent, char *name)
 		if (p_parent->child[i]) {
 			if (p_parent->child[i]->type == GN_TYPE_FOLDER) {
 				//log_debug ("search folder %s\n", p_parent->child[i]->name);
-				if (p_node = group_node_find (p_parent->child[i], name) )
+				if ((p_node = group_node_find (p_parent->child[i], name)))
 					return (p_node);
 			} else if (!strcmp (p_parent->child[i]->name, name) ) {
 				return (p_parent->child[i]);
@@ -187,7 +187,6 @@ struct GroupNode *
 group_node_find_by_path (struct GroupNode *p_parent, char *path, int index, int add_missing)
 {
 	char nodename[1024];
-	char s_tmp[64];
 	struct GroupNode *p_node;
 	list_get_nth (path, index, '/', nodename);
 	//log_debug ("node is %s; index = %d; child nodename = %s\n", p_parent->name, index, nodename);
@@ -213,7 +212,6 @@ struct GroupNode *
 group_node_find_by_numeric_path (struct GroupNode *p_parent, char *numeric_path, int index)
 {
 	char nodepos[16];
-	char s_tmp[64];
 	struct GroupNode *p_node;
 	int pos;
 	list_get_nth (numeric_path, index, ':', nodepos);
@@ -285,7 +283,6 @@ group_node_get_child_first (struct GroupNode *p_node)
 struct GroupNode *
 group_node_get_child_next (struct GroupNode *p_node, struct GroupNode *p_child)
 {
-	struct GroupNode *p_child_next = NULL;
 	int i, start;
 	for (i = 0; i < MAX_CHILD_GROUPS; i++) {
 		if (p_node->child[i] == p_child)

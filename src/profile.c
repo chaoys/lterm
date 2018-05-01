@@ -42,7 +42,6 @@ profile_get_name_param (char *line, char *param_read, char *value_read)
 	int m;
 	regex_t reg;
 	regmatch_t pmatch[50];
-	size_t nmatch;
 	m = regcomp (&reg, "([a-zA-Z_]{1}[a-zA-Z_0-9]*)[ ]*=[ ]*(.*)", REG_EXTENDED | REG_ICASE | REG_NEWLINE);
 	m = regexec (&reg, line, 50, pmatch, 0);
 	if (m != REG_NOMATCH) {
@@ -112,7 +111,6 @@ profile_load_int (char *profile_file, char *section, char *param,
 {
 	int ret;
 	char value_str[128];
-	char buffer[33];
 	ret = default_val;
 	profile_load_string (profile_file, section, param, value_str, "not found");
 	if (strcmp (value_str, "not found") )
@@ -128,7 +126,6 @@ profile_modify_string (int operation, char *profile_file, char *section, char *p
 	FILE *fp, *fp_tmp;
 	regex_t reg;
 	regmatch_t pmatch[50];
-	size_t nmatch;
 	char *pc, sec[128];
 	int section_found;
 	char tmp_file[256];
@@ -268,7 +265,7 @@ profile_delete_section (char *profile_file, char *section)
 		return 2;
 	}
 	position = PROFILE_BEFORE_SECTION;
-	while (pl = fgets (line, 1024, fp) ) {
+	while ((pl = fgets (line, 1024, fp))) {
 		/* check section switch */
 		if (position == PROFILE_IN_SECTION) {
 			if (line[0] == '[')
@@ -299,7 +296,7 @@ load_profile (struct Profile *pf, char *filename)
 {
 	char *xml;
 	char line[2048];
-	char tmp_s[32], *pc;
+	char tmp_s[32];
 	FILE *fp;
 	/* put xml content into a string */
 	fp = fopen (filename, "r");
@@ -328,33 +325,33 @@ load_profile (struct Profile *pf, char *filename)
 	memset (pf, 0, sizeof (struct Profile) );
 	node = xmldoc.cur_root->children;
 	if (!strcmp (node->name, "profile") ) {
-		if (child = xml_node_get_child (node, "fg-color") )
+		if ((child = xml_node_get_child (node, "fg-color")))
 			strcpy (pf->fg_color, NVL (xml_node_get_value (child), "") );
-		if (node_2 = xml_node_get_child (node, "fonts") ) {
-			if (child = xml_node_get_child (node_2, "use-system") ) {
+		if ((node_2 = xml_node_get_child (node, "fonts"))) {
+			if ((child = xml_node_get_child (node_2, "use-system"))) {
 				strcpy (tmp_s, NVL (xml_node_get_value (child), "") );
 				if (tmp_s[0])
 					pf->font_use_system = atoi (tmp_s);
 			}
-			if (child = xml_node_get_child (node_2, "font") )
+			if ((child = xml_node_get_child (node_2, "font")))
 				strcpy (pf->font, NVL (xml_node_get_value (child), "") );
 		}
-		if (node_2 = xml_node_get_child (node, "background") ) {
-			if (child = xml_node_get_child (node_2, "color") )
+		if ((node_2 = xml_node_get_child (node, "background"))) {
+			if ((child = xml_node_get_child (node_2, "color")))
 				strcpy (pf->bg_color, NVL (xml_node_get_value (child), "") );
-			if (child = xml_node_get_child (node_2, "alpha") ) {
+			if ((child = xml_node_get_child (node_2, "alpha"))) {
 				strcpy (tmp_s, NVL (xml_node_get_value (child), "") );
 				if (tmp_s[0])
 					pf->alpha = atof (tmp_s);
 			}
 		}
-		if (node_2 = xml_node_get_child (node, "cursor") ) {
-			if (child = xml_node_get_child (node_2, "shape") ) {
+		if ((node_2 = xml_node_get_child (node, "cursor"))) {
+			if ((child = xml_node_get_child (node_2, "shape"))) {
 				strcpy (tmp_s, NVL (xml_node_get_value (child), "0") );
 				if (tmp_s[0])
 					pf->cursor_shape = atoi (tmp_s);
 			}
-			if (child = xml_node_get_child (node_2, "blinking") ) {
+			if ((child = xml_node_get_child (node_2, "blinking"))) {
 				strcpy (tmp_s, NVL (xml_node_get_value (child), "1") );
 				if (tmp_s[0])
 					pf->cursor_blinking = atoi (tmp_s);

@@ -97,7 +97,6 @@ log_write (const char *fmt, ...)
 {
 	FILE *log_fp;
 	char time_s[64];
-	char log_file[256];
 	char line[2048];
 	char msg[2048];
 	time_t tmx;
@@ -116,23 +115,6 @@ log_write (const char *fmt, ...)
 	fprintf (log_fp, "%s", line);
 	fflush (log_fp);
 	fclose (log_fp);
-}
-
-static void
-sigterm_handler (int signalnum, siginfo_t *si, void *data)
-{
-	printf ("Caught %d signal, exiting...\n", signalnum);
-	application_quit ();
-}
-
-static void handle_signals (void)
-{
-	struct sigaction sa;
-	sa.sa_sigaction = sigterm_handler;
-	sigemptyset (&sa.sa_mask);
-	sa.sa_flags = SA_SIGINFO;
-	sigaction (SIGTERM, &sa, NULL);
-	//sigaction (SIGINT,  &sa, 0);
 }
 
 gboolean
@@ -155,7 +137,6 @@ void
 lterm_iteration ()
 {
 	struct Iteration_Function_Request ifr_function;
-	struct ConnectionTab *lterminal;
 	//log_debug ("Start\n");
 	doGTKMainIteration ();
 	while (ifr_get (&ifr_function) ) {
@@ -235,7 +216,6 @@ main (int argc, char *argv[])
 {
 	int rc;
 	int opt;
-	int i;
 
 	memset (&globals, 0x00, sizeof (globals) );
 	while ( (opt = getopt (argc, argv, "vh") ) != -1) {
@@ -357,7 +337,6 @@ load_settings ()
 void
 save_settings ()
 {
-	int err;
 	/* store the version of program witch saved this profile */
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "package_version", VERSION);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "tabs_position", prefs.tabs_position);

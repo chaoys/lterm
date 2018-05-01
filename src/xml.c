@@ -550,11 +550,9 @@ xml_parse (char *doc, XML *p_xml)
 int
 xml_load (XML *p_xmldoc, char *filename)
 {
-	int i, rc = 0;
 	char *xml;
 	char line[2048];
 	FILE *fp;
-	//XML xmldoc;
 	/* put xml content into a string */
 	fp = fopen (filename, "r");
 	if (fp == NULL)

@@ -205,7 +205,6 @@ append_node_to_file_xml (FILE *fp, struct GroupNode *p_node, int indent)
 int
 save_connections_to_file_xml (char *filename)
 {
-	int i;
 	FILE *fp;
 	log_debug ("\n");
 	fp = fopen (filename, "w");
@@ -224,9 +223,7 @@ save_connections_to_file_xml (char *filename)
 int
 save_connections_to_file_xml_from_glist (GList *pList, char *filename)
 {
-	int i;
 	FILE *fp;
-	struct Connection *c;
 	log_debug ("%s\n", filename);
 	fp = fopen (filename, "w");
 	if (fp == 0)
@@ -268,7 +265,6 @@ int g_connectionset_version;
 void
 read_connection_node (XMLNode *node, struct Connection *pConn)
 {
-	char name[256], *pc;
 	char tmp_s[32];
 	char propertyName[128], propertyValue[1024];
 	XMLNode *child, *node_auth, *node_hist;
@@ -282,12 +278,12 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 	strcpy (tmp_s, NVL (xml_node_get_attribute (node, "flags"), "") );
 	if (tmp_s[0])
 		pConn->flags = atoi (tmp_s);
-	if (child = xml_node_get_child (node, "last_user") )
+	if ((child = xml_node_get_child (node, "last_user")))
 		strcpy (pConn->last_user, NVL (xml_node_get_value (child), "") );
-	if (child = xml_node_get_child (node, "user") )
+	if ((child = xml_node_get_child (node, "user")))
 		strcpy (pConn->user, NVL (xml_node_get_value (child), "") );
 	//log_debug ("User: %s\n", pConn->user);
-	if (child = xml_node_get_child (node, "password") ) {
+	if ((child = xml_node_get_child (node, "password"))) {
 		strcpy (pConn->password_encrypted, NVL (xml_node_get_value (child), "") );
 		if (strlen (pConn->password_encrypted) > 5) {
 			//pc = des_decrypt_b64 (pConn->auth_password_encrypted);
@@ -297,21 +293,21 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 		}
 		//log_debug ("Password: %s\n", pConn->password);
 	}
-	if (node_auth = xml_node_get_child (node, "authentication") ) {
+	if ((node_auth = xml_node_get_child (node, "authentication"))) {
 		if (g_connectionset_version == 4) {
 			strcpy (tmp_s, xml_node_get_attribute (node_auth, "enabled") );
 			if (tmp_s[0])
 				//pConn->auth = atoi (tmp_s);
 				pConn->auth_mode = atoi (tmp_s);
 		}
-		if (child = xml_node_get_child (node_auth, "mode") ) {
+		if ((child = xml_node_get_child (node_auth, "mode"))) {
 			strcpy (tmp_s, NVL (xml_node_get_value (child), "0") );
 			if (tmp_s[0])
 				pConn->auth_mode = atoi (tmp_s);
 		}
-		if (child = xml_node_get_child (node_auth, "auth_user") )
+		if ((child = xml_node_get_child (node_auth, "auth_user")))
 			strcpy (pConn->auth_user, NVL (xml_node_get_value (child), "") );
-		if (child = xml_node_get_child (node_auth, "auth_password") ) {
+		if ((child = xml_node_get_child (node_auth, "auth_password"))) {
 			strcpy (pConn->auth_password_encrypted, NVL (xml_node_get_value (child), "") );
 			if (strlen (pConn->auth_password_encrypted) > 5) {
 				//pc = des_decrypt_b64 (pConn->auth_password_encrypted);
@@ -321,10 +317,10 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 				strcpy (pConn->auth_password_encrypted, "");
 			}
 		}
-		if (child = xml_node_get_child (node_auth, "identityFile") )
+		if ((child = xml_node_get_child (node_auth, "identityFile")))
 			strcpy (pConn->identityFile, NVL (xml_node_get_value (child), "") );
 	}
-	if (node_hist = xml_node_get_child (node, "history") ) {
+	if ((node_hist = xml_node_get_child (node, "history"))) {
 		//log_debug ("Reading history...\n");
 		child = node_hist->children;
 		while (child) {
@@ -337,13 +333,13 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 		}
 	}
 	// Deprecated: use options node
-	if (child = xml_node_get_child (node, "x11Forwarding") ) {
+	if ((child = xml_node_get_child (node, "x11Forwarding"))) {
 		//log_debug ("x11Forwarding\n");
 		strcpy (tmp_s, NVL (xml_node_get_value (child), "0") );
 		if (tmp_s[0])
 			pConn->sshOptions.x11Forwarding = atoi (tmp_s);
 	}
-	if (child = xml_node_get_child (node, "options") ) {
+	if ((child = xml_node_get_child (node, "options"))) {
 		XMLNode *propNode = child->children;
 		while (propNode) {
 			strcpy (propertyName, xml_node_get_attribute (propNode, "name") );
@@ -372,7 +368,6 @@ read_xml_connection_item (XMLNode *node)
 	struct Connection conn;
 	char name[256], *pc;
 	char tmp_s[32];
-	XMLNode *child, *node_auth, *node_hist;
 	while (node) {
 		if (!strcmp (node->name, "folder") ) {
 			if (g_xml_path[0] != 0)
@@ -408,7 +403,7 @@ read_xml_connection_item (XMLNode *node)
 int
 get_xml_doc (char *filename, XML *xmldoc)
 {
-	char line[2048], tmp_s[32];
+	char line[2048];
 	char *xml;
 	FILE *fp;
 	fp = fopen (filename, "r");
@@ -441,9 +436,7 @@ int
 load_connections_from_file_xml (char *filename)
 {
 	int rc = 0;
-	struct Connection *p_conn;
-	//char *xml;
-	char line[2048], tmp_s[32];
+	char tmp_s[32];
 	log_debug ("%s\n", filename);
 	cl_release (&conn_list);
 	cl_init (&conn_list);
@@ -517,7 +510,6 @@ int
 load_connections ()
 {
 	int rc;
-	struct Connection *p_conn;
 	cl_init (&conn_list);
 	group_tree_init (&g_groups);
 	/* try connections.xml file first */
@@ -563,22 +555,6 @@ set_private_key_controls (gboolean status)
 	gtk_widget_set_state_flags (authWidgets.button_clear_private_key,
 	                            status ? GTK_STATE_FLAG_NORMAL : GTK_STATE_FLAG_INSENSITIVE,
 	                            TRUE);
-}
-
-static void
-change_protocol_cb (GtkWidget *entry, gpointer user_data)
-{
-	struct Protocol *p_prot;
-	log_debug ("[start]\n");
-	gtk_spin_button_set_value (GTK_SPIN_BUTTON (port_spin_button), p_prot->port);
-	gboolean sensitive = TRUE;
-	gtk_widget_set_sensitive (check_x11, sensitive);
-	gtk_widget_set_sensitive (check_agentForwarding, sensitive);
-	gtk_widget_set_sensitive (check_disable_key_checking, sensitive);
-	gtk_widget_set_sensitive (check_keepAliveInterval, sensitive);
-	gtk_widget_set_sensitive (spin_keepAliveInterval, sensitive);
-	gtk_widget_set_sensitive (authWidgets.radio_auth_key, sensitive);
-	log_debug ("[end]\n");
 }
 
 void
@@ -743,22 +719,14 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	GtkBuilder *builder;
 	GError *error = NULL;
 	GtkWidget *notebook;
-	char title[64], temp[256];
-	char *emu_tmp, connection_name[1024], s_tmp[1024];
-	int i, err_name_validation;
-	int x_pad = 10, y_pad = 5;
+	char title[64];
+	char connection_name[1024];
+	int err_name_validation;
 	GtkWidget *dialog;
-	GtkWidget *cancel_button, *ok_button;
-	GtkWidget *table;
 	GtkWidget *name_entry, *host_entry, *user_options_entry;
 	gint result;
-	struct Protocol *p;
 	struct Connection *p_conn = NULL;
-	struct Connection *p_conn_tmp;
-	char *p_enc;
-	char *p_enc_b64;
-	int len;
-	struct Connection conn_new, *p_conn_ctrl = NULL;
+	struct Connection conn_new;
 	struct GroupNode *p_parent;
 	struct GroupNode *p_node_return = NULL;
 	char ui[600];
@@ -825,7 +793,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	g_signal_connect (G_OBJECT (authWidgets.button_select_private_key), "clicked", G_CALLBACK (select_private_key_cb), NULL);
 	authWidgets.button_clear_private_key = GTK_WIDGET (gtk_builder_get_object (builder, "button_clear_private_key") );
 	g_signal_connect (G_OBJECT (authWidgets.button_clear_private_key), "clicked", G_CALLBACK (clear_private_key_cb), NULL);
-	i = 0;
 	if (p_conn) {
 		gtk_spin_button_set_value (GTK_SPIN_BUTTON (port_spin_button), p_conn->port);
 	} else {
@@ -846,7 +813,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	g_signal_connect (authWidgets.radio_auth_key, "toggled", G_CALLBACK (radio_auth_key_cb), NULL);
 	/* Extra options */
 	user_options_entry = GTK_WIDGET (gtk_builder_get_object (builder, "entry_extra_options") );
-	GtkWidget *directory_entry = GTK_WIDGET (gtk_builder_get_object (builder, "entry_shared_dir") );
 	if (p_conn) {
 		gtk_entry_set_text (GTK_ENTRY (user_options_entry), p_conn->user_options);
 	}
@@ -857,8 +823,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (dialog) ), GTK_WINDOW (connections_dialog) );
 	gtk_window_set_position (GTK_WINDOW (dialog), GTK_WIN_POS_CENTER);
 	gtk_box_pack_end (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), notebook, TRUE, TRUE, 0);
-	cancel_button = gtk_dialog_add_button (GTK_DIALOG (dialog), "_Cancel", GTK_RESPONSE_CANCEL);
-	ok_button = gtk_dialog_add_button (GTK_DIALOG (dialog), "_Ok", GTK_RESPONSE_OK);
 	gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_OK);
 	gtk_widget_show_all (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) );
 	gtk_widget_grab_focus (name_entry);
@@ -920,7 +884,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 				err_name_validation = validate_name (p_parent, NULL, &conn_new, connection_name);
 				if (!err_name_validation) {
 					p_node_return = group_node_add_child (p_parent, GN_TYPE_CONNECTION, conn_new.name);
-					p_conn_ctrl = cl_insert_sorted (&conn_list, &conn_new);
 					break;
 				} else
 					msgbox_error (get_validation_error_string (err_name_validation) );
@@ -943,11 +906,10 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 struct GroupNode *
 add_update_folder (struct GroupNode *p_node)
 {
-	char title[64], temp[256];
+	char title[64];
 	char folder_name[1024];
-	int i, proceed, err_name_validation, result;
+	int err_name_validation, result;
 	GtkWidget *dialog;
-	GtkWidget *cancel_button, *ok_button;
 	GtkWidget *name_entry;
 	struct GroupNode *p_node_return = NULL;
 	struct GroupNode *p_parent;
@@ -972,8 +934,6 @@ add_update_folder (struct GroupNode *p_node)
 	gtk_box_set_spacing (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), 10);
 	gtk_container_set_border_width (GTK_CONTAINER (dialog), 5);
 	gtk_box_pack_end (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), name_hbox, TRUE, TRUE, 0);
-	cancel_button = gtk_dialog_add_button (GTK_DIALOG (dialog), "_Cancel", GTK_RESPONSE_CANCEL);
-	ok_button = gtk_dialog_add_button (GTK_DIALOG (dialog), "_Ok", GTK_RESPONSE_OK);
 	gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_OK);
 	gtk_widget_show_all (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) );
 	gtk_widget_grab_focus (name_entry);
@@ -1115,7 +1075,6 @@ cursor_changed_cb (GtkTreeView *tree_view, gpointer user_data)
 	GtkTreeModel *l_model;
 	GtkTreePath *path;
 	GtkTreeIter iter;
-	GtkTreeSelection *selection;
 	gtk_tree_selection_get_selected (user_data, &l_model, &iter);
 	if (!gtk_tree_selection_get_selected (/*selection*/ user_data, &l_model, &iter) ) {
 		g_selected_node = NULL;
@@ -1176,7 +1135,7 @@ connection_name_cell_data_func (GtkTreeViewColumn *col, GtkCellRenderer *rendere
                                 GtkTreeIter *iter, gpointer user_data)
 {
 	gchar *name;
-	char markup_string[256], color[64];
+	char markup_string[256];
 	struct Connection *p_conn;
 	gtk_tree_model_get (model, iter, NAME_COLUMN, &name, -1);
 	p_conn = (struct Connection *) get_connection (&conn_list, name);
@@ -1192,7 +1151,6 @@ connection_name_cell_data_func (GtkTreeViewColumn *col, GtkCellRenderer *rendere
 void
 on_drag_data_inserted (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data)
 {
-	struct GtkTreeView *tree_view = (struct GtkTreeView *) user_data;
 	struct GroupNode *p_parent;
 	char *user_path, *pc;
 	char parent_path[256];
@@ -1237,10 +1195,6 @@ on_drag_data_deleted (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user
 	rows_signals_enabled = 1;
 }
 
-static GtkTargetEntry row_targets[] = {
-	{ "GTK_TREE_MODEL_ROW", GTK_TARGET_SAME_APP, 0}
-};
-
 /**
  * create_connections_tree_view() - creates a widget for list of connections
  * @return a pointer to the created widget
@@ -1248,20 +1202,8 @@ static GtkTargetEntry row_targets[] = {
 GtkWidget *
 create_connections_tree_view ()
 {
-	GtkTreeModel *tree_model;
-	GtkTreeIter iter;
 	GtkCellRenderer *cell;
 	GtkTreeViewColumn *column;
-	FILE *fp;
-	char line[1024], s_path[16];
-	char name[64], host[128], protocol[64], port_tmp[16];
-	int port;
-	int retcode = 0;
-	struct Connection *p_conn_selected;
-	struct Connection *p_conn_new;
-	struct Protocol *p_prot;
-	gint sel_port;
-	gchar *sel_name;
 	GtkWidget *tree_view = gtk_tree_view_new ();
 	gtk_tree_view_set_model (GTK_TREE_VIEW (tree_view), GTK_TREE_MODEL (model) );
 	g_signal_connect (tree_view, "test-expand-row", G_CALLBACK (expand_row_cb), NULL);
@@ -1291,7 +1233,6 @@ int
 get_selected_connection (GtkTreeSelection *select, struct Connection *p_conn)
 {
 	GtkTreeIter iter;
-	gboolean have_iter;
 	gchar *sel_name;
 	struct Connection *p_conn_selected;
 	int rc = 0;
@@ -1350,10 +1291,10 @@ edit_button_clicked_cb (GtkButton *button, gpointer user_data)
 	if (g_selected_node == NULL)
 		return;
 	if (g_selected_node->type == GN_TYPE_CONNECTION) {
-		if (p_node = add_update_connection (g_selected_node, NULL) )
+		if ((p_node = add_update_connection (g_selected_node, NULL)))
 			move_cursor = 1;
 	} else {
-		if (p_node = add_update_folder (g_selected_node) )
+		if ((p_node = add_update_folder (g_selected_node)))
 			move_cursor = 1;
 	}
 	if (move_cursor)
@@ -1404,7 +1345,6 @@ delete_button_clicked_cb (GtkButton *button, gpointer user_data)
 {
 	int rc;
 	GtkTreeView *tree_view = user_data;
-	GtkTreePath *path;
 	char confirm_remove_message[512];
 	if (g_selected_node == NULL)
 		return;
@@ -1440,7 +1380,6 @@ dialog_delete_event_cb (GtkWidget *window, GdkEventAny *e, gpointer data)
 void
 ok_button_clicked_cb (GtkButton *button, gpointer user_data)
 {
-	GtkTextBuffer *buffer = (GtkTextBuffer *) user_data;
 	g_dialog_connections_connect = 1;
 }
 
@@ -1452,34 +1391,14 @@ ok_button_clicked_cb (GtkButton *button, gpointer user_data)
 int
 choose_manage_connection (struct Connection *p_conn)
 {
-	//GtkWidget *dialog;
-	GtkWidget *vpaned;
 	GtkWidget *scrolled_window;
-	GtkTreeIter iter;
-	GtkCellRenderer *cell;
-	GtkTreeViewColumn *column;
 	GtkTreeSelection *select;
 	GtkTreeModel *tree_model;
-	//GtkHBox *buttons_hbox;
 	GtkWidget *buttons_hbox;
 	GtkAccelGroup *gtk_accel = gtk_accel_group_new ();
 	GClosure *closure;
-	GdkScreen *screen;
-	//GtkTreePath *path;
-	gboolean have_iter;
-	FILE *fp;
-	char line[1024], s_path[16];
-	char name[64], host[128], protocol[64], port_tmp[16];
-	//char path_s[256];
-	int port;
 	int is_selection_selected;
 	int retcode = 1;
-	struct Connection *p_conn_selected;
-	struct Connection *p_conn_new;
-	struct Protocol *p_prot;
-	struct GroupNode *p_node;
-	gint sel_port;
-	gchar *sel_name;
 	/* create the window */
 	GtkWidget *dialog_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	connections_dialog = dialog_window;

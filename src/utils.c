@@ -126,10 +126,10 @@ seconds_to_hhmmdd (uint64_t seconds, char *buf)
 char *
 permissions_octal_to_string (uint32_t value, char *buf)
 {
-	int i, n;
+	int i;
 	char triple[16], *flags = "rwxrwxrwx";
 	for (i = 0; i < 9; i++) {
-		triple[i] = (value & (0x01 << 8 - i) ) ? flags[i] : '-';
+		triple[i] = (value & (0x01 << (8 - i)) ) ? flags[i] : '-';
 	}
 	triple[9] = 0;
 	strcpy (buf, triple);
@@ -531,7 +531,7 @@ get_desktop_environment ()
 	int de = DE_UNKNOWN;
 	char *value;
 	/* try desktop_session value */
-	if (value = getenv ("DESKTOP_SESSION") ) {
+	if ((value = getenv ("DESKTOP_SESSION"))) {
 		if (!strcmp (value, "gnome") )
 			return (DE_GNOME);
 		else if (!strcmp (value, "xfce") || !strcmp (value, "xubuntu") )
@@ -540,7 +540,7 @@ get_desktop_environment ()
 			return (DE_KDE);
 	}
 	/* try more */
-	if (value = getenv ("GNOME_KEYRING_PID") )
+	if ((value = getenv ("GNOME_KEYRING_PID")))
 		return (DE_GNOME);
 	if (getenv ("CINNAMON_VERSION") )
 		return (DE_CINNAMON);
@@ -633,7 +633,7 @@ Decrypt (char *Key, char *Msg, int size)
 char *
 des_encrypt_b64 (char *clear_text)
 {
-	unsigned char *p_enc;
+	char *p_enc;
 	char *p_enc_b64;
 	if (strlen (clear_text) == 0)
 		return ("");
@@ -653,7 +653,7 @@ des_decrypt_b64 (char *ecrypted_text)
 	gsize len;
 	if (strlen (ecrypted_text) == 0)
 		return ("");
-	p_enc = g_base64_decode (ecrypted_text, &len);
+	p_enc = (char *) g_base64_decode (ecrypted_text, &len);
 	p_decr = (char *) Decrypt (KEY, p_enc, (int) len/*strlen (p_enc)*/);
 	free (p_enc);
 	strcpy (clear_text, p_decr);

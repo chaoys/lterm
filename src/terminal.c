@@ -85,7 +85,7 @@ log_on (struct ConnectionTab *p_conn_tab)
 {
 	char expanded_args[1024], temp[64];
 	char **p_params;
-	int i, ret;
+	int ret;
 	int rc = 0, login_rc = 0;
 	struct Protocol *p_prot = &g_ssh_prot;
 	struct SSH_Auth_Data auth;
@@ -285,9 +285,7 @@ asked_for_user (struct ConnectionTab *p_ct, char *log_on_data)
 	int feed_child;
 	char label[512];
 	struct Protocol *p_prot = &g_ssh_prot;
-	VteTerminal *vteterminal;
 	log_debug ("\n");
-	vteterminal = VTE_TERMINAL (p_ct->vte);
 	feed_child = 0;
 	sprintf (label, "Enter user for <b>%s</b>:", p_ct->connection.name);
 	feed_child = check_log_in_parameter (p_ct->connection.auth_mode, p_ct->connection.auth_user,
@@ -303,9 +301,7 @@ asked_for_password (struct ConnectionTab *p_ct, char *log_on_data)
 	int feed_child;
 	char label[512];
 	struct Protocol *p_prot = &g_ssh_prot;
-	VteTerminal *vteterminal;
 	log_debug ("\n");
-	vteterminal = VTE_TERMINAL (p_ct->vte);
 	feed_child = 0;
 	sprintf (label, "Enter password for <b>%s@%s</b>:", p_ct->connection.user, p_ct->connection.name);
 	feed_child = check_log_in_parameter (p_ct->connection.auth_mode, p_ct->connection.auth_password,

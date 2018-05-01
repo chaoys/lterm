@@ -78,7 +78,7 @@ profile_edit (GtkWidget *demo_vte)
 	GtkWidget *notebook1 = GTK_WIDGET (gtk_builder_get_object (builder, "notebook1") );
 	/* font */
 	fontbutton_terminal = GTK_WIDGET (gtk_builder_get_object (builder, "fontbutton_terminal") );
-	gtk_font_button_set_font_name (GTK_FONT_BUTTON (fontbutton_terminal), g_profile.font[0] ? g_profile.font : "Monospace 9");
+	gtk_font_chooser_set_font (GTK_FONT_CHOOSER (fontbutton_terminal), g_profile.font[0] ? g_profile.font : "Monospace 9");
 	GtkWidget *check_use_system = GTK_WIDGET (gtk_builder_get_object (builder, "check_use_system") );
 	g_signal_connect (check_use_system, "toggled", G_CALLBACK (check_use_system_cb), NULL);
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_use_system), g_profile.font_use_system);
@@ -100,7 +100,7 @@ profile_edit (GtkWidget *demo_vte)
 	gint result = gtk_dialog_run (GTK_DIALOG (dialog) );
 	if (result == GTK_RESPONSE_OK) {
 		new_profile.font_use_system = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_use_system) ) ? 1 : 0;
-		strcpy (new_profile.font, gtk_font_button_get_font_name (GTK_FONT_BUTTON (fontbutton_terminal) ) );
+		strcpy (new_profile.font, gtk_font_chooser_get_font (GTK_FONT_CHOOSER (fontbutton_terminal) ) );
 		new_profile.cursor_shape = gtk_combo_box_get_active (GTK_COMBO_BOX (combo_shape) );
 		new_profile.cursor_blinking = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_blinking) ) ? 1 : 0;
 		gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (color_fg), &fg);
@@ -137,10 +137,7 @@ show_preferences (void)
 {
 	GtkBuilder *builder;
 	GError *error = NULL;
-	GtkWidget *button_ok, *button_cancel;
 	GtkWidget *dialog, *notebook;
-	GtkWidget *font_entry, *fg_color_entry, *bg_color_entry;
-	struct Profile *p_profile;
 	char ui[600];
 	builder = gtk_builder_new ();
 	sprintf (ui, "%s/preferences.glade", globals.data_dir);
