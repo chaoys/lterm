@@ -128,7 +128,6 @@ conn_update_last_user (char *cname, char *last_user)
 void
 write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 {
-	int i;
 	fprintf (fp, "%*s<connection name='%s' host='%s' port='%d' flags='%d'>\n"
 	         "%*s  <authentication>\n"
 	         "%*s    <mode>%d</mode>\n"
@@ -164,15 +163,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         indent, " ", p_conn->sshOptions.flagKeepAlive, p_conn->sshOptions.keepAliveInterval,
 	         indent, " "
 	        );
-	if (p_conn->directories) {
-		fprintf (fp, "%*s  <history>\n", indent, " ");
-		for (i = 0; i < p_conn->directories->len; i++) {
-			char *dir;
-			dir = (gchar *) g_ptr_array_index (p_conn->directories, i);
-			fprintf (fp, "%*s    <item>%s</item>\n", indent, " ", g_markup_escape_text (dir, strlen (dir) ) );
-		}
-		fprintf (fp, "%*s  </history>\n", indent, " ");
-	}
 	fprintf (fp, "%*s</connection>\n", indent, " ");
 }
 
@@ -257,7 +247,7 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 {
 	char tmp_s[32];
 	char propertyName[128], propertyValue[1024];
-	XMLNode *child, *node_auth, *node_hist;
+	XMLNode *child, *node_auth;
 	memset (pConn, 0, sizeof (struct Connection) );
 	strcpy (pConn->name, xml_node_get_attribute (node, "name") );
 	//log_debug ("%s\n", pConn->name);
@@ -309,16 +299,6 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 		}
 		if ((child = xml_node_get_child (node_auth, "identityFile")))
 			strcpy (pConn->identityFile, NVL (xml_node_get_value (child), "") );
-	}
-	if ((node_hist = xml_node_get_child (node, "history"))) {
-		child = node_hist->children;
-		while (child) {
-			char *d = (char *) xml_node_get_value (child);
-			if (d) {
-				add_directory (pConn, d);
-			}
-			child = child->next;
-		}
 	}
 	if ((child = xml_node_get_child (node, "options"))) {
 		XMLNode *propNode = child->children;

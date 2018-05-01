@@ -37,7 +37,6 @@ void
 connection_init (SConnection *pConn)
 {
 	memset (pConn, 0, sizeof (SConnection) );
-	pConn->directories = g_ptr_array_new ();
 }
 
 void
@@ -317,50 +316,4 @@ connection_fill_from_string (struct Connection *p_conn, char *connection_string)
 	} else
 		return 2;
 }
-int
-count_directories (SConnection *pConn)
-{
-	return (pConn->directories ? pConn->directories->len : 0);
-}
-
-int
-search_directory (SConnection *pConn, gchar *item)
-{
-	int i;
-	gchar *dir = 0;
-	if (pConn->directories == NULL)
-		return -1;
-	for (i = 0; i < pConn->directories->len; i++) {
-		dir = (gchar *) g_ptr_array_index (pConn->directories, i);
-		if (dir == 0)
-			continue;
-		if (!g_strcmp0 (dir, item) )
-			return i;
-	}
-	return -1;
-}
-
-void
-add_directory (SConnection *pConn, char *item)
-{
-	int i;
-	gchar *pDir;
-	gpointer ptr;
-	if (item == 0)
-		return;
-	if (pConn->directories == 0)
-		pConn->directories = g_ptr_array_new ();
-	// If bookmark is present, remove it so it will go at the end of the list
-	i = search_directory (pConn, item);
-	if (i >= 0) {
-		ptr = g_ptr_array_remove_index (pConn->directories, i);
-		g_free (ptr);
-	}
-	//pDir = (gchar *) malloc (strlen (item) + 1);
-	pDir = g_strdup (item);
-	g_ptr_array_add (pConn->directories, (gpointer) pDir);
-	if (count_directories (pConn) > MAX_BOOKMARKS)
-		g_ptr_array_remove_index (pConn->directories, 0);
-}
-
 

@@ -43,8 +43,6 @@ typedef struct Connection {
 	char identityFile[1024];
 	SSH_Options sshOptions;
 
-	GPtrArray *directories;
-
 	struct Connection *next;
 } SConnection;
 
@@ -64,10 +62,6 @@ struct Connection *cl_insert_sorted (struct Connection_List *p_cl, struct Connec
 struct Connection *cl_host_search (struct Connection_List *p_cl, char *host, char *skip_this);
 struct Connection *cl_get_by_index (struct Connection_List *p_cl, int index);
 struct Connection *cl_get_by_name (struct Connection_List *p_cl, char *name);
-
-int count_directories (SConnection *pConn);
-int search_directory (SConnection *pConn, gchar *item);
-void add_directory (SConnection *pConn, char *item);
 
 int connection_fill_from_string (struct Connection *p_conn, char *connection_string);
 void connection_copy (struct Connection *p_dst, struct Connection *p_src);
