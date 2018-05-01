@@ -1460,12 +1460,12 @@ choose_manage_connection (struct Connection *p_conn)
 	/* standard buttons */
 	GtkWidget *std_buttons_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
 	gtk_container_set_border_width (GTK_CONTAINER (std_buttons_hbox), 10);
-	GtkWidget *cancel_button = gtk_button_new_with_label ("Cancel");
-	gtk_box_pack_end (GTK_BOX (std_buttons_hbox), cancel_button, TRUE, TRUE, 0);
-	g_signal_connect (G_OBJECT (cancel_button), "clicked", G_CALLBACK (dialog_delete_event_cb), NULL);
 	GtkWidget *ok_button = gtk_button_new_with_label ("Connect");
 	gtk_box_pack_end (GTK_BOX (std_buttons_hbox), ok_button, TRUE, TRUE, 0);
 	g_signal_connect (G_OBJECT (ok_button), "clicked", G_CALLBACK (ok_button_clicked_cb), NULL);
+	GtkWidget *cancel_button = gtk_button_new_with_label ("Cancel");
+	gtk_box_pack_end (GTK_BOX (std_buttons_hbox), cancel_button, TRUE, TRUE, 0);
+	g_signal_connect (G_OBJECT (cancel_button), "clicked", G_CALLBACK (dialog_delete_event_cb), NULL);
 	gtk_box_pack_end (GTK_BOX (dialog_vbox), std_buttons_hbox, FALSE, FALSE, 0);
 	gtk_container_add (GTK_CONTAINER (dialog_window), dialog_vbox);
 	gtk_widget_show_all (dialog_vbox);
