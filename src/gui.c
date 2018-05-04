@@ -1049,6 +1049,15 @@ _get_active_widget()
 	return (NULL);
 }
 
+static inline void terminal_copy_to_clipboard(VteTerminal *vte)
+{
+#if VTE_CHECK_VERSION(0, 50, 0)
+	vte_terminal_copy_clipboard_format (vte, VTE_FORMAT_TEXT);
+#else
+	vte_terminal_copy_clipboard(vte);
+#endif
+}
+
 void
 edit_copy ()
 {
@@ -1058,7 +1067,7 @@ edit_copy ()
 	if (p_current_connection_tab) {
 		/* Check if the terminal has the focus or the current widget is null (popup menu) */
 		if (gtk_widget_has_focus (p_current_connection_tab->vte) || w == NULL) {
-			vte_terminal_copy_clipboard_format (VTE_TERMINAL (p_current_connection_tab->vte), VTE_FORMAT_TEXT );
+			terminal_copy_to_clipboard(VTE_TERMINAL (p_current_connection_tab->vte));
 			done = 1;
 		}
 	}
@@ -1788,7 +1797,7 @@ void
 selection_changed_cb (VteTerminal *vteterminal, gpointer user_data)
 {
 	if (prefs.mouse_copy_on_select)
-		vte_terminal_copy_clipboard_format (vteterminal, VTE_FORMAT_TEXT);
+		terminal_copy_to_clipboard(VTE_TERMINAL (p_current_connection_tab->vte));
 }
 
 void
