@@ -1452,8 +1452,6 @@ choose_manage_connection (struct Connection *p_conn)
 	} /* while */
 	gtk_widget_destroy (dialog_window);
 	connections_dialog = NULL;
-	/* refresh quick launch window expansders */
-	ifr_add (ITERATION_REFRESH_QUICK_LAUCH_TREE_VIEW, NULL);
 	return (retcode);
 }
 

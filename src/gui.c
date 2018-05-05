@@ -44,24 +44,11 @@
 
 #include <gdk/gdkx.h>
 
-#  define ACCEL_SEARCH_ENTRY "Search connection... <Ctrl+K>"
-#  define SHORTCUT_COPY "<shift><ctrl>C"
-#  define SHORTCUT_PASTE "<shift><ctrl>V"
-#  define SHORTCUT_FIND "<shift><ctrl>F"
-#  define SHORTCUT_FIND_NEXT "<shift><ctrl>G"
-#  define SHORTCUT_QUIT "<Alt>X"
-
-#define USERCHARS "-[:alnum:]"
-#define USERCHARS_CLASS "[" USERCHARS "]"
-#define PASSCHARS_CLASS "[-[:alnum:]\\Q,?;.:/!%$^*&~\"#'\\E]"
-#define HOSTCHARS_CLASS "[-[:alnum:]]"
-#define HOST HOSTCHARS_CLASS "+(\\." HOSTCHARS_CLASS "+)*"
-#define PORT "(?:\\:[[:digit:]]{1,5})?"
-#define PATHCHARS_CLASS "[-[:alnum:]\\Q_$.+!*,:;@&=?/~#%\\E]"
-#define PATHTERM_CLASS "[^\\Q]'.:}>) \t\r\n,\"\\E]"
-#define SCHEME "(?:news:|telnet:|nntp:|file:\\/|https?:|ftps?:|sftp:|webcal:)"
-#define USERPASS USERCHARS_CLASS "+(?:" PASSCHARS_CLASS "+)?"
-#define URLPATH   "(?:(/"PATHCHARS_CLASS"+(?:[(]"PATHCHARS_CLASS"*[)])*"PATHCHARS_CLASS"*)*"PATHTERM_CLASS")?"
+#define SHORTCUT_COPY "<shift><ctrl>C"
+#define SHORTCUT_PASTE "<shift><ctrl>V"
+#define SHORTCUT_FIND "<shift><ctrl>F"
+#define SHORTCUT_FIND_NEXT "<shift><ctrl>G"
+#define SHORTCUT_QUIT "<Alt>X"
 
 extern Globals globals;
 extern Prefs prefs;
@@ -124,10 +111,6 @@ GActionEntry main_menu_items[] = {
 	{ "findprev", terminal_find_previous },
 	{ "select_all", edit_select_all },
 	{ "pref", show_preferences },
-
-	{ "zoom_in", zoom_in },
-	{ "zoom_out", zoom_out },
-	{ "zoom_100", zoom_100 },
 
 	{ "reset", terminal_reset },
 	{ "detach_right", terminal_detach_right },
@@ -205,23 +188,6 @@ const gchar ui_main_desc[] =
 		"        <item>"
 		"          <attribute name='label'>Preferences</attribute>"
 		"          <attribute name='action'>lt.pref</attribute>"
-		"        </item>"
-		"      </section>"
-        "    </submenu>"
-        "    <submenu>"
-		"      <attribute name='label'>View</attribute>"
-		"      <section>"
-		"        <item>"
-		"          <attribute name='label'>Zoom in</attribute>"
-		"          <attribute name='action'>lt.zoom_in</attribute>"
-		"        </item>"
-		"        <item>"
-		"          <attribute name='label'>Zoom out</attribute>"
-		"          <attribute name='action'>lt.zoom_out</attribute>"
-		"        </item>"
-		"        <item>"
-		"          <attribute name='label'>Zoom 100</attribute>"
-		"          <attribute name='action'>lt.zoom_100</attribute>"
 		"        </item>"
 		"      </section>"
         "    </submenu>"
@@ -413,13 +379,11 @@ child_exit ()
 void
 segv_handler (int signum)
 {
-	log_write ("!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-	//log_write("Critical error. Received signal %d\n", signum);
+	log_write("Critical error. Received signal %d\n", signum);
 	msgbox_error ("Received signal %d.\n"
 	              "Sorry, this is a critical error and the program will be killed.\n"
 	              "Take a look on the website about what to do in cases like this.",
 	              signum);
-	log_write ("Removing all watch file descriptors...\n");
 	signal (signum, SIG_DFL);
 	kill (getpid(), signum);
 }
@@ -1167,19 +1131,6 @@ edit_select_all ()
 	vte_terminal_select_all (VTE_TERMINAL (p_current_connection_tab->vte) );
 }
 
-void zoom_in()
-{
-	if (p_current_connection_tab) adjust_font_size (p_current_connection_tab->vte, 1);
-}
-void zoom_out()
-{
-	if (p_current_connection_tab) adjust_font_size (p_current_connection_tab->vte, -1);
-}
-void zoom_100()
-{
-	if (p_current_connection_tab) adjust_font_size (p_current_connection_tab->vte, 0);
-}
-
 void
 terminal_reset ()
 {
@@ -1593,49 +1544,11 @@ select_encoding_cb (GtkWidget *wgt, gpointer cbdata)
 	}
 }
 
-#if 0
-void
-add_stock_icon (GtkIconFactory *factory, gchar *location, gchar *stock_id)
-{
-	GtkIconSource *source = gtk_icon_source_new ();
-	GtkIconSet *set = gtk_icon_set_new ();
-	gtk_icon_source_set_filename (source, location);
-	gtk_icon_set_add_source (set, source);
-	gtk_icon_factory_add (factory, stock_id, set);
-}
-#endif
 void
 create_stock_objects ()
 {
-#if 0
-	GtkIconFactory *factory;
-	factory = gtk_icon_factory_new ();
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/main_icon.png", NULL), MY_STOCK_MAIN_ICON);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/terminal_32.png", NULL), MY_STOCK_TERMINAL);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/duplicate.png", NULL), MY_STOCK_DUPLICATE);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/plus.png", NULL), MY_STOCK_PLUS);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/less.png", NULL), MY_STOCK_LESS);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/pencil.png", NULL), MY_STOCK_PENCIL);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/copy.png", NULL), MY_STOCK_COPY);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/folder.png", NULL), MY_STOCK_FOLDER);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/upload.png", NULL), MY_STOCK_UPLOAD);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/download.png", NULL), MY_STOCK_DOWNLOAD);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/sidebar.png", NULL), MY_STOCK_SIDEBAR);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/splitH.png", NULL), MY_STOCK_SPLIT_H);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/splitV.png", NULL), MY_STOCK_SPLIT_V);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/regroup.png", NULL), MY_STOCK_REGROUP);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/cluster.png", NULL), MY_STOCK_CLUSTER);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/preferences.png", NULL), MY_STOCK_PREFERENCES);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/transfers.png", NULL), MY_STOCK_TRANSFERS);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/folder_up.png", NULL), MY_STOCK_FOLDER_UP);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/folder_new.png", NULL), MY_STOCK_FOLDER_NEW);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/home.png", NULL), MY_STOCK_HOME);
-	add_stock_icon (factory, g_strconcat (globals.img_dir, "/file_new.png", NULL), MY_STOCK_FILE_NEW);
-	gtk_icon_factory_add_default (factory);
-#else
 	GtkIconTheme *ict = gtk_icon_theme_get_default();
 	gtk_icon_theme_append_search_path(ict, globals.img_dir);
-#endif
 }
 
 void
@@ -1845,23 +1758,24 @@ gboolean
 key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 {
 	int keyReturn, keyEnter;
-	gboolean rc = FALSE;
 	keyReturn = GDK_KEY_Return;
 	keyEnter = GDK_KEY_KP_Enter;
 	if (event->keyval == keyReturn || event->keyval == keyEnter) {
 		if (!p_current_connection_tab)
 			return FALSE;
-		log_debug ("Enter/Return key pressed\n");
 		if (tabGetConnectionStatus (p_current_connection_tab) == TAB_CONN_STATUS_DISCONNECTED &&
 		                p_current_connection_tab->last_connection.name[0] != 0) {
+			log_debug ("Enter/Return key pressed\n");
 			tabInitConnection (p_current_connection_tab);
 			p_current_connection_tab->enter_key_relogging = 1;
 			log_on (p_current_connection_tab);
 			refreshTabStatus (p_current_connection_tab);
 			update_screen_info ();
+			/* TRUE to stop other handlers from being invoked for the event */
+			return TRUE;
 		}
 	}
-	return (rc);
+	return FALSE;
 }
 
 void

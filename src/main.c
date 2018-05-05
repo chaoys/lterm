@@ -42,8 +42,6 @@
 #include "ssh.h"
 #include "utils.h"
 
-int switch_local = 0;     /* start with local shell */
-
 Globals globals;
 Prefs prefs;
 struct Protocol g_ssh_prot = { "ssh", "-p %p -l %u %h", 22, PROT_FLAG_ASKPASSWORD };
@@ -52,7 +50,6 @@ GApplication *application;
 
 void load_settings ();
 void save_settings ();
-void show_version ();
 void help ();
 
 // Access to ssh operations
@@ -133,9 +130,6 @@ lterm_iteration ()
 			case ITERATION_REFRESH_TREE_VIEW:
 				refresh_connection_tree_view ( (GtkTreeView *) ifr_function.user_data);
 				break;
-			case ITERATION_CLOSE_TAB:
-				connection_tab_close ( (SConnectionTab *) ifr_function.user_data);
-				break;
 			default:
 				break;
 		} /* switch */
@@ -202,12 +196,8 @@ main (int argc, char *argv[])
 	int opt;
 
 	memset (&globals, 0x00, sizeof (globals) );
-	while ( (opt = getopt (argc, argv, "vh") ) != -1) {
+	while ( (opt = getopt (argc, argv, "h") ) != -1) {
 		switch (opt) {
-			case 'v':
-				show_version ();
-				exit (0);
-				break;
 			case 'h':
 				help ();
 				exit (0);
@@ -333,35 +323,9 @@ save_settings ()
 }
 
 void
-get_version (char *version)
-{
-	strcpy (version, "");
-#ifdef CREATIONDATE
-	sprintf (version, "%s-%s", VERSION, CREATIONDATE);
-#else
-	sprintf (version, "%s", VERSION);
-#endif
-#ifdef SO
-	strcat (version, " ");
-	strcat (version, SO);
-#endif
-}
-
-
-void
-show_version ()
-{
-	char version[64];
-	get_version (version);
-	printf ("%s\n", version);
-}
-
-void
 help ()
 {
-	char version[64];
-	get_version (version);
-	printf ("\n%s version %s\n", PACKAGE, version);
+	printf ("\n%s version %s\n", PACKAGE, VERSION);
 	printf (
 	        "Usage :\n"
 	        "	-v	show version\n"

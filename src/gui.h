@@ -82,8 +82,6 @@ typedef struct ConnectionTab {
 #define ITERATION_MAX 20
 #define ITERATION_REBUILD_TREE_STORE 1
 #define ITERATION_REFRESH_TREE_VIEW 2
-#define ITERATION_REFRESH_QUICK_LAUCH_TREE_VIEW 3
-#define ITERATION_CLOSE_TAB 5
 
 struct Iteration_Function_Request {
 	int id;
