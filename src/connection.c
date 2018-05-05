@@ -834,6 +834,7 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 				p_parent = get_parent_node_for_insert ();
 				err_name_validation = validate_name (p_parent, NULL, &conn_new, connection_name);
 				if (!err_name_validation) {
+					cl_append(&conn_list, &conn_new);
 					p_node_return = group_node_add_child (p_parent, GN_TYPE_CONNECTION, conn_new.name);
 					break;
 				} else
