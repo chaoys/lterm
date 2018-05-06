@@ -1220,7 +1220,6 @@ void
 edit_button_clicked_cb (GtkButton *button, gpointer user_data)
 {
 	GtkTreeView *tree_view = user_data;
-	//struct Connection *p_conn;
 	struct GroupNode *p_node = NULL;
 	int move_cursor = 0;
 	if (g_selected_node == NULL)
@@ -1305,6 +1304,7 @@ choose_manage_connection (struct Connection *p_conn)
 	g_signal_connect (dialog_window, "delete_event", G_CALLBACK (dialog_delete_event_cb), NULL);
 	GtkWidget *dialog_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
 	/* create a tree view for connections before buttons so we can pass it to callback functions */
+	g_selected_node = NULL;
 	GtkWidget *tree_view = create_connections_tree_view ();
 	select = gtk_tree_view_get_selection (GTK_TREE_VIEW (tree_view) );
 	gtk_tree_selection_set_mode (select, GTK_SELECTION_SINGLE);
@@ -1317,7 +1317,6 @@ choose_manage_connection (struct Connection *p_conn)
 	scrolled_window = gtk_scrolled_window_new (NULL, NULL);
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
 	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolled_window), GTK_SHADOW_ETCHED_IN);
-	//gtk_container_set_resize_mode (GTK_SCROLLED_WINDOW (scrolled_window), GTK_RESIZE_QUEUE);
 	gtk_container_add (GTK_CONTAINER (scrolled_window), tree_view);
 	gtk_widget_show (scrolled_window);
 	/* command buttons */
@@ -1388,7 +1387,6 @@ choose_manage_connection (struct Connection *p_conn)
 	g_closure_unref (closure);
 	gtk_window_add_accel_group (GTK_WINDOW (dialog_window), gtk_accel);
 	/* init the pointer to current selected node */
-	g_selected_node = NULL;
 	g_dialog_connections_running = 1;
 	g_dialog_connections_connect = 0;
 	while (g_dialog_connections_running) {
