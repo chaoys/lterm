@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.3 -->
+<!-- Generated with glade 3.22.1 -->
 <interface>
-  <requires lib="gtk+" version="3.0"/>
+  <requires lib="gtk+" version="3.10"/>
   <object class="GtkAdjustment" id="adj_keepAliveInterval">
     <property name="upper">65535</property>
     <property name="step_increment">1</property>
@@ -54,18 +54,6 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="label7">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Port</property>
-                <property name="xalign">0</property>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">3</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkEntry" id="entry_name">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -104,7 +92,19 @@
               </object>
               <packing>
                 <property name="left_attach">1</property>
-                <property name="top_attach">3</property>
+                <property name="top_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label7">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Port</property>
+                <property name="xalign">0</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">2</property>
               </packing>
             </child>
           </object>
@@ -139,7 +139,6 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="receives_default">False</property>
-            <property name="xalign">0</property>
             <property name="active">True</property>
             <property name="draw_indicator">True</property>
           </object>
@@ -163,7 +162,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
-                <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
                 <property name="group">radio_auth_prompt</property>
               </object>
@@ -256,7 +254,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
-                <property name="xalign">0</property>
                 <property name="draw_indicator">True</property>
                 <property name="group">radio_auth_prompt</property>
               </object>
@@ -428,7 +425,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="xalign">0</property>
                         <property name="draw_indicator">True</property>
                       </object>
                       <packing>
@@ -442,7 +438,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="xalign">0</property>
                         <property name="draw_indicator">True</property>
                       </object>
                       <packing>
@@ -469,7 +464,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="xalign">0.029999999329447746</property>
                         <property name="draw_indicator">True</property>
                       </object>
                       <packing>
@@ -488,7 +482,6 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="xalign">0</property>
                             <property name="draw_indicator">True</property>
                           </object>
                           <packing>
