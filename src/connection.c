@@ -271,12 +271,7 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 			strcpy (pConn->auth_user, NVL (xml_node_get_value (child), "") );
 		if ((child = xml_node_get_child (node_auth, "auth_password"))) {
 			strcpy (pConn->auth_password_encrypted, NVL (xml_node_get_value (child), "") );
-			if (strlen (pConn->auth_password_encrypted) > 5) {
-				memcpy (pConn->auth_password, des_decrypt_b64 (pConn->auth_password_encrypted), 32);
-			} else {
-				strcpy (pConn->auth_password, "");
-				strcpy (pConn->auth_password_encrypted, "");
-			}
+			strcpy (pConn->auth_password, password_decode (pConn->auth_password_encrypted));
 		}
 		if ((child = xml_node_get_child (node_auth, "identityFile")))
 			strcpy (pConn->identityFile, NVL (xml_node_get_value (child), "") );
@@ -792,7 +787,7 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 			strcpy (conn_new.auth_user, gtk_entry_get_text (GTK_ENTRY (authWidgets.user_entry) ) );
 			strcpy (conn_new.auth_password, gtk_entry_get_text (GTK_ENTRY (authWidgets.password_entry) ) );
 			if (conn_new.auth_password[0] != 0)
-				strcpy (conn_new.auth_password_encrypted, des_encrypt_b64 (conn_new.auth_password) );
+				strcpy (conn_new.auth_password_encrypted, password_encode (conn_new.auth_password) );
 			// Private key
 			strcpy (conn_new.identityFile, gtk_entry_get_text (GTK_ENTRY (authWidgets.entry_private_key) ) );
 			if (p_node) { /* edit */

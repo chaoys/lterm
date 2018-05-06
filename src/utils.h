@@ -25,7 +25,6 @@
 
 #define NVL(a,b) (a) != NULL ? (a) : (b)
 
-
 void ltrim (char *s);
 void rtrim (char *s);
 void trim (char *s);
@@ -38,15 +37,15 @@ char *replace_str (const char *str, const char *old, const char *new);
 void split_string (char *str, char **splitted, char *delimiters/*, int skipNulls*/);
 char **splitString (char *str, char *delimiters, int skipNulls, char *quotes, int trailingNull, int *pCount);
 int check_command (char *command);
-char *des_encrypt_b64 (char *clear_text);
-char *des_decrypt_b64 (char *ecrypted_text);
-void des_decrypt_b64_2 (char *ecrypted_text, char *clear_text);
 char *shortenString (char *original, int threshold, char *shortened);
 int file_exists (char *filename);
 
 int list_count (char *list, char sep);
 int list_get_nth (char *list, int n, char sep, char *elem);
 void get_system (char *sys_name);
+
+char *password_encode (char *clear_text);
+char *password_decode (char *ecrypted_text);
 
 #endif
 

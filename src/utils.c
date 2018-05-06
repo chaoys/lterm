@@ -540,68 +540,30 @@ shortenString (char *original, int threshold, char *shortened)
 }
 
 char *
-Encrypt (char *Key, char *Msg, int size)
+password_encode (char *clear_text)
 {
-	static char *Res;
-	int n = 0;
-	DES_cblock Key2;
-	DES_key_schedule schedule;
-	Res = (char *) malloc (size);
-	/* Prepare the key for use with DES_cfb64_encrypt */
-	memcpy (Key2, Key, 8);
-	DES_set_odd_parity (&Key2);
-	DES_set_key_checked (&Key2, &schedule);
-	/* Encryption occurs here */
-	DES_cfb64_encrypt ( (unsigned char *) Msg, (unsigned char *) Res, size, &schedule, &Key2, &n, DES_ENCRYPT);
-	return (Res);
-}
-
-char *
-Decrypt (char *Key, char *Msg, int size)
-{
-	static char* Res;
-	int n = 0;
-	DES_cblock Key2;
-	DES_key_schedule schedule;
-	Res = (char *) malloc (size);
-	/* Prepare the key for use with DES_cfb64_encrypt */
-	memcpy (Key2, Key, 8);
-	DES_set_odd_parity (&Key2);
-	DES_set_key_checked (&Key2, &schedule);
-	/* Decryption occurs here */
-	DES_cfb64_encrypt ( ( unsigned char *) Msg, (unsigned char *) Res, size, &schedule, &Key2, &n, DES_DECRYPT);
-	return (Res);
-}
-
-char *
-des_encrypt_b64 (char *clear_text)
-{
-	char *p_enc;
-	char *p_enc_b64;
+	static char secret_text[4096];
+	char *p_bin;
 	if (strlen (clear_text) == 0)
 		return ("");
-	p_enc = Encrypt (KEY, clear_text, strlen (clear_text) );
-	if (strlen (p_enc) > strlen (clear_text) )
-		p_enc[strlen (clear_text)] = 0;
-	p_enc_b64 = g_base64_encode ( (const unsigned char *) p_enc, strlen (p_enc) );
-	//log_debug("%s -> %s\n", clear_text, p_enc_b64);
-	return (p_enc_b64);
+	p_bin = g_base64_encode ((const guchar *)clear_text, strlen (clear_text) );
+	strcpy(secret_text, p_bin);
+	g_free(p_bin);
+	return (secret_text);
 }
 
 char *
-des_decrypt_b64 (char *ecrypted_text)
+password_decode (char *ecrypted_text)
 {
 	static char clear_text[4096];
-	char *p_enc, *p_decr;
+	char *p_bin;
 	gsize len;
 	if (strlen (ecrypted_text) == 0)
 		return ("");
-	p_enc = (char *) g_base64_decode (ecrypted_text, &len);
-	p_decr = (char *) Decrypt (KEY, p_enc, (int) len/*strlen (p_enc)*/);
-	free (p_enc);
-	strcpy (clear_text, p_decr);
-	//memcpy (clear_text, p_decr/*(char *) Decrypt (KEY, p_enc, strlen (p_enc))*/, len);
-	//clear_text[len] = 0;
+	p_bin = (char *) g_base64_decode (ecrypted_text, &len);
+	strncpy (clear_text, p_bin, len);
+	clear_text[len] = 0;
+	g_free(p_bin);
 	return (clear_text);
 }
 
