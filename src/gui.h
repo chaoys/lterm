@@ -199,7 +199,6 @@ void sb_msg_push (char *);
 
 void start_gtk (int argc, char **argv);
 void ifr_init (void);
-int open_connection (char *connection);
 int ifr_get (struct Iteration_Function_Request *dest);
 void connection_tab_close (struct ConnectionTab *p_ct);
 gboolean search_entry_focus_out_event_cb (GtkWidget *widget, GdkEvent *event, gpointer user_data);

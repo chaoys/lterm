@@ -1883,26 +1883,6 @@ update_all_profiles ()
 	}
 }
 
-int
-open_connection (char *connection)
-{
-	int rc;
-	char *pc;
-	char connection_string[256];
-	struct Connection c;
-	if (!memcmp (connection, "conn:", 5) ) {
-		pc = (char *) &connection[5];
-		strcpy (connection_string, pc);
-		log_debug ("open connection_'%s'\n", connection_string);
-		rc = connection_fill_from_string (&c, connection_string);
-		if (rc == 0)
-			connection_log_on_param (&c);
-		else
-			msgbox_error ("can't open connection %s\nError id: %d", connection_string, rc);
-	}
-	return 0;
-}
-
 /*
   Function: start_gtk
   Creates the main user interface

@@ -136,8 +136,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         "%*s    <identityFile>%s</identityFile>\n"
 	         "%*s  </authentication>\n"
 	         "%*s  <last_user>%s</last_user>\n"
-	         "%*s  <user>%s</user>\n"
-	         "%*s  <password>%s</password>\n"
 	         "%*s  <user_options>%s</user_options>\n"
 	         "%*s  <options>\n"
 	         "%*s    <property name='x11Forwarding'>%d</property>\n"
@@ -153,8 +151,6 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         indent, " ", p_conn->identityFile[0] ? g_markup_escape_text (p_conn->identityFile, strlen (p_conn->identityFile) ) : "",
 	         indent, " ",
 	         indent, " ", NVL (p_conn->last_user, ""),
-	         indent, " ", NVL (p_conn->user, ""),
-	         indent, " ", NVL (p_conn->password_encrypted, ""),
 	         indent, " ", p_conn->user_options,
 	         indent, " ",
 	         indent, " ", p_conn->sshOptions.x11Forwarding,
@@ -260,19 +256,6 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 		pConn->flags = atoi (tmp_s);
 	if ((child = xml_node_get_child (node, "last_user")))
 		strcpy (pConn->last_user, NVL (xml_node_get_value (child), "") );
-	if ((child = xml_node_get_child (node, "user")))
-		strcpy (pConn->user, NVL (xml_node_get_value (child), "") );
-	//log_debug ("User: %s\n", pConn->user);
-	if ((child = xml_node_get_child (node, "password"))) {
-		strcpy (pConn->password_encrypted, NVL (xml_node_get_value (child), "") );
-		if (strlen (pConn->password_encrypted) > 5) {
-			//pc = des_decrypt_b64 (pConn->auth_password_encrypted);
-			memcpy (pConn->password, des_decrypt_b64 (pConn->password_encrypted), 32);
-		} else {
-			strcpy (pConn->password_encrypted, "");
-		}
-		//log_debug ("Password: %s\n", pConn->password);
-	}
 	if ((node_auth = xml_node_get_child (node, "authentication"))) {
 		if (g_connectionset_version == 4) {
 			strcpy (tmp_s, xml_node_get_attribute (node_auth, "enabled") );
@@ -290,7 +273,6 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 		if ((child = xml_node_get_child (node_auth, "auth_password"))) {
 			strcpy (pConn->auth_password_encrypted, NVL (xml_node_get_value (child), "") );
 			if (strlen (pConn->auth_password_encrypted) > 5) {
-				//pc = des_decrypt_b64 (pConn->auth_password_encrypted);
 				memcpy (pConn->auth_password, des_decrypt_b64 (pConn->auth_password_encrypted), 32);
 			} else {
 				strcpy (pConn->auth_password, "");
@@ -810,7 +792,6 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 				conn_new.auth_mode = CONN_AUTH_MODE_KEY;
 			strcpy (conn_new.auth_user, gtk_entry_get_text (GTK_ENTRY (authWidgets.user_entry) ) );
 			strcpy (conn_new.auth_password, gtk_entry_get_text (GTK_ENTRY (authWidgets.password_entry) ) );
-						log_debug ("encryption\n");
 			if (conn_new.auth_password[0] != 0)
 				strcpy (conn_new.auth_password_encrypted, des_encrypt_b64 (conn_new.auth_password) );
 			// Private key

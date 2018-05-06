@@ -35,10 +35,9 @@ typedef struct Connection {
 	int auth_mode;
 	char auth_user[32];
 	char auth_password[32];
-	char auth_password_encrypted[64]; /* base 64 encoded */
+	char auth_password_encrypted[64];
 	char user[32];
 	char password[32];
-	char password_encrypted[64]; /* base 64 encoded */
 	unsigned int flags;
 	char identityFile[1024];
 	SSH_Options sshOptions;
@@ -63,7 +62,6 @@ struct Connection *cl_host_search (struct Connection_List *p_cl, char *host, cha
 struct Connection *cl_get_by_index (struct Connection_List *p_cl, int index);
 struct Connection *cl_get_by_name (struct Connection_List *p_cl, char *name);
 
-int connection_fill_from_string (struct Connection *p_conn, char *connection_string);
 void connection_copy (struct Connection *p_dst, struct Connection *p_src);
 
 #endif
