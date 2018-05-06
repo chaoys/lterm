@@ -312,7 +312,7 @@ terminal_set_search_expr (char *expr)
 }
 #endif
 
-void
+G_MODULE_EXPORT void
 terminal_find_next ()
 {
 	if (p_current_connection_tab == NULL)
@@ -320,7 +320,7 @@ terminal_find_next ()
 	vte_terminal_search_find_next (VTE_TERMINAL (p_current_connection_tab->vte) );
 }
 
-void
+G_MODULE_EXPORT void
 terminal_find_previous ()
 {
 	if (p_current_connection_tab == NULL)

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.22.1 -->
 <interface>
-  <!-- interface-requires gtk+ 3.0 -->
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkBox" id="vbox_main">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -14,20 +15,6 @@
         <property name="row_spacing">20</property>
         <property name="column_spacing">15</property>
         <child>
-          <object class="GtkLabel" id="label1">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="halign">start</property>
-            <property name="label" translatable="yes">Find</property>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">0</property>
-            <property name="width">1</property>
-            <property name="height">1</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkEntry" id="entry_expr">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
@@ -37,10 +24,46 @@
             <property name="invisible_char">•</property>
           </object>
           <packing>
+            <property name="left_attach">0</property>
+            <property name="top_attach">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkGrid" id="grid2">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkButton" id="findprev">
+                <property name="label" translatable="yes">Prev</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="image_position">top</property>
+                <signal name="clicked" handler="terminal_find_previous" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="findnext">
+                <property name="label" translatable="yes">Next</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="image_position">bottom</property>
+                <signal name="clicked" handler="terminal_find_next" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
             <property name="left_attach">1</property>
             <property name="top_attach">0</property>
-            <property name="width">1</property>
-            <property name="height">1</property>
           </packing>
         </child>
       </object>

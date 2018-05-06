@@ -1081,7 +1081,7 @@ edit_find ()
 	GtkBuilder *builder;
 	GError *error = NULL;
 	char ui[1024];
-	int result, rc = 0;
+	int result;
 	if (p_current_connection_tab == NULL)
 		return;
 	builder = gtk_builder_new ();
@@ -1091,6 +1091,9 @@ edit_find ()
 		g_object_unref (G_OBJECT (builder) );
 		return;
 	}
+
+	gtk_builder_connect_signals(builder, NULL);
+
 	GtkWidget *vbox_main = GTK_WIDGET (gtk_builder_get_object (builder, "vbox_main") );
 	GtkWidget *entry_expr = GTK_WIDGET (gtk_builder_get_object (builder, "entry_expr") );
 	if (globals.find_expr[0])
@@ -1108,18 +1111,20 @@ edit_find ()
 	gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (dialog) ), GTK_WINDOW (main_window) );
 	gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), vbox_main);
 	gtk_widget_show_all (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) );
-	result = gtk_dialog_run (GTK_DIALOG (dialog) );
-	if (result == GTK_RESPONSE_OK) {
-		strcpy (globals.find_expr, gtk_entry_get_text (GTK_ENTRY (entry_expr) ) );
-		terminal_set_search_expr (globals.find_expr);
-		rc = 0;
-	} else {
-		rc = -1;
+	while (1) {
+		result = gtk_dialog_run (GTK_DIALOG (dialog) );
+		if (result == GTK_RESPONSE_OK) {
+			if (strcmp(globals.find_expr, gtk_entry_get_text (GTK_ENTRY (entry_expr))) == 0)
+				continue;
+			strcpy (globals.find_expr, gtk_entry_get_text (GTK_ENTRY (entry_expr) ) );
+			terminal_set_search_expr (globals.find_expr);
+			terminal_find_next();
+		} else {
+			break;
+		}
 	}
 	gtk_widget_destroy (dialog);
 	g_object_unref (G_OBJECT (builder) );
-	if (rc == 0)
-		terminal_find_next ();
 }
 
 void
