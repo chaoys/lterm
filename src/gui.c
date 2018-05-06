@@ -1851,6 +1851,17 @@ update_all_profiles ()
 	}
 }
 
+static void setup_shortcuts(void)
+{
+	GClosure *closure;
+	GtkAccelGroup *accel = gtk_accel_group_new ();
+
+	closure = g_cclosure_new (G_CALLBACK (application_quit), NULL, NULL);
+	gtk_accel_group_connect (accel, GDK_KEY_Q, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, closure);
+	g_closure_unref (closure);
+
+	gtk_window_add_accel_group (GTK_WINDOW (main_window), accel);
+}
 /*
   Function: start_gtk
   Creates the main user interface
@@ -1912,4 +1923,6 @@ start_gtk (int argc, char **argv)
 	/* Ensure that buttons images will be shown */
 	GtkSettings *default_settings = gtk_settings_get_default ();
 	g_object_set (default_settings, "gtk-button-images", TRUE, NULL);
+
+	setup_shortcuts();
 }
