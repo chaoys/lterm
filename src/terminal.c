@@ -167,7 +167,15 @@ log_on (struct ConnectionTab *p_conn_tab)
 		return (1);
 	}
 
-	ret = expand_args (&p_conn_tab->connection, p_prot->args, p_prot->command, expanded_args);
+#ifdef HAVE_SSHPASS
+	if (p_conn_tab->connection.password[0]) {
+		char cmd[300];
+		sprintf(cmd, "sshpass -p %s %s", p_conn_tab->connection.password, p_prot->command);
+		ret = expand_args (&p_conn_tab->connection, p_prot->args, cmd, expanded_args);
+	} else
+#endif
+		ret = expand_args (&p_conn_tab->connection, p_prot->args, p_prot->command, expanded_args);
+
 	if (ret)
 		return 1;
 	// Add SSH options

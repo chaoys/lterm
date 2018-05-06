@@ -2,6 +2,7 @@
 
 prefix="/usr/local/"
 debug=0
+sshpass=0
 CFLAGS=
 LDFLAGS=
 
@@ -13,18 +14,27 @@ for arg in "$@"; do
 	--debug)
 		debug=1
 		;;
+	--sshpass)
+		sshpass=1
+		;;
 	--help)
 		echo 'usage: ./configure [options]'
 		echo 'options:'
-		echo '  --prefix=<path>		installation prefix'
-		echo '  --debug				include debug symbols'
+		echo '  --prefix=<path>     installation prefix'
+		echo '  --debug             include debug symbols'
+		echo '  --sshpass           use sshpass to auto login'
 		echo 'all invalid options are silently ignored'
+		exit 0
 		;;
 	esac
 done
 
 if [ $debug -eq 1 ]; then
 	CFLAGS="$CFLAGS -g -DDEBUG"
+fi
+
+if [ $sshpass -eq 1 ]; then
+	CFLAGS="$CFLAGS -DHAVE_SSHPASS"
 fi
 
 printf %s "checking for gtk3.0 libs... "
