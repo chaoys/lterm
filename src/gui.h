@@ -161,7 +161,6 @@ struct ConnectionTab *get_connection_tab_from_child (GtkWidget *child);
 void refreshTabStatus (SConnectionTab *pTab);
 struct ConnectionTab *connection_tab_new ();
 struct ConnectionTab *get_current_connection_tab ();
-char *get_remote_directory ();
 int connection_tab_getcwd (struct ConnectionTab *p_ct, char *directory);
 
 void apply_profile (struct ConnectionTab *p_ct);

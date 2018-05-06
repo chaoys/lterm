@@ -5,8 +5,6 @@
 #include "gui.h"
 
 int log_on (struct ConnectionTab *p_conn_tab);
-char *get_remote_directory_from_vte_title (GtkWidget *vte);
-char *get_remote_directory ();
 
 void terminal_write_ex (struct ConnectionTab *p_ct, const char *fmt, ...);
 void terminal_write (const char *fmt, ...);

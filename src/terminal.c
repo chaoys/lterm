@@ -210,32 +210,6 @@ log_on (struct ConnectionTab *p_conn_tab)
 	return 0;
 }
 
-
-char *
-get_remote_directory_from_vte_title (GtkWidget *vte)
-{
-	char *title;
-	static char directory[1024];
-	strcpy (directory, "");
-	title = (char *) vte_terminal_get_window_title (VTE_TERMINAL (vte) );
-	if (title) {
-		title = (char *) strstr (title, ":");
-		if (title)
-			sscanf (title, ":%s", directory);
-	}
-	if (directory[0] != 0)
-		trim (directory);
-	return (directory[0] ? directory : NULL);
-}
-
-char *
-get_remote_directory ()
-{
-	if (p_current_connection_tab == NULL)
-		return (NULL);
-	return (get_remote_directory_from_vte_title (p_current_connection_tab->vte) );
-}
-
 void
 terminal_write_ex (struct ConnectionTab *p_ct, const char *fmt, ...)
 {

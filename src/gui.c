@@ -966,34 +966,6 @@ application_quit ()
 	}
 }
 
-gchar *
-utils_escape_underscores (const gchar* text, gssize length)
-{
-	GString *str;
-	const gchar *p;
-	const gchar *end;
-	g_return_val_if_fail (text != NULL, NULL);
-	if (length < 0)
-		length = strlen (text);
-	str = g_string_sized_new (length);
-	p = text;
-	end = text + length;
-	while (p != end) {
-		const gchar *next;
-		next = g_utf8_next_char (p);
-		switch (*p) {
-			case '_':
-				g_string_append (str, "__");
-				break;
-			default:
-				g_string_append_len (str, p, next - p);
-				break;
-		}
-		p = next;
-	}
-	return g_string_free (str, FALSE);
-}
-
 GtkWidget *
 _get_active_widget()
 {
@@ -1398,11 +1370,7 @@ terminal_cluster ()
 	}
 	log_write ("Cluster: %d tab/s available\n", nAdded);
 	gtk_tree_view_set_model (GTK_TREE_VIEW (tree_view), GTK_TREE_MODEL (list_store_cluster) );
-	//g_signal_connect (tree_view, "cursor-changed", G_CALLBACK (profile_selected_cb), NULL);
 	gtk_widget_show (tree_view);
-	//select = gtk_tree_view_get_selection (GTK_TREE_VIEW (tree_view));
-	//gtk_tree_selection_set_mode (select, GTK_SELECTION_SINGLE);
-	///*GtkWidget **/GtkTreeModel *tree_model_cluster = gtk_tree_view_get_model (GTK_TREE_VIEW (tree_view));
 	/* scrolled window */
 	GtkWidget *scrolled_window = GTK_WIDGET (gtk_builder_get_object (builder, "scrolled_terminals") );
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
@@ -1422,7 +1390,6 @@ terminal_cluster ()
 	get_monitor_size(GTK_WINDOW (main_window), NULL, &w_height);
 	gtk_widget_set_size_request (GTK_WIDGET (dialog), w_width, w_height / 2);
 	gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
-	//gtk_window_set_position (GTK_WINDOW (dialog), GTK_WIN_POS_CENTER);
 	gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (dialog) ), GTK_WINDOW (main_window) );
 	gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) ), vbox);
 	gtk_widget_show_all (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) );
@@ -1500,7 +1467,7 @@ Info ()
 	sprintf (image_filename, "%s/main_icon.png", globals.img_dir);
 	GtkWidget *image_logo = GTK_WIDGET (gtk_builder_get_object (builder, "image_logo") );
 	gtk_image_set_from_file (GTK_IMAGE (image_logo), image_filename);
-	/* package, platform and copyright */
+	/* package and copyright */
 	GtkWidget *label_package = GTK_WIDGET (gtk_builder_get_object (builder, "label_package") );
 	gtk_label_set_text (GTK_LABEL (label_package), (PACKAGE VERSION));
 	/* credits */
