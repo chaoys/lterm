@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "connection.h"
-#include "connection_list.h"
 #include "main.h"
 #include "utils.h"
 

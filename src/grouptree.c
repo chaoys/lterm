@@ -23,7 +23,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "connection_list.h"
+#include "connection.h"
 #include "grouptree.h"
 #include "main.h"
 #include "utils.h"

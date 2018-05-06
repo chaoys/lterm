@@ -30,7 +30,6 @@
 #include "profile.h"
 #include "gui.h"
 #include "connection.h"
-#include "connection_list.h"
 #include "grouptree.h"
 #include "main.h"
 #include "utils.h"

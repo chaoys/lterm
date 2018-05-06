@@ -9,7 +9,7 @@
 #include <gtk/gtk.h>
 #include <vte/vte.h>
 #include <unistd.h>
-#include "connection_list.h"
+#include "connection.h"
 #include "ssh.h"
 #include "profile.h"
 
@@ -111,9 +111,6 @@ void tabSetFlag (SConnectionTab *pConn, unsigned int bitmask);
 void tabResetFlag (SConnectionTab *pConn, unsigned int bitmask);
 unsigned int tabGetFlag (SConnectionTab *pConn, unsigned int bitmask);
 
-void resize_window_cb (VteTerminal *terminal, guint width, guint height, gpointer user_data);
-void maximize_window_cb (VteTerminal *terminal, gpointer user_data);
-void char_size_changed_cb (VteTerminal *terminal, guint width, guint height, gpointer user_data);
 void increase_font_size_cb (GtkWidget *widget, gpointer user_data);
 void decrease_font_size_cb (GtkWidget *widget, gpointer user_data);
 void adjust_font_size (GtkWidget *widget, /*gpointer data,*/ gint delta);
@@ -128,10 +125,7 @@ void terminal_popup_menu (GdkEventButton *event);
 gboolean button_press_event_cb (GtkWidget *widget, GdkEventButton *event, gpointer userdata);
 void window_title_changed_cb (VteTerminal *vteterminal, gpointer user_data);
 void selection_changed_cb (VteTerminal *vteterminal, gpointer user_data);
-void contents_changed_cb (VteTerminal *vteterminal, gpointer user_data);
-void
-terminal_focus_cb (GtkWidget       *widget,
-                   gpointer         user_data);
+void terminal_focus_cb (GtkWidget       *widget, gpointer         user_data);
 
 void connection_log_on_param (struct Connection *p_conn);
 void connection_log_on ();
@@ -146,21 +140,10 @@ void application_quit ();
 void edit_copy ();
 void edit_paste ();
 void edit_copy_and_paste ();
-
 void edit_find ();
 
-void edit_current_profile ();
 void edit_select_all ();
 void show_preferences ();
-
-void view_toolbar ();
-void view_statusbar ();
-void view_fullscreen ();
-void view_go_back ();
-void view_go_forward ();
-void zoom_in ();
-void zoom_out ();
-void zoom_100 ();
 
 void terminal_reset ();
 void terminal_detach_right();
@@ -175,16 +158,11 @@ void apply_profile ();
 
 void help_home_page ();
 void Info ();
-void Debug ();
 
-void statusbar_push (const char *fmt, ...);
-void statusbar_pop ();
-void statusbar_msg (const char *fmt, ...);
 void update_screen_info ();
 
 void select_current_profile_menu_item (struct ConnectionTab *p_ct);
 struct ConnectionTab *get_connection_tab_from_child (GtkWidget *child);
-//void connection_tab_set_status (struct ConnectionTab *connection_tab, int status);
 void refreshTabStatus (SConnectionTab *pTab);
 struct ConnectionTab *connection_tab_new ();
 struct ConnectionTab *get_current_connection_tab ();
@@ -195,13 +173,10 @@ void apply_profile (struct ConnectionTab *p_ct);
 void apply_profile_terminal (GtkWidget *terminal, struct Profile *p_profile);
 void update_all_profiles ();
 
-void sb_msg_push (char *);
-
 void start_gtk (int argc, char **argv);
 void ifr_init (void);
 int ifr_get (struct Iteration_Function_Request *dest);
 void connection_tab_close (struct ConnectionTab *p_ct);
-gboolean search_entry_focus_out_event_cb (GtkWidget *widget, GdkEvent *event, gpointer user_data);
 
 static inline void get_monitor_size(GtkWindow *win, int *width, int *height)
 {

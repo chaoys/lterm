@@ -40,7 +40,6 @@
 #include "gui.h"
 #include "utils.h"
 #include "terminal.h"
-#include "connection_list.h"
 
 #include <gdk/gdkx.h>
 

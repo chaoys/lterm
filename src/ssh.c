@@ -30,7 +30,7 @@
 #include "main.h"
 #include "utils.h"
 #include "ssh.h"
-#include "connection_list.h"
+#include "connection.h"
 
 extern Globals globals;
 extern Prefs prefs;
