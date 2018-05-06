@@ -50,22 +50,6 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="label_platform">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">platform</property>
-                <property name="xalign">0</property>
-                <attributes>
-                  <attribute name="style" value="italic"/>
-                </attributes>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkLabel" id="label1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>

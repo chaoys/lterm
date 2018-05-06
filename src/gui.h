@@ -90,11 +90,6 @@ struct Iteration_Function_Request {
 
 void ifr_add (int function_id, void *user_data);
 
-struct Match {
-	int tag;
-	char *matched_string;
-};
-
 void msgbox_error (const char *fmt, ...);
 void msgbox_info (const char *fmt, ...);
 gint msgbox_yes_no (const char *fmt, ...);

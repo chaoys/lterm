@@ -91,11 +91,6 @@ log_on (struct ConnectionTab *p_conn_tab)
 	struct SSH_Auth_Data auth;
 	p_conn_tab->auth_attempt = 0;
 	p_conn_tab->auth_state = AUTH_STATE_NOT_LOGGED;
-	/* check if command is installed */
-	if (!check_command (p_prot->command) ) {
-		msgbox_error ("Command not found: %s", p_prot->command);
-		return (1);
-	}
 	log_write ("[%s] server:%s\n", __func__, p_conn_tab->connection.host);
 	tabSetConnectionStatus (p_conn_tab, TAB_CONN_STATUS_CONNECTING);
 	log_write ("Init ssh\n");

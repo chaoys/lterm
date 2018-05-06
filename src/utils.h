@@ -29,20 +29,12 @@ void ltrim (char *s);
 void rtrim (char *s);
 void trim (char *s);
 void lower (char *s);
-char *timestamp_to_date (char *format, time_t t);
-char *bytes_to_human_readable (double size, char *buf);
-char *seconds_to_hhmmdd (uint64_t seconds, char *buf);
-char *permissions_octal_to_string (uint32_t value, char *buf);
-char *replace_str (const char *str, const char *old, const char *new);
-void split_string (char *str, char **splitted, char *delimiters/*, int skipNulls*/);
 char **splitString (char *str, char *delimiters, int skipNulls, char *quotes, int trailingNull, int *pCount);
 int check_command (char *command);
-char *shortenString (char *original, int threshold, char *shortened);
-int file_exists (char *filename);
 
+void list_init (char *list);
 int list_count (char *list, char sep);
 int list_get_nth (char *list, int n, char sep, char *elem);
-void get_system (char *sys_name);
 
 char *password_encode (char *clear_text);
 char *password_decode (char *ecrypted_text);

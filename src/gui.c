@@ -1478,7 +1478,7 @@ void
 Info ()
 {
 	int major, minor, micro;
-	char sys[256], image_filename[1024];
+	char image_filename[1024];
 	char s_linked[1024];
 	GtkWidget *dialog;
 	GtkBuilder *builder;
@@ -1502,10 +1502,7 @@ Info ()
 	gtk_image_set_from_file (GTK_IMAGE (image_logo), image_filename);
 	/* package, platform and copyright */
 	GtkWidget *label_package = GTK_WIDGET (gtk_builder_get_object (builder, "label_package") );
-	GtkWidget *label_platform = GTK_WIDGET (gtk_builder_get_object (builder, "label_platform") );
 	gtk_label_set_text (GTK_LABEL (label_package), (PACKAGE VERSION));
-	get_system (sys);
-	gtk_label_set_text (GTK_LABEL (label_platform), g_strconcat ("For ", sys, NULL) );
 	/* credits */
 	GtkWidget *label_credits = GTK_WIDGET (gtk_builder_get_object (builder, "label_credits") );
 	const gchar *credits = gtk_label_get_text (GTK_LABEL (label_credits) );
