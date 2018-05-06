@@ -279,6 +279,7 @@ terminal_write_child (const char *text)
 		terminal_write_child_ex (p_current_connection_tab, text);
 }
 
+#if VTE_CHECK_VERSION(0, 46, 0) && !defined(NO_VTE_PCRE2)
 void
 terminal_set_search_expr (char *expr)
 {
@@ -288,11 +289,28 @@ terminal_set_search_expr (char *expr)
 	VteRegex *regex = vte_regex_new_for_search(expr, -1, 0, &err);
 	if (err) {
 		log_write ("failed to compile regex: %s\n", expr);
-		printf ("failed to compile regex: %s, %s\n", expr, err->message);
+		log_debug ("failed to compile regex: %s, %s\n", expr, err->message);
 		return;
 	}
 	vte_terminal_search_set_regex (VTE_TERMINAL (p_current_connection_tab->vte), regex, 0);
 }
+#else
+/* deprecated by vte, but vte with pcre2 is broken on ubuntu for now */
+void
+terminal_set_search_expr (char *expr)
+{
+	GError* err = NULL;
+	if (p_current_connection_tab == NULL)
+		return;
+	GRegex *regex = g_regex_new(expr, 0, 0, &err);
+	if (err) {
+		log_write ("failed to compile regex: %s\n", expr);
+		log_debug ("failed to compile regex: %s, %s\n", expr, err->message);
+		return;
+	}
+	vte_terminal_search_set_gregex(VTE_TERMINAL (p_current_connection_tab->vte), regex, 0);
+}
+#endif
 
 void
 terminal_find_next ()
