@@ -1237,45 +1237,6 @@ edit_button_clicked_cb (GtkButton *button, gpointer user_data)
 }
 
 void
-duplicate_connection_button_clicked_cb (GtkButton *button, gpointer user_data)
-{
-	GtkTreeView *tree_view = user_data;
-	struct Connection *p_conn, conn_new;
-	struct GroupNode *p_node_copy = NULL;
-	char new_name[512];
-	int i, err;
-	if (g_selected_node == NULL)
-		return;
-	if (g_selected_node->type != GN_TYPE_CONNECTION)
-		return;
-	p_conn = cl_get_by_name (&conn_list, g_selected_node->name);
-	if (p_conn == NULL)
-		return;
-	i = 1;
-	while (1) {
-		sprintf (new_name, "%s (%d)", p_conn->name, i);
-		log_debug ("trying %s\n", new_name);
-		err = validate_name (g_selected_node->parent, g_selected_node, p_conn, new_name);
-		log_debug ("%s\n", get_validation_error_string (err) );
-		if (err == 0) {
-			memset (&conn_new, 0, sizeof (struct Connection) );
-			connection_copy (&conn_new, p_conn);
-			strcpy (conn_new.name, new_name);
-			p_node_copy = group_node_add_child (g_selected_node->parent, GN_TYPE_CONNECTION, conn_new.name);
-			if (p_node_copy)
-				cl_insert_sorted (&conn_list, &conn_new);
-			else {
-				log_debug ("can't create node %s\n", new_name);
-			}
-			break;
-		}
-		i ++;
-	}
-	if (p_node_copy)
-		move_cursor_to_node (tree_view, p_node_copy);
-}
-
-void
 delete_button_clicked_cb (GtkButton *button, gpointer user_data)
 {
 	int rc;
@@ -1386,14 +1347,6 @@ choose_manage_connection (struct Connection *p_conn)
 	gtk_widget_set_tooltip_text (edit_button, ("Edit selected connection or group") );
 	gtk_box_pack_start (GTK_BOX (buttons_hbox), edit_button, FALSE, FALSE, 0);
 	g_signal_connect (G_OBJECT (edit_button), "clicked", G_CALLBACK (edit_button_clicked_cb), tree_view);
-	GtkWidget *duplicate_connection_button = gtk_button_new ();
-	gtk_button_set_image (GTK_BUTTON (duplicate_connection_button), gtk_image_new_from_icon_name (MY_STOCK_COPY, GTK_ICON_SIZE_LARGE_TOOLBAR) );
-	gtk_button_set_image_position (GTK_BUTTON (duplicate_connection_button), GTK_POS_TOP);
-	gtk_button_set_label (GTK_BUTTON (duplicate_connection_button), "Duplicate");
-	gtk_button_set_relief (GTK_BUTTON (duplicate_connection_button), GTK_RELIEF_NONE);
-	gtk_widget_set_tooltip_text (duplicate_connection_button, ("Duplicate selected connection") );
-	gtk_box_pack_start (GTK_BOX (buttons_hbox), duplicate_connection_button, FALSE, FALSE, 0);
-	g_signal_connect (G_OBJECT (duplicate_connection_button), "clicked", G_CALLBACK (duplicate_connection_button_clicked_cb), tree_view);
 	GtkWidget *new_folder_button = gtk_button_new ();
 	gtk_button_set_image (GTK_BUTTON (new_folder_button), gtk_image_new_from_icon_name (MY_STOCK_FOLDER, GTK_ICON_SIZE_LARGE_TOOLBAR) );
 	gtk_button_set_image_position (GTK_BUTTON (new_folder_button), GTK_POS_TOP);
