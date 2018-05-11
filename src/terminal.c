@@ -184,6 +184,10 @@ log_on (struct ConnectionTab *p_conn_tab)
 		sprintf (temp, " -o ServerAliveInterval=%d", p_conn_tab->connection.sshOptions.keepAliveInterval);
 		strcat (expanded_args, temp);
 	}
+	if (p_conn_tab->connection.sshOptions.flagConnectTimeout) {
+		sprintf(temp, " -o ConnectTimeout=%d", p_conn_tab->connection.sshOptions.connectTimeout);
+		strcat(expanded_args, temp);
+	}
 	if (p_conn_tab->connection.auth_mode == CONN_AUTH_MODE_KEY
 		&& p_conn_tab->connection.identityFile[0]) {
 		strcat (expanded_args, " -i \"");

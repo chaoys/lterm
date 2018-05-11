@@ -56,7 +56,7 @@ GtkWidget *connections_dialog;
 
 GtkWidget *port_spin_button;
 GtkWidget *check_x11, *check_agentForwarding;
-GtkWidget *check_disable_key_checking, *check_keepAliveInterval, *spin_keepAliveInterval;
+GtkWidget *check_disable_key_checking, *check_keepAliveInterval, *spin_keepAliveInterval, *check_connect_timeout, *spin_connect_timeout;
 
 struct _AuthWidgets {
 	GtkWidget *user_entry, *password_entry;
@@ -141,6 +141,7 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         "%*s    <property name='agentForwarding'>%d</property>\n"
 	         "%*s    <property name='disableStrictKeyChecking'>%d</property>\n"
 	         "%*s    <property name='keepAliveInterval' enabled='%d'>%d</property>\n"
+			 "%*s    <property name='connectTimeout' enabled='%d'>%d</property>\n"
 	         "%*s  </options>\n",
 	         indent, " ", p_conn->name, NVL (p_conn->host, ""), p_conn->port, p_conn->flags,
 	         indent, " ",
@@ -156,6 +157,7 @@ write_connection_node (FILE *fp, struct Connection *p_conn, int indent)
 	         indent, " ", p_conn->sshOptions.agentForwarding,
 	         indent, " ", p_conn->sshOptions.disableStrictKeyChecking,
 	         indent, " ", p_conn->sshOptions.flagKeepAlive, p_conn->sshOptions.keepAliveInterval,
+        	 indent, " ", p_conn->sshOptions.flagConnectTimeout, p_conn->sshOptions.connectTimeout,
 	         indent, " "
 	        );
 	fprintf (fp, "%*s</connection>\n", indent, " ");
@@ -291,6 +293,10 @@ read_connection_node (XMLNode *node, struct Connection *pConn)
 			else if (!strcmp (propertyName, "keepAliveInterval") ) {
 				pConn->sshOptions.flagKeepAlive = atoi (NVL (xml_node_get_attribute (propNode, "enabled"), "0") );
 				pConn->sshOptions.keepAliveInterval = atoi (propertyValue);
+			}
+			else if (!strcmp (propertyName, "connectTimeout") ) {
+				pConn->sshOptions.flagConnectTimeout = atoi (NVL (xml_node_get_attribute (propNode, "enabled"), "0") );
+				pConn->sshOptions.connectTimeout = atoi (propertyValue);
 			}
 			propNode = propNode->next;
 		}
@@ -700,9 +706,13 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 	// Keep alive interval
 	check_keepAliveInterval = GTK_WIDGET (gtk_builder_get_object (builder, "check_keepAliveInterval") );
 	spin_keepAliveInterval = GTK_WIDGET (gtk_builder_get_object (builder, "spin_keepAliveInterval") );
+	check_connect_timeout = GTK_WIDGET (gtk_builder_get_object (builder, "check_connect_timeout") );
+	spin_connect_timeout = GTK_WIDGET (gtk_builder_get_object (builder, "spin_connect_timeout") );
 	if (p_conn) {
 		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_keepAliveInterval), p_conn->sshOptions.flagKeepAlive);
 		gtk_spin_button_set_value (GTK_SPIN_BUTTON (spin_keepAliveInterval), p_conn->sshOptions.keepAliveInterval);
+		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_connect_timeout), p_conn->sshOptions.flagConnectTimeout);
+		gtk_spin_button_set_value (GTK_SPIN_BUTTON (spin_connect_timeout), p_conn->sshOptions.connectTimeout);
 	}
 	// Key authentication (need to be created before sig_handler_prot)
 	authWidgets.radio_auth_key = GTK_WIDGET (gtk_builder_get_object (builder, "radio_auth_key") );
@@ -778,6 +788,8 @@ add_update_connection (struct GroupNode *p_node, struct Connection *p_conn_model
 			conn_new.sshOptions.disableStrictKeyChecking = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_disable_key_checking) ) ? 1 : 0;
 			conn_new.sshOptions.flagKeepAlive = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_keepAliveInterval) ) ? 1 : 0;
 			conn_new.sshOptions.keepAliveInterval = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (spin_keepAliveInterval) );
+			conn_new.sshOptions.flagConnectTimeout = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_connect_timeout) ) ? 1 : 0;
+			conn_new.sshOptions.connectTimeout = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spin_connect_timeout));
 			if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (authWidgets.radio_auth_prompt) ) )
 				conn_new.auth_mode = CONN_AUTH_MODE_PROMPT;
 			else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (authWidgets.radio_auth_save) ) )

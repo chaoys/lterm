@@ -27,6 +27,8 @@ typedef struct _SSH_Options {
 	int disableStrictKeyChecking;
 	int flagKeepAlive;
 	int keepAliveInterval;
+	int flagConnectTimeout;
+	int connectTimeout;
 } SSH_Options;
 
 typedef struct Connection {
