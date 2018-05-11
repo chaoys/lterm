@@ -243,11 +243,11 @@ main (int argc, char *argv[])
 	ssh_list_init (&globals.ssh_list);
 	log_write ("Initializing threads...\n");
 	ssh_threads_set_callbacks (ssh_threads_get_pthread() );
-	log_write ("Building gui...\n");
-	start_gtk (argc, argv);
 	// Register application. Needed for desktop notifications
 	application = g_application_new ("lterm.application", G_APPLICATION_FLAGS_NONE);
 	g_application_register (application, NULL, NULL);
+	log_write ("Building gui...\n");
+	start_gtk (argc, argv);
 	log_write ("Initializing iteration function requests\n");
 	ifr_init ();
 	log_write ("Initializing SFTP\n");

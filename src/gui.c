@@ -104,7 +104,6 @@ GActionEntry main_menu_items[] = {
 
 	{ "copy", edit_copy },
 	{ "paste", edit_paste },
-	{ "copy_paste", edit_copy_and_paste },
 	{ "find", edit_find },
 	{ "findnext", terminal_find_next },
 	{ "findprev", terminal_find_previous },
@@ -120,113 +119,6 @@ GActionEntry main_menu_items[] = {
 
 	{ "about", Info },
 };
-
-const gchar ui_main_desc[] =
-        "<interface>"
-		"<menu id='MainMenu'>"
-        "    <submenu>"
-		"      <attribute name='label'>Connection</attribute>"
-		"      <section>"
-        "        <item>"
-		"          <attribute name='label'>Log on</attribute>"
-		"          <attribute name='action'>lt.log_on</attribute>"
-		"        </item>"
-        "        <item>"
-		"          <attribute name='label'>Log off</attribute>"
-		"          <attribute name='action'>lt.log_off</attribute>"
-		"        </item>"
-        "        <item>"
-		"          <attribute name='label'>Duplicate</attribute>"
-		"          <attribute name='action'>lt.duplicate</attribute>"
-		"        </item>"
-		"      </section>"
-		"      <section>"
-		"        <item>"
-		"          <attribute name='label'>Quit</attribute>"
-		"          <attribute name='action'>lt.quit</attribute>"
-		"        </item>"
-		"      </section>"
-        "    </submenu>"
-        "    <submenu>"
-		"      <attribute name='label'>Edit</attribute>"
-		"      <section>"
-		"        <item>"
-		"          <attribute name='label'>Copy</attribute>"
-		"          <attribute name='action'>lt.copy</attribute>"
-		"        </item>"
-		"        <item>"
-		"          <attribute name='label'>Paste</attribute>"
-		"          <attribute name='action'>lt.paste</attribute>"
-		"        </item>"
-		"        <item>"
-		"          <attribute name='label'>Copy and paste</attribute>"
-		"          <attribute name='action'>lt.copy_paste</attribute>"
-		"        </item>"
-		"      </section>"
-		"      <section>"
-		"        <item>"
-		"          <attribute name='label'>Find</attribute>"
-		"          <attribute name='action'>lt.find</attribute>"
-		"        </item>"
-		"        <item>"
-		"          <attribute name='label'>FindNext</attribute>"
-		"          <attribute name='action'>lt.findnext</attribute>"
-		"        </item>"
-		"        <item>"
-		"          <attribute name='label'>FindPrevious</attribute>"
-		"          <attribute name='action'>lt.findprev</attribute>"
-		"        </item>"
-		"      </section>"
-		"      <section>"
-		"        <item>"
-		"          <attribute name='label'>Select all</attribute>"
-		"          <attribute name='action'>lt.select_all</attribute>"
-		"        </item>"
-		"      </section>"
-		"      <section>"
-		"        <item>"
-		"          <attribute name='label'>Preferences</attribute>"
-		"          <attribute name='action'>lt.pref</attribute>"
-		"        </item>"
-		"      </section>"
-        "    </submenu>"
-        "    <submenu>"
-		"      <attribute name='label'>Terminal</attribute>"
-		"        <item>"
-		"          <attribute name='label'>Reset</attribute>"
-		"          <attribute name='action'>lt.reset</attribute>"
-		"        </item>"
-		"        <item>"
-		"          <attribute name='label'>DetachRight</attribute>"
-		"          <attribute name='action'>lt.detach_right</attribute>"
-		"        </item>"
-		"        <item>"
-		"          <attribute name='label'>DetachDown</attribute>"
-		"          <attribute name='action'>lt.detach_down</attribute>"
-		"        </item>"
-		"        <item>"
-		"          <attribute name='label'>AttachCurrent</attribute>"
-		"          <attribute name='action'>lt.attach_current</attribute>"
-		"        </item>"
-		"        <item>"
-		"          <attribute name='label'>RegroupAll</attribute>"
-		"          <attribute name='action'>lt.regroup_all</attribute>"
-		"        </item>"
-		"        <item>"
-		"          <attribute name='label'>Cluster</attribute>"
-		"          <attribute name='action'>lt.send_cluster</attribute>"
-		"        </item>"
-        "    </submenu>"
-        "    <submenu>"
-		"      <attribute name='label'>Help</attribute>"
-		"        <item>"
-		"          <attribute name='label'>About</attribute>"
-		"          <attribute name='action'>lt.about</attribute>"
-		"        </item>"
-        "    </submenu>"
-        "</menu>"
-		"<interface>"
-		;
 
 const gchar *ui_popup_desc =
 "<?xml version='1.0' encoding='UTF-8'?>"
@@ -246,36 +138,6 @@ const gchar *ui_popup_desc =
 "  </child>"
 "</object>"
 "</interface>";
-
-struct EncodingEntry {
-	char name[64];
-	char id[32];
-};
-
-struct EncodingEntry enc_array[] = {
-	{ "UTF-8", "UTF-8" },
-	{ "ISO-8859-1 (Latin 1, West European)", "ISO-8859-1" },
-	{ "ISO-8859-2 (Latin 2, East European)", "ISO-8859-2" },
-	{ "ISO-8859-3 (Latin 3, South European)", "ISO-8859-3" },
-	{ "ISO-8859-4 (Latin 4, North European)", "ISO-8859-4" },
-	{ "ISO-8859-5 (Cyrillic)", "ISO-8859-5" },
-	{ "ISO-8859-6 (Arabic)", "ISO-8859-6" },
-	{ "ISO-8859-7 (Greek)", "ISO-8859-7" },
-	{ "ISO-8859-8 (Hebrew)", "ISO-8859-8" },
-	{ "ISO-8859-9 (Turkish)", "ISO-8859-9" },
-	{ "ISO-8859-10 (Nordic)", "ISO-8859-10" },
-	{ "ISO-8859-11 (Thai)", "ISO-8859-11" },
-	{ "ISO-8859-13 (Latin 7)", "ISO-8859-13" },
-	{ "ISO-8859-14 (Latin 8)", "ISO-8859-14" },
-	{ "ISO-8859-15 (Latin 9, West European with EURO)", "ISO-8859-15" },
-	{ "GB2312 (Chinese)", "GB2312" },
-	{ "BIG5 (Chinese)", "BIG5" },
-	{ "Shift_JIS (Japanese)", "Shift_JIS" },
-	{ "KSC (Korean)", "KSC" },
-	{ "KOI8-R (Russian)", "KOI8-R" },
-	{ "CP1251 (Russian)", "CP1251" },
-	{ "EUC-JP (Japanese)", "EUC-JP" }
-};
 
 void
 ifr_init (void)
@@ -1038,15 +900,6 @@ edit_paste ()
 }
 
 void
-edit_copy_and_paste ()
-{
-	if (!p_current_connection_tab)
-		return;
-	edit_copy ();
-	edit_paste ();
-}
-
-void
 edit_find ()
 {
 	GtkWidget *dialog;
@@ -1497,22 +1350,6 @@ Info ()
 }
 
 void
-select_encoding_cb (GtkWidget *wgt, gpointer cbdata)
-{
-	int i, n_enc;
-	if (!p_current_connection_tab)
-		return;
-	n_enc = sizeof (enc_array) / sizeof (struct EncodingEntry);
-	for (i = 0; i < n_enc; i++) {
-		if (!strcmp (enc_array[i].name, gtk_menu_item_get_label (GTK_MENU_ITEM (wgt) ) ) ) {
-			//vte_terminal_set_encoding (VTE_TERMINAL (p_current_connection_tab->vte), enc_array[i].id);
-			terminal_set_encoding (p_current_connection_tab, enc_array[i].id);
-			break;
-		}
-	}
-}
-
-void
 create_stock_objects ()
 {
 	GtkIconTheme *ict = gtk_icon_theme_get_default();
@@ -1523,18 +1360,26 @@ void
 get_main_menu ()
 {
 	GtkBuilder *builder;
-	GMenuModel *menu;
+	GError *error = NULL;
+	char ui[1024];
 
 	builder = gtk_builder_new();
-	gtk_builder_add_from_string(builder, ui_main_desc, -1, NULL);
+	sprintf (ui, "%s/menubar.glade", globals.data_dir);
+	if (gtk_builder_add_from_file (builder, ui, &error) == 0) {
+		msgbox_error ("Can't load user interface file:\n%s", error->message);
+		g_object_unref (G_OBJECT (builder) );
+		exit(1);
+	}
 
 	action_group = g_simple_action_group_new();
 	g_action_map_add_action_entries(G_ACTION_MAP(action_group), main_menu_items, G_N_ELEMENTS(main_menu_items), NULL);
 
-	menu = G_MENU_MODEL(gtk_builder_get_object(builder, "MainMenu"));
-	menubar = gtk_menu_bar_new_from_model(menu);
+	menubar = GTK_WIDGET(gtk_builder_get_object(builder, "MainMenu"));
+	//MUST ref, otherwise menubar would be freed after builder unref
+	g_object_ref(G_OBJECT(menubar));
 
 	gtk_widget_insert_action_group(main_window, "lt", G_ACTION_GROUP(action_group));
+
 	g_object_unref (G_OBJECT (builder) );
 }
 void
@@ -1851,17 +1696,46 @@ update_all_profiles ()
 	}
 }
 
+#if 0
+static void next_page(void)
+{
+	GtkNotebook *nb = GTK_NOTEBOOK (notebook);
+	if (gtk_notebook_get_current_page(nb) != (gtk_notebook_get_n_pages(nb) - 1))
+		gtk_notebook_next_page(nb);
+	else
+		gtk_notebook_set_current_page(nb, 0);
+}
+static void prev_page(void)
+{
+	GtkNotebook *nb = GTK_NOTEBOOK (notebook);
+	if (gtk_notebook_get_current_page(nb) != 0)
+		gtk_notebook_prev_page(nb);
+	else
+		gtk_notebook_set_current_page(nb, (gtk_notebook_get_n_pages(nb) - 1));
+}
+
+void
+add_accelerator (const gchar *action_name,
+                 const gchar *accel)
+{
+    GtkApplication *app = gtk_window_get_application(GTK_WINDOW(main_window));
+	if (!app) {
+		printf("no app\n");
+		exit(1);
+	}
+    const gchar *vaccels[] = {
+        accel,
+        NULL
+    };
+
+    gtk_application_set_accels_for_action (app, action_name, vaccels);
+}
+
 static void setup_shortcuts(void)
 {
-	GClosure *closure;
-	GtkAccelGroup *accel = gtk_accel_group_new ();
-
-	closure = g_cclosure_new (G_CALLBACK (application_quit), NULL, NULL);
-	gtk_accel_group_connect (accel, GDK_KEY_Q, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE, closure);
-	g_closure_unref (closure);
-
-	gtk_window_add_accel_group (GTK_WINDOW (main_window), accel);
+	add_accelerator("lt.find", "<Primary><Shift>F");
 }
+#endif
 /*
   Function: start_gtk
   Creates the main user interface
@@ -1924,5 +1798,7 @@ start_gtk (int argc, char **argv)
 	GtkSettings *default_settings = gtk_settings_get_default ();
 	g_object_set (default_settings, "gtk-button-images", TRUE, NULL);
 
+#if 0
 	setup_shortcuts();
+#endif
 }
