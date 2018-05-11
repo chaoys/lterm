@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.22.1 -->
+<interface>
+  <requires lib="gtk+" version="3.10"/>
+  <object class="GtkMenuBar" id="MainMenu">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Connection</property>
+        <property name="use_underline">True</property>
+        <child type="submenu">
+          <object class="GtkMenu">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="menu_type_hint">dropdown-menu</property>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.log_on</property>
+                <property name="label" translatable="yes">Log on</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.log_off</property>
+                <property name="label" translatable="yes">Log off</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.duplicate</property>
+                <property name="label" translatable="yes">Duplicate</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparatorMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.quit</property>
+                <property name="label" translatable="yes">Quit</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Edit</property>
+        <property name="use_underline">True</property>
+        <child type="submenu">
+          <object class="GtkMenu">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.copy</property>
+                <property name="label" translatable="yes">Copy</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.paste</property>
+                <property name="label" translatable="yes">Paste</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparatorMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.find</property>
+                <property name="label" translatable="yes">Find</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.findnext</property>
+                <property name="label" translatable="yes">Find next</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.findprev</property>
+                <property name="label" translatable="yes">Find previous</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparatorMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.select_all</property>
+                <property name="label" translatable="yes">Select all</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparatorMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.pref</property>
+                <property name="label" translatable="yes">Preferences</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Terminal</property>
+        <property name="use_underline">True</property>
+        <child type="submenu">
+          <object class="GtkMenu">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.reset</property>
+                <property name="label" translatable="yes">Reset</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.detach_right</property>
+                <property name="label" translatable="yes">Detach right</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.detach_down</property>
+                <property name="label" translatable="yes">Detach down</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.attach_current</property>
+                <property name="label" translatable="yes">Attach current</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.regroup_all</property>
+                <property name="label" translatable="yes">Regroup all</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparatorMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.send_cluster</property>
+                <property name="label" translatable="yes">Cluster</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Help</property>
+        <property name="use_underline">True</property>
+        <child type="submenu">
+          <object class="GtkMenu">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="action_name">lt.about</property>
+                <property name="label" translatable="yes">About</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
