@@ -16,15 +16,7 @@
 #define log_debug(fmt, ...)
 #endif
 
-#define KEY "You may say I'm a dreamer"
-
-#define HOME_PAGE "lterm.sourceforge.net"
-#define HTTP_HOME_PAGE "http://lterm.sourceforge.net"
-
-#define LOG_MSG printf
-
 /* Version of configuration files */
-#define CFG_VERSION 3
 #define CFG_XML_VERSION 6
 
 #define DEFAULT_FIXED_FONT "Monospace 9"
@@ -58,7 +50,6 @@ typedef struct _globals Globals;
   Structure containing the user preferences
  */
 struct _prefs {
-	int startup_show_connections;
 	int maximize;
 	int x, y, w, h;               /* Window position and dimension */
 	int rows;
@@ -100,15 +91,9 @@ struct Protocol {
 };
 
 void lockSSH (const char *caller, gboolean flagLock);
-void log_reset ();
 void log_write (const char *fmt, ...);
-gboolean doGTKMainIteration ();
 void timerStart (int seconds);
 void timerStop ();
 int timedOut ();
-void threadRequestAlarm ();
-void threadResetAlarm ();
-void addIdleGTKMainIteration ();
-void update_main_window_title ();
 
 #endif

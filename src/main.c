@@ -46,11 +46,10 @@ Globals globals;
 Prefs prefs;
 struct Protocol g_ssh_prot = { "ssh", "-p %p -l %u %h", 22, PROT_FLAG_ASKPASSWORD };
 struct Profile g_profile;
-//GApplication *application;
 
-void load_settings ();
-void save_settings ();
-void help ();
+static void load_settings ();
+static void save_settings ();
+static void help ();
 
 // Access to ssh operations
 pthread_mutex_t mutexSSH = PTHREAD_MUTEX_INITIALIZER;
@@ -67,7 +66,7 @@ lockSSH (const char *caller, gboolean flagLock)
 	}
 }
 
-void
+static void
 log_reset ()
 {
 	FILE *log_fp;
@@ -102,32 +101,11 @@ log_write (const char *fmt, ...)
 	fclose (log_fp);
 }
 
-int sTimeout = 0;
-pthread_t tidAlarm = 0; // Thread that must receive alarms
-
-// A thread requests receive alarm
-void
-threadRequestAlarm ()
-{
-	tidAlarm = pthread_self ();
-	log_debug ("0x%ld\n", tidAlarm);
-}
-
-void
-threadResetAlarm ()
-{
-	tidAlarm = 0;
-}
-
-void
-AlarmHandler (int sig)
+static int sTimeout = 0;
+static void AlarmHandler (int sig)
 {
 	log_debug ("[thread %ld] %d\n", pthread_self (), sig);
 	sTimeout = 1;
-	if (tidAlarm && tidAlarm != pthread_self () ) {
-		log_debug ("Send alarm to thread %ld\n", tidAlarm);
-		pthread_kill (tidAlarm, sig);
-	}
 }
 
 void
@@ -158,15 +136,9 @@ activate (GApplication *app, gpointer user_data)
 {
 	log_write ("Building gui...\n");
 	start_gtk (app);
-#if 0
-	/* log on window */
-	if (prefs.startup_show_connections)
-		connection_log_on ();
-#endif
 }
 
-int
-main (int argc, char *argv[])
+int main (int argc, char *argv[])
 {
 	int rc;
 	int opt;
@@ -226,22 +198,6 @@ main (int argc, char *argv[])
 	g_signal_connect (app, "activate", G_CALLBACK (activate), NULL);
 	g_application_run (G_APPLICATION (app), argc, argv);
 
-#if 0
-	application = g_application_new ("lterm.application", G_APPLICATION_FLAGS_NONE);
-	g_application_register (application, NULL, NULL);
-	log_write ("Building gui...\n");
-	start_gtk (argc, argv);
-
-	log_write ("Initializing iteration function requests\n");
-	ifr_init ();
-	log_write ("Initializing SFTP\n");
-	/* start main loop */
-	globals.running = 1;
-	log_write ("Starting main loop\n");
-	while (globals.running) {
-		lterm_iteration ();
-	}
-#endif
 	log_write ("Saving connections...\n");
 	save_connections(conn_list, globals.connections_xml);
 	log_write ("Saving settings...\n");
@@ -253,14 +209,12 @@ main (int argc, char *argv[])
 	return 0;
 }
 
-void
-load_settings ()
+static void load_settings ()
 {
 	/* load settings */
 	prefs.tabs_position = profile_load_int (globals.conf_file, "general", "tabs_position", GTK_POS_TOP);
 	profile_load_string (globals.conf_file, "general", "font_fixed", prefs.font_fixed, DEFAULT_FIXED_FONT);
 	profile_load_string (globals.conf_file, "general", "tempDir", prefs.tempDir, globals.app_dir/*"/tmp"*/);
-	prefs.startup_show_connections = profile_load_int (globals.conf_file, "TERMINAL", "startup_show_connections", 0);
 	profile_load_string (globals.conf_file, "TERMINAL", "extra_word_chars", prefs.extra_word_chars, ":@-./_~?&=%+#");
 	prefs.rows = profile_load_int (globals.conf_file, "TERMINAL", "rows", 80);
 	prefs.columns = profile_load_int (globals.conf_file, "TERMINAL", "columns", 25);
@@ -280,15 +234,13 @@ load_settings ()
 	profile_load_string (globals.conf_file, "GUI", "tab_status_disconnected_alert_color", prefs.tab_status_disconnected_alert_color, "darkred");
 }
 
-void
-save_settings ()
+static void save_settings ()
 {
 	/* store the version of program witch saved this profile */
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "package_version", VERSION);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "general", "tabs_position", prefs.tabs_position);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "font_fixed", prefs.font_fixed);
 	profile_modify_string (PROFILE_SAVE, globals.conf_file, "general", "tempDir", prefs.tempDir);
-	profile_modify_int (PROFILE_SAVE, globals.conf_file, "TERMINAL", "startup_show_connections", prefs.startup_show_connections);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "TERMINAL", "scrollback_lines", prefs.scrollback_lines);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "TERMINAL", "scroll_on_keystroke", prefs.scroll_on_keystroke);
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "TERMINAL", "scroll_on_output", prefs.scroll_on_output);
@@ -303,8 +255,7 @@ save_settings ()
 	profile_modify_int (PROFILE_SAVE, globals.conf_file, "GUI", "tab_alerts", prefs.tab_alerts);
 }
 
-void
-help ()
+static void help ()
 {
 	printf ("\n%s version %s\n", PACKAGE, VERSION);
 	printf (

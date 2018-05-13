@@ -52,8 +52,6 @@ extern GList *conn_list;
 int save_connections(GList *pList, char *filename);
 int load_connections();
 
-//int add_update_connection (Connection *p_conn_model);
-
 void connection_init (Connection *);
 int choose_manage_connection (Connection *p_conn);
 int conn_update_last_user (char *cname, char *last_user);

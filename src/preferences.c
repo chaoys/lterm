@@ -156,9 +156,6 @@ show_preferences (void)
 	          NULL);
 	gtk_window_set_transient_for (GTK_WINDOW (GTK_DIALOG (dialog) ), GTK_WINDOW (main_window) );
 	notebook = GTK_WIDGET (gtk_builder_get_object (builder, "notebook1") );
-	/* startup */
-	GtkWidget *startconn_check = GTK_WIDGET (gtk_builder_get_object (builder, "check_connections") );
-	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (startconn_check), prefs.startup_show_connections);
 	/* tabs */
 	GtkWidget *tabs_pos_combo = GTK_WIDGET (gtk_builder_get_object (builder, "combo_tabs_pos") );
 	gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (tabs_pos_combo), ("Left") );
@@ -202,7 +199,6 @@ show_preferences (void)
 	gtk_widget_show_all (gtk_dialog_get_content_area (GTK_DIALOG (dialog) ) );
 	gint result = gtk_dialog_run (GTK_DIALOG (dialog) );
 	if (result == GTK_RESPONSE_OK) {
-		prefs.startup_show_connections = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (startconn_check) ) ? 1 : 0;
 		prefs.tabs_position = gtk_combo_box_get_active (GTK_COMBO_BOX (tabs_pos_combo) );
 		prefs.tab_alerts = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (tab_alerts_check) ) ? 1 : 0;
 		prefs.mouse_copy_on_select = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (mouse_copy_on_select_check) ) ? 1 : 0;

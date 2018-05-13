@@ -9,19 +9,8 @@
 
 #include <stdint.h>
 
-#define LOG_MSG_NONE 0
-#define LOG_MSG_TIME 1
-#define LOG_MSG_SEP1 2
-
 #define MAXLINE 1024
 #define MAXBUFLEN   1024
-
-#define DE_UNKNOWN 0
-#define DE_GNOME 1
-#define DE_KDE 2
-#define DE_XFCE 3
-#define DE_CINNAMON 4
-#define DE_MAC_OS_X 10
 
 #define NVL(a,b) (a) != NULL ? (a) : (b)
 
