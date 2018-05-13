@@ -36,7 +36,6 @@
 
 extern Globals globals;
 extern Prefs prefs;
-extern struct Protocol g_ssh_prot;
 extern GtkWidget *main_window;
 
 GList *conn_list;
@@ -423,7 +422,7 @@ static int add_update_connection(Connection *p_conn)
 	if (p_conn) {
 		gtk_spin_button_set_value(GTK_SPIN_BUTTON(port_spin_button), p_conn->port);
 	} else {
-		gtk_spin_button_set_value(GTK_SPIN_BUTTON(port_spin_button), g_ssh_prot.port);
+		gtk_spin_button_set_value(GTK_SPIN_BUTTON(port_spin_button), globals.ssh_proto.port);
 	}
 	/* Authentication */
 	authWidgets.radio_auth_prompt = GTK_WIDGET(gtk_builder_get_object(builder, "radio_auth_prompt"));

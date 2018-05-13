@@ -37,21 +37,19 @@
 extern Globals globals;
 extern Prefs prefs;
 extern GtkWidget *main_window;
-extern struct ConnectionTab *p_current_connection_tab;
 extern struct Profile g_profile;
 
-GtkWidget *dialog_preferences;
 GtkWidget *vte_profile;
 GtkWidget *fontbutton_terminal;
 
-void check_use_system_cb(GtkToggleButton *togglebutton, gpointer user_data)
+static void check_use_system_cb(GtkToggleButton *togglebutton, gpointer user_data)
 {
 	gtk_widget_set_state_flags(fontbutton_terminal,
 	                           gtk_toggle_button_get_active(togglebutton) ? GTK_STATE_FLAG_INSENSITIVE : GTK_STATE_FLAG_NORMAL,
 	                           TRUE);
 }
 
-void profile_edit(GtkWidget *demo_vte)
+static void profile_edit(GtkWidget *demo_vte)
 {
 	GtkBuilder *builder;
 	GError *error = NULL;
@@ -112,19 +110,9 @@ void profile_edit(GtkWidget *demo_vte)
 	g_object_unref(G_OBJECT(builder));
 }
 
-void profile_edit_cb(GtkButton *button, gpointer user_data)
+static void profile_edit_cb(GtkButton *button, gpointer user_data)
 {
 	profile_edit((GtkWidget*)user_data);
-}
-
-void radio_ask_cb(GtkToggleButton *togglebutton, gpointer user_data)
-{
-	gtk_widget_set_state_flags(GTK_WIDGET(user_data), GTK_STATE_FLAG_INSENSITIVE, TRUE);
-}
-
-void radio_dir_cb(GtkToggleButton *togglebutton, gpointer user_data)
-{
-	gtk_widget_set_state_flags(GTK_WIDGET(user_data), GTK_STATE_FLAG_NORMAL, TRUE);
 }
 
 void show_preferences(void)

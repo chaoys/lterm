@@ -37,7 +37,6 @@
 extern Globals globals;
 extern Prefs prefs;
 extern GtkWidget *main_window;
-extern struct Protocol g_ssh_prot;
 extern struct ConnectionTab *p_current_connection_tab;
 extern GList *connection_tab_list;
 
@@ -85,7 +84,7 @@ int log_on(struct ConnectionTab *p_conn_tab)
 	char **p_params;
 	int ret;
 	int rc = 0, login_rc = 0;
-	struct Protocol *p_prot = &g_ssh_prot;
+	struct Protocol *p_prot = &globals.ssh_proto;
 	struct SSH_Auth_Data auth;
 	p_conn_tab->auth_attempt = 0;
 	p_conn_tab->auth_state = AUTH_STATE_NOT_LOGGED;

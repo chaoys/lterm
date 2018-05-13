@@ -134,19 +134,6 @@ void ssh_list_dump(struct SSH_List *p_ssh_list)
 	}
 }
 
-void ssh_list_keepalive(struct SSH_List *p_ssh_list)
-{
-	struct SSH_Node *node;
-	int rc;
-	node = p_ssh_list->head;
-	while (node) {
-		if ((rc = ssh_node_keepalive(node)) != 0) {
-			log_debug("can't ping %s rc=%d\n", node->host, rc);
-		}
-		node = node->next;
-	}
-}
-
 /**
  * ssh_node_connect() - connect to server and add node to list
  */
@@ -188,7 +175,7 @@ ssh_node_connect(struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth)
 	ssh_options_set(node.session, SSH_OPTIONS_HOST, p_auth->host);
 	ssh_options_set(node.session, SSH_OPTIONS_USER, p_auth->user);
 	ssh_options_set(node.session, SSH_OPTIONS_PORT, &p_auth->port);
-	ssh_options_set(node.session, SSH_OPTIONS_TIMEOUT, &prefs.ssh_timeout);
+//	ssh_options_set(node.session, SSH_OPTIONS_TIMEOUT, &prefs.ssh_timeout);
 	rc = ssh_connect(node.session);
 	if (rc != SSH_OK) {
 		sprintf(p_auth->error_s, "%s", ssh_get_error(node.session));
@@ -321,24 +308,6 @@ ssh_channel ssh_node_open_channel(struct SSH_Node *p_node)
 		return (NULL);
 	}
 	return (channel);
-}
-
-int ssh_node_keepalive(struct SSH_Node *p_ssh_node)
-{
-	ssh_channel channel;
-	if (p_ssh_node->session == NULL)
-		return (1);
-	log_write("[%s] %s\n", __func__, p_ssh_node->host);
-	channel = ssh_channel_new(p_ssh_node->session);
-	if (channel == NULL)
-		return (2);
-	if (ssh_channel_open_session(channel) == SSH_ERROR) {
-		ssh_channel_free(channel);
-		return (3);
-	}
-	ssh_channel_close(channel);
-	ssh_channel_free(channel);
-	return (0);
 }
 
 void ssh_node_update_time(struct SSH_Node *p_ssh_node)

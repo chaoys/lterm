@@ -125,7 +125,6 @@ void edit_copy_and_paste();
 void edit_find();
 
 void edit_select_all();
-void show_preferences();
 
 void terminal_reset();
 void terminal_detach_right();
@@ -146,8 +145,6 @@ void update_screen_info();
 void select_current_profile_menu_item(struct ConnectionTab *p_ct);
 struct ConnectionTab *get_connection_tab_from_child(GtkWidget *child);
 void refreshTabStatus(SConnectionTab *pTab);
-struct ConnectionTab *connection_tab_new();
-struct ConnectionTab *get_current_connection_tab();
 int connection_tab_getcwd(struct ConnectionTab *p_ct, char *directory);
 
 void apply_profile(struct ConnectionTab *p_ct);

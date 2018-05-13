@@ -21,12 +21,24 @@
 
 #define DEFAULT_FIXED_FONT "Monospace 9"
 
+#define PROT_FLAG_NO 0
+#define PROT_FLAG_ASKUSER 1
+#define PROT_FLAG_ASKPASSWORD 2
+#define PROT_FLAG_DISCONNECTCLOSE 4
+#define PROT_FLAG_MASK 255
+
+struct Protocol {
+	char command[256];
+	char args[256];
+	int port;
+	unsigned int flags;
+};
+
 /*
   Struct: _globals
   Structure containing global data such as home and work directory, etc.
 */
 struct _globals {
-	int running;
 	char home_dir[256];
 	char app_dir[300];
 	char img_dir[512];
@@ -35,12 +47,12 @@ struct _globals {
 	char conf_file[512];
 	char log_file[512];
 	char profiles_file[512];
-	char protocols_file[512];
-	int connected;
-	int original_font_size;
 	char system_font[256];
-	struct SSH_List ssh_list;
 	char find_expr[256];
+	int original_font_size;
+
+	struct Protocol ssh_proto;
+	struct SSH_List ssh_list;
 };
 
 typedef struct _globals Globals;
@@ -68,27 +80,9 @@ struct _prefs {
 	char tab_status_disconnected_color [32];
 	char tab_status_disconnected_alert_color [32];
 	char font_fixed [128];
-
-	int ssh_keepalive;
-	int ssh_timeout;
-
-	char tempDir[1024];
 };
 
 typedef struct _prefs Prefs;
-
-#define PROT_FLAG_NO 0
-#define PROT_FLAG_ASKUSER 1
-#define PROT_FLAG_ASKPASSWORD 2
-#define PROT_FLAG_DISCONNECTCLOSE 4
-#define PROT_FLAG_MASK 255
-
-struct Protocol {
-	char command[256];
-	char args[256];
-	int port;
-	unsigned int flags;
-};
 
 void lockSSH(const char *caller, gboolean flagLock);
 void log_write(const char *fmt, ...);

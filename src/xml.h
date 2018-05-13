@@ -24,12 +24,10 @@ typedef struct _XML XML;
 
 struct _XML {
 	gpointer user_data;
-	//GDestroyNotify notify;
 
 	XMLNode *cur_root;
 	XMLNode *cur_node;
 
-	//GMarkupParser *m_parser;
 	GMarkupParseContext *context;
 	GError error;
 };
@@ -47,10 +45,6 @@ void xml_node_set_raw_mode(XMLNode *node, gboolean raw_mode);
 XMLNode *xml_node_ref(XMLNode *node);
 void xml_node_unref(XMLNode *node);
 gchar * xml_node_to_string(XMLNode *node);
-/*
-XMLNode *xml_node_get_first_child (XMLNode *node);
-XMLNode *xml_node_get_next (XMLNode *node);
-*/
 int xml_parse(char *doc, XML *p_xml);
 int xml_load(XML *xmldoc, char *filename);
 int xml_save(XML *p_xmldoc, char *filename);

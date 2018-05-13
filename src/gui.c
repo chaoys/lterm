@@ -66,13 +66,6 @@ GdkScreen *g_screen;
 GList *connection_tab_list;
 struct ConnectionTab *p_current_connection_tab;
 
-GtkActionGroup *profile_action_group;
-int profile_menu_ui_id;
-
-/* number of rows and columns before maximization */
-int prev_rows;
-int prev_columns;
-
 int switch_tab_enabled = 1;
 
 char *g_vte_selected_text = NULL;
@@ -182,7 +175,7 @@ gint msgbox_yes_no(const char *fmt, ...)
 /**
  * child_exit() - handler of SIGCHLD
  */
-void child_exit()
+static void child_exit()
 {
 	int pid, status;
 	pid = wait(&status);
@@ -190,7 +183,7 @@ void child_exit()
 		printf("process %d terminated with code %d (%s)\n", pid, status, strerror(status));
 }
 
-void segv_handler(int signum)
+static void segv_handler(int signum)
 {
 	log_write("Critical error. Received signal %d\n", signum);
 	msgbox_error("Received signal %d.\n"
@@ -247,7 +240,7 @@ unsigned int tabGetFlag(SConnectionTab *pConn, unsigned int bitmask)
 	return (pConn->flags & bitmask);
 }
 
-void set_title(char *user_s)
+static void set_title(char *user_s)
 {
 	char title[256];
 	char appname[256];
@@ -486,7 +479,7 @@ int show_login_mask(struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_au
 	return (rc);
 }
 
-int connection_tab_count(void)
+static int connection_tab_count(void)
 {
 	int n = 0;
 	GList *item;
@@ -499,14 +492,7 @@ int connection_tab_count(void)
 	return (n);
 }
 
-struct ConnectionTab *
-get_current_connection_tab()
-{
-	return (p_current_connection_tab);
-}
-
-struct ConnectionTab *
-get_connection_tab_from_child(GtkWidget *child)
+struct ConnectionTab * get_connection_tab_from_child(GtkWidget *child)
 {
 	int i;
 	GList *item;
@@ -560,8 +546,7 @@ void close_button_clicked_cb(GtkButton *button, gpointer user_data)
 	connection_tab_close(p_ct);
 }
 
-struct ConnectionTab *
-connection_tab_new()
+static struct ConnectionTab * connection_tab_new()
 {
 	struct ConnectionTab *connection_tab;
 	connection_tab = g_new0(struct ConnectionTab, 1);
@@ -746,20 +731,15 @@ void connection_close_tab()
 void application_quit()
 {
 	int retcode;
-	int can_quit = 1;
 	int n;
 	char message[1024];
 	n = connection_tab_count();
 	if (n) {
 		sprintf(message, ("There are %d active terminal/s.\nExit anyway?"), n);
 		retcode = msgbox_yes_no(message);
-		if (retcode == GTK_RESPONSE_YES)
-			can_quit = 1;
-		else
-			can_quit = 0;
-	}
-	if (can_quit) {
-		globals.running = 0;
+		if (retcode == GTK_RESPONSE_YES) {
+			//TODO
+		}
 	}
 }
 
@@ -1341,13 +1321,6 @@ void terminal_popup_menu(GdkEventButton *event)
 	g_signal_connect(pop1, "activate", test, NULL);
 }
 
-gint delete_event_cb(GtkWidget *window, GdkEventAny *e, gpointer data)
-{
-	printf("delete\n");
-	application_quit();
-	return TRUE;
-}
-
 /**
  * child_exited_cb() - This signal is emitted when the terminal detects that a child started using vte_terminal_fork_command() has exited
  */
@@ -1381,14 +1354,6 @@ void eof_cb(VteTerminal *vteterminal, gpointer user_data)
 	update_screen_info();
 	refreshTabStatus(p_ct);
 	lt_ssh_disconnect(&p_ct->ssh_info);
-}
-
-/**
- * status_line_changed_cb()
- */
-void status_line_changed_cb(VteTerminal *vteterminal, gpointer user_data)
-{
-	//printf ("status_line_changed_cb() : %s\n", vte_terminal_get_status_line (vteterminal));
 }
 
 gboolean button_press_event_cb(GtkWidget *widget, GdkEventButton *event, gpointer userdata)
@@ -1491,7 +1456,6 @@ void notebook_switch_page_cb(GtkNotebook *notebook, GtkWidget *page, gint page_n
 		return;
 	switch_tab_enabled = FALSE;
 	log_write("Switched to page id: %d\n", page_num);
-	//child = gtk_notebook_get_nth_page (GTK_NOTEBOOK (notebook), page_num);
 	child = gtk_notebook_get_nth_page(notebook, page_num);
 	p_current_connection_tab = get_connection_tab_from_child(child);  /* try with g_list_find () */
 	log_write("Page name: %s\n", p_current_connection_tab->connection.name);
@@ -1510,10 +1474,6 @@ void terminal_focus_cb(GtkWidget *widget,
 	update_by_tab(p_current_connection_tab);
 }
 
-void notebook_page_reordered_cb(GtkNotebook *notebook, GtkWidget *child, guint page_num, gpointer user_data)
-{
-	log_write("Page reordered: %d\n", page_num);
-}
 void apply_preferences()
 {
 	int i;
@@ -1624,9 +1584,7 @@ void start_gtk(GApplication *app)
 	signal(SIGSEGV, segv_handler);  /* Segmentation fault */
 	connection_tab_list = NULL;
 	p_current_connection_tab = NULL;
-//	gtk_init (&argc, &argv);
 	log_write("Creating main window...\n");
-//	main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 	main_window = gtk_application_window_new(GTK_APPLICATION(app));
 	gtk_window_set_icon_from_file(GTK_WINDOW(main_window), g_strconcat(globals.img_dir, "/main_icon.png", NULL), NULL);
 	g_screen = gtk_widget_get_screen(GTK_WIDGET(main_window));
@@ -1659,12 +1617,10 @@ void start_gtk(GApplication *app)
 	gtk_notebook_popup_enable(GTK_NOTEBOOK(notebook));
 	gtk_notebook_set_show_border(GTK_NOTEBOOK(notebook), TRUE);
 	g_signal_connect(notebook, "switch-page", G_CALLBACK(notebook_switch_page_cb), 0);
-	g_signal_connect(notebook, "page-reordered", G_CALLBACK(notebook_page_reordered_cb), 0);
 	gtk_widget_show(notebook);
 	gtk_paned_add2(GTK_PANED(hpaned), notebook);
 	gtk_box_pack_start(GTK_BOX(vbox), hpaned, TRUE, TRUE, 0);
 	gtk_widget_show(hpaned);
-//	g_signal_connect (main_window, "delete_event", G_CALLBACK (delete_event_cb), NULL);
 	g_signal_connect(main_window, "key-press-event", G_CALLBACK(key_press_event_cb), NULL);
 	gtk_window_set_default_size(GTK_WINDOW(main_window), prefs.w, prefs.h);   /* keep this before gtk_widget_show() */
 	gtk_widget_show(main_window);

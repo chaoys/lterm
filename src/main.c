@@ -44,7 +44,6 @@
 
 Globals globals;
 Prefs prefs;
-struct Protocol g_ssh_prot = { "ssh", "-p %p -l %u %h", 22, PROT_FLAG_ASKPASSWORD };
 struct Profile g_profile;
 
 static void load_settings();
@@ -159,9 +158,7 @@ int main(int argc, char *argv[])
 	sprintf(globals.connections_xml, "%s/connections.xml", globals.app_dir);
 	sprintf(globals.log_file, "%s/lterm.log", globals.app_dir);
 	sprintf(globals.profiles_file, "%s/profiles.xml", globals.app_dir);
-	sprintf(globals.protocols_file, "%s/protocols.xml", globals.app_dir);
 	sprintf(globals.conf_file, "%s/%s.conf", globals.app_dir, PACKAGE);
-	globals.connected = 0;
 	strcpy(globals.img_dir, IMGDIR);
 	strcpy(globals.data_dir, DATADIR);
 	log_reset();
@@ -180,14 +177,18 @@ int main(int argc, char *argv[])
 		log_write("Creating default profile...\n");
 		profile_create_default(&g_profile);
 	}
+
 	ssh_list_init(&globals.ssh_list);
+	globals.ssh_proto = (struct Protocol){ "ssh", "-p %p -l %u %h", 22, PROT_FLAG_ASKPASSWORD };
 	log_write("Initializing threads...\n");
 	ssh_threads_set_callbacks(ssh_threads_get_pthread());
 	ssh_init();
+
 	GtkApplication *app;
 	app = gtk_application_new("org.app.lterm", G_APPLICATION_FLAGS_NONE);
 	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
 	g_application_run(G_APPLICATION(app), argc, argv);
+
 	log_write("Saving connections...\n");
 	save_connections(conn_list, globals.connections_xml);
 	log_write("Saving settings...\n");
@@ -204,7 +205,6 @@ static void load_settings()
 	/* load settings */
 	prefs.tabs_position = profile_load_int(globals.conf_file, "general", "tabs_position", GTK_POS_TOP);
 	profile_load_string(globals.conf_file, "general", "font_fixed", prefs.font_fixed, DEFAULT_FIXED_FONT);
-	profile_load_string(globals.conf_file, "general", "tempDir", prefs.tempDir, globals.app_dir/*"/tmp"*/);
 	profile_load_string(globals.conf_file, "TERMINAL", "extra_word_chars", prefs.extra_word_chars, ":@-./_~?&=%+#");
 	prefs.rows = profile_load_int(globals.conf_file, "TERMINAL", "rows", 80);
 	prefs.columns = profile_load_int(globals.conf_file, "TERMINAL", "columns", 25);
@@ -230,7 +230,6 @@ static void save_settings()
 	profile_modify_string(PROFILE_SAVE, globals.conf_file, "general", "package_version", VERSION);
 	profile_modify_int(PROFILE_SAVE, globals.conf_file, "general", "tabs_position", prefs.tabs_position);
 	profile_modify_string(PROFILE_SAVE, globals.conf_file, "general", "font_fixed", prefs.font_fixed);
-	profile_modify_string(PROFILE_SAVE, globals.conf_file, "general", "tempDir", prefs.tempDir);
 	profile_modify_int(PROFILE_SAVE, globals.conf_file, "TERMINAL", "scrollback_lines", prefs.scrollback_lines);
 	profile_modify_int(PROFILE_SAVE, globals.conf_file, "TERMINAL", "scroll_on_keystroke", prefs.scroll_on_keystroke);
 	profile_modify_int(PROFILE_SAVE, globals.conf_file, "TERMINAL", "scroll_on_output", prefs.scroll_on_output);
