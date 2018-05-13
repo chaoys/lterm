@@ -90,10 +90,10 @@ struct Protocol {
 	unsigned int flags;
 };
 
-void lockSSH (const char *caller, gboolean flagLock);
-void log_write (const char *fmt, ...);
-void timerStart (int seconds);
-void timerStop ();
-int timedOut ();
+void lockSSH(const char *caller, gboolean flagLock);
+void log_write(const char *fmt, ...);
+void timerStart(int seconds);
+void timerStop();
+int timedOut();
 
 #endif

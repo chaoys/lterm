@@ -52,19 +52,19 @@ extern GList *conn_list;
 int save_connections(GList *pList, char *filename);
 int load_connections();
 
-void connection_init (Connection *);
-int choose_manage_connection (Connection *p_conn);
-int conn_update_last_user (char *cname, char *last_user);
+void connection_init(Connection *);
+int choose_manage_connection(Connection *p_conn);
+int conn_update_last_user(char *cname, char *last_user);
 
-void cl_remove (GList **p_cl, char *name);
-void cl_release (GList **p_cl);
-int cl_count (GList *p_cl);
-Connection * cl_append (GList **p_cl, Connection *p_new);
-Connection *cl_insert_sorted (GList **p_cl, Connection *p_new);
-Connection *cl_get_by_index (GList *p_cl, int index);
-Connection *cl_get_by_name (GList *p_cl, char *name);
+void cl_remove(GList **p_cl, char *name);
+void cl_release(GList **p_cl);
+int cl_count(GList *p_cl);
+Connection * cl_append(GList **p_cl, Connection *p_new);
+Connection *cl_insert_sorted(GList **p_cl, Connection *p_new);
+Connection *cl_get_by_index(GList *p_cl, int index);
+Connection *cl_get_by_name(GList *p_cl, char *name);
 
-void connection_copy (Connection *p_dst, Connection *p_src);
+void connection_copy(Connection *p_dst, Connection *p_src);
 
 #endif
 

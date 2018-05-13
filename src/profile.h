@@ -15,11 +15,11 @@
 #define PROFILE_IN_SECTION 2
 #define PROFILE_AFTER_SECTION 3
 
-int profile_load_string (char *profile_file, char *section, char *param, char *dest, char *default_val);
-int profile_modify_string (int operation, char *profile_file, char *section, char *param, char *value);
-int profile_load_int (char *profile_file, char *section, char *param, int default_val);
-int profile_modify_int (int operation, char *profile_file, char *section, char *param, int value);
-int profile_delete_section (char *profile_file, char *section);
+int profile_load_string(char *profile_file, char *section, char *param, char *dest, char *default_val);
+int profile_modify_string(int operation, char *profile_file, char *section, char *param, char *value);
+int profile_load_int(char *profile_file, char *section, char *param, int default_val);
+int profile_modify_int(int operation, char *profile_file, char *section, char *param, int value);
+int profile_delete_section(char *profile_file, char *section);
 
 /* graphic profile */
 
@@ -33,8 +33,8 @@ struct Profile {
 	int cursor_blinking;
 };
 
-int load_profile (struct Profile *pf, char *filename);
-int save_profile (struct Profile *pf, char *filename);
-void profile_create_default (struct Profile *pf);
+int load_profile(struct Profile *pf, char *filename);
+int save_profile(struct Profile *pf, char *filename);
+void profile_create_default(struct Profile *pf);
 
 #endif

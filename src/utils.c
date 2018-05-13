@@ -27,8 +27,7 @@
 
 #include "utils.h"
 
-void
-ltrim (char *s)
+void ltrim(char *s)
 {
 	int i;
 	char *pc;
@@ -36,42 +35,38 @@ ltrim (char *s)
 	pc = &s[i];
 	while (*pc != 0 && *pc == ' ')
 		pc = &s[++i];
-	strcpy (s, pc);
+	strcpy(s, pc);
 }
 
-void
-rtrim (char *s)
+void rtrim(char *s)
 {
 	int i;
-	i = strlen (s) - 1; /* last char */
-	while (i >= 0 && (s[i] == ' ' || s[i] == '\n' || s[i] == '\r' || s[i] == '\f') )
+	i = strlen(s) - 1;  /* last char */
+	while (i >= 0 && (s[i] == ' ' || s[i] == '\n' || s[i] == '\r' || s[i] == '\f'))
 		i --;
 	/* now whe are on the last good char */
 	s[i + 1] = 0;
 }
 
-void
-trim (char *s)
+void trim(char *s)
 {
-	ltrim (s);
-	rtrim (s);
+	ltrim(s);
+	rtrim(s);
 }
 
-void
-list_init (char *list)
+void list_init(char *list)
 {
-	strcpy (list, "");
+	strcpy(list, "");
 }
 
 
-int
-list_count (char *list, char sep)
+int list_count(char *list, char sep)
 {
 	int i;
 	int n;
 	n = 0;
-	if (strlen (list) > 0) {
-		for (i = 0; i < strlen (list); i++) {
+	if (strlen(list) > 0) {
+		for (i = 0; i < strlen(list); i++) {
 			if (list[i] == sep)
 				n++;
 		}
@@ -80,8 +75,7 @@ list_count (char *list, char sep)
 	return (n);
 }
 
-int
-list_get_nth (char *list, int n, char sep, char *elem)
+int list_get_nth(char *list, int n, char sep, char *elem)
 {
 	int n_cur;
 	char *pc;
@@ -89,22 +83,22 @@ list_get_nth (char *list, int n, char sep, char *elem)
 	char *pend;
 	//char tmp[2048*5];
 	char *tmp = NULL;
-	strcpy (elem, "");
+	strcpy(elem, "");
 	pstart = list;
 	n_cur = 1;
 	while (pstart) {
 		if (n_cur == n) {
-			tmp = (char *) malloc (strlen (pstart) + 1);
-			strcpy (tmp, pstart);
-			pend = (char *) strchr (tmp, sep);
+			tmp = (char *) malloc(strlen(pstart) + 1);
+			strcpy(tmp, pstart);
+			pend = (char *) strchr(tmp, sep);
 			if (pend) {
 				*pend = 0;
 			}
-			strcpy (elem, tmp);
-			free (tmp);
+			strcpy(elem, tmp);
+			free(tmp);
 			break;
 		}
-		pc = (char *) strchr (pstart, sep);
+		pc = (char *) strchr(pstart, sep);
 		if (pc)
 			pstart = pc + 1;
 		else
@@ -114,8 +108,7 @@ list_get_nth (char *list, int n, char sep, char *elem)
 	return (pstart ? 1 : 0);
 }
 
-char **
-splitString (char *str, char *delimiters, int skipNulls, char *quotes, int trailingNull, int *pCount)
+char ** splitString(char *str, char *delimiters, int skipNulls, char *quotes, int trailingNull, int *pCount)
 {
 	char **splitted = NULL;
 	int i = 0, k, t, n = 0;
@@ -123,50 +116,50 @@ splitString (char *str, char *delimiters, int skipNulls, char *quotes, int trail
 	int insideQuotes = 0;
 	if (str == NULL)
 		return 0;
-	while (i < strlen (str) ) {
+	while (i < strlen(str)) {
 		pstart = &str[i];
 		// Get next token
 		insideQuotes = 0;
 		k = 0;
 		t = 0;
-		tmp = (char *) malloc (strlen (pstart) + 1);
-		memset (tmp, 0, strlen (pstart) + 1);
+		tmp = (char *) malloc(strlen(pstart) + 1);
+		memset(tmp, 0, strlen(pstart) + 1);
 		while (pstart[k] != 0) {
 			// If the first char is a quote go ahead
-			if (quotes && k == 0 && strchr (quotes, pstart[k]) ) {
+			if (quotes && k == 0 && strchr(quotes, pstart[k])) {
 				insideQuotes = 1; // Enter the quoted string
 				k ++;
 				continue;
 			}
-			if (quotes && insideQuotes && strchr (quotes, pstart[k]) ) {
+			if (quotes && insideQuotes && strchr(quotes, pstart[k])) {
 				insideQuotes = 0; // Exit the quoted string
 			}
-			if (!insideQuotes && strchr (delimiters, pstart[k]) ) {
+			if (!insideQuotes && strchr(delimiters, pstart[k])) {
 				k ++;
 				break;
 			}
-			if (!quotes || (quotes && !strchr (quotes, pstart[k]) ) ) {
-				if (insideQuotes || (!insideQuotes && !strchr (delimiters, pstart[k]) ) )
+			if (!quotes || (quotes && !strchr(quotes, pstart[k]))) {
+				if (insideQuotes || (!insideQuotes && !strchr(delimiters, pstart[k])))
 					tmp[t++] = pstart[k];
 			}
 			k++;
-			if (!insideQuotes && strchr (delimiters, pstart[k]) ) {
+			if (!insideQuotes && strchr(delimiters, pstart[k])) {
 				k++;
 				break;
 			}
 		}
 		tmp[t] = 0;
 		i += k;
-		if (tmp[0] || (tmp[0] == 0 && !skipNulls) ) {
-			splitted = realloc (splitted, sizeof (char *) * n + 1);
-			splitted[n] = (char *) malloc (strlen (tmp) + 1);
-			memcpy (splitted[n], tmp, strlen (tmp) + 1);
-			free (tmp);
+		if (tmp[0] || (tmp[0] == 0 && !skipNulls)) {
+			splitted = realloc(splitted, sizeof(char *) * n + 1);
+			splitted[n] = (char *) malloc(strlen(tmp) + 1);
+			memcpy(splitted[n], tmp, strlen(tmp) + 1);
+			free(tmp);
 			n ++;
 		}
 	}
 	if (trailingNull) {
-		splitted = realloc (splitted, sizeof (char *) * n + 1);
+		splitted = realloc(splitted, sizeof(char *) * n + 1);
 		splitted[n] = 0;
 	}
 	if (pCount)
@@ -174,29 +167,27 @@ splitString (char *str, char *delimiters, int skipNulls, char *quotes, int trail
 	return (splitted);
 }
 
-char *
-password_encode (char *clear_text)
+char *password_encode(char *clear_text)
 {
 	static char secret_text[4096];
 	char *p_bin;
-	if (strlen (clear_text) == 0)
+	if (strlen(clear_text) == 0)
 		return ("");
-	p_bin = g_base64_encode ((const guchar *)clear_text, strlen (clear_text) );
+	p_bin = g_base64_encode((const guchar *)clear_text, strlen(clear_text));
 	strcpy(secret_text, p_bin);
 	g_free(p_bin);
 	return (secret_text);
 }
 
-char *
-password_decode (char *ecrypted_text)
+char *password_decode(char *ecrypted_text)
 {
 	static char clear_text[4096];
 	char *p_bin;
 	gsize len;
-	if (strlen (ecrypted_text) == 0)
+	if (strlen(ecrypted_text) == 0)
 		return ("");
-	p_bin = (char *) g_base64_decode (ecrypted_text, &len);
-	strncpy (clear_text, p_bin, len);
+	p_bin = (char *) g_base64_decode(ecrypted_text, &len);
+	strncpy(clear_text, p_bin, len);
 	clear_text[len] = 0;
 	g_free(p_bin);
 	return (clear_text);

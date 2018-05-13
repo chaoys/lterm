@@ -60,29 +60,29 @@ struct SSH_Auth_Data {
 	char error_s[512];
 };
 
-void ssh_list_init (struct SSH_List *p_ssh_list);
-void ssh_list_release_chain (struct SSH_Node *p_head);
-void ssh_list_release (struct SSH_List *p_ssh_list);
-struct SSH_Node *ssh_list_append (struct SSH_List *p_ssh_list, struct SSH_Node *p_new);
-struct SSH_Node *ssh_list_search (struct SSH_List *p_ssh_list, char *host, char *user);
-void ssh_list_dump (struct SSH_List *p_ssh_list);
+void ssh_list_init(struct SSH_List *p_ssh_list);
+void ssh_list_release_chain(struct SSH_Node *p_head);
+void ssh_list_release(struct SSH_List *p_ssh_list);
+struct SSH_Node *ssh_list_append(struct SSH_List *p_ssh_list, struct SSH_Node *p_new);
+struct SSH_Node *ssh_list_search(struct SSH_List *p_ssh_list, char *host, char *user);
+void ssh_list_dump(struct SSH_List *p_ssh_list);
 
-struct SSH_Node *ssh_node_connect (struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth);
-void ssh_node_free (struct SSH_Node *p_ssh_node);
-void ssh_node_ref (struct SSH_Node *p_ssh_node);
-void ssh_node_unref (struct SSH_Node *p_ssh_node);
-void ssh_node_set_validity (struct SSH_Node *p_ssh_node, int valid);
-int ssh_node_get_validity (struct SSH_Node *p_ssh_node);
-ssh_channel ssh_node_open_channel (struct SSH_Node *p_node);
-int ssh_node_keepalive (struct SSH_Node *p_ssh_node);
-void ssh_node_update_time (struct SSH_Node *p_ssh_node);
+struct SSH_Node *ssh_node_connect(struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth);
+void ssh_node_free(struct SSH_Node *p_ssh_node);
+void ssh_node_ref(struct SSH_Node *p_ssh_node);
+void ssh_node_unref(struct SSH_Node *p_ssh_node);
+void ssh_node_set_validity(struct SSH_Node *p_ssh_node, int valid);
+int ssh_node_get_validity(struct SSH_Node *p_ssh_node);
+ssh_channel ssh_node_open_channel(struct SSH_Node *p_node);
+int ssh_node_keepalive(struct SSH_Node *p_ssh_node);
+void ssh_node_update_time(struct SSH_Node *p_ssh_node);
 
-void lt_ssh_init (struct SSH_Info *p_ssh);
-int lt_ssh_connect (struct SSH_Info *p_ssh, struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth);
-void lt_ssh_disconnect (struct SSH_Info *p_ssh);
-int lt_ssh_is_connected (struct SSH_Info *p_ssh);
-int lt_ssh_getenv (struct SSH_Info *p_ssh, char *variable, char *value);
-int lt_ssh_exec (struct SSH_Info *p_ssh, char *command, char *output, int outlen, char *error, int errlen);
+void lt_ssh_init(struct SSH_Info *p_ssh);
+int lt_ssh_connect(struct SSH_Info *p_ssh, struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth);
+void lt_ssh_disconnect(struct SSH_Info *p_ssh);
+int lt_ssh_is_connected(struct SSH_Info *p_ssh);
+int lt_ssh_getenv(struct SSH_Info *p_ssh, char *variable, char *value);
+int lt_ssh_exec(struct SSH_Info *p_ssh, char *command, char *output, int outlen, char *error, int errlen);
 
 #endif
 

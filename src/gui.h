@@ -77,89 +77,89 @@ typedef struct ConnectionTab {
 #define MY_STOCK_FILE_NEW "file_new"
 
 
-void msgbox_error (const char *fmt, ...);
-void msgbox_info (const char *fmt, ...);
-gint msgbox_yes_no (const char *fmt, ...);
-int query_value (char *title, char *labeltext, char *default_value, char *buffer, int type);
-int expand_args (Connection *p_conn, char *args, char *prefix, char *dest);
-int show_login_mask (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth);
+void msgbox_error(const char *fmt, ...);
+void msgbox_info(const char *fmt, ...);
+gint msgbox_yes_no(const char *fmt, ...);
+int query_value(char *title, char *labeltext, char *default_value, char *buffer, int type);
+int expand_args(Connection *p_conn, char *args, char *prefix, char *dest);
+int show_login_mask(struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth);
 
-void tabInitConnection (SConnectionTab *pConn);
-char *tabGetConnectionStatusDesc (int status);
-void tabSetConnectionStatus (SConnectionTab *pConn, int status);
-int tabGetConnectionStatus (SConnectionTab *pConn);
-int tabIsConnected (SConnectionTab *pConn);
-void tabSetFlag (SConnectionTab *pConn, unsigned int bitmask);
-void tabResetFlag (SConnectionTab *pConn, unsigned int bitmask);
-unsigned int tabGetFlag (SConnectionTab *pConn, unsigned int bitmask);
+void tabInitConnection(SConnectionTab *pConn);
+char *tabGetConnectionStatusDesc(int status);
+void tabSetConnectionStatus(SConnectionTab *pConn, int status);
+int tabGetConnectionStatus(SConnectionTab *pConn);
+int tabIsConnected(SConnectionTab *pConn);
+void tabSetFlag(SConnectionTab *pConn, unsigned int bitmask);
+void tabResetFlag(SConnectionTab *pConn, unsigned int bitmask);
+unsigned int tabGetFlag(SConnectionTab *pConn, unsigned int bitmask);
 
-void increase_font_size_cb (GtkWidget *widget, gpointer user_data);
-void decrease_font_size_cb (GtkWidget *widget, gpointer user_data);
-void adjust_font_size (GtkWidget *widget, /*gpointer data,*/ gint delta);
-void status_line_changed_cb (VteTerminal *vteterminal, gpointer user_data);
-void eof_cb (VteTerminal *vteterminal, gpointer user_data);
+void increase_font_size_cb(GtkWidget *widget, gpointer user_data);
+void decrease_font_size_cb(GtkWidget *widget, gpointer user_data);
+void adjust_font_size(GtkWidget *widget, /*gpointer data,*/ gint delta);
+void status_line_changed_cb(VteTerminal *vteterminal, gpointer user_data);
+void eof_cb(VteTerminal *vteterminal, gpointer user_data);
 
-void child_exited_cb (VteTerminal *vteterminal, gint status, gpointer user_data);
+void child_exited_cb(VteTerminal *vteterminal, gint status, gpointer user_data);
 
-void size_allocate_cb (GtkWidget *widget, GtkAllocation *allocation, gpointer user_data);
-gint delete_event_cb (GtkWidget *window, GdkEventAny *e, gpointer data);
-void terminal_popup_menu (GdkEventButton *event);
-gboolean button_press_event_cb (GtkWidget *widget, GdkEventButton *event, gpointer userdata);
-void window_title_changed_cb (VteTerminal *vteterminal, gpointer user_data);
-void selection_changed_cb (VteTerminal *vteterminal, gpointer user_data);
-void terminal_focus_cb (GtkWidget       *widget, gpointer         user_data);
+void size_allocate_cb(GtkWidget *widget, GtkAllocation *allocation, gpointer user_data);
+gint delete_event_cb(GtkWidget *window, GdkEventAny *e, gpointer data);
+void terminal_popup_menu(GdkEventButton *event);
+gboolean button_press_event_cb(GtkWidget *widget, GdkEventButton *event, gpointer userdata);
+void window_title_changed_cb(VteTerminal *vteterminal, gpointer user_data);
+void selection_changed_cb(VteTerminal *vteterminal, gpointer user_data);
+void terminal_focus_cb(GtkWidget       *widget, gpointer         user_data);
 
-void connection_log_on_param (Connection *p_conn);
-void connection_log_on ();
-void connection_log_off ();
-void connection_duplicate ();
-void connection_edit_protocols ();
-void connection_new_terminal_dir (char *directory);
-void connection_new_terminal ();
-void connection_close_tab ();
-void application_quit ();
+void connection_log_on_param(Connection *p_conn);
+void connection_log_on();
+void connection_log_off();
+void connection_duplicate();
+void connection_edit_protocols();
+void connection_new_terminal_dir(char *directory);
+void connection_new_terminal();
+void connection_close_tab();
+void application_quit();
 
-void edit_copy ();
-void edit_paste ();
-void edit_copy_and_paste ();
-void edit_find ();
+void edit_copy();
+void edit_paste();
+void edit_copy_and_paste();
+void edit_find();
 
-void edit_select_all ();
-void show_preferences ();
+void edit_select_all();
+void show_preferences();
 
-void terminal_reset ();
+void terminal_reset();
 void terminal_detach_right();
 void terminal_detach_down();
-void terminal_attach_to_main (struct ConnectionTab *connectionTab);
-void terminal_attach_current_to_main ();
-void terminal_regroup_all ();
-void terminal_cluster ();
+void terminal_attach_to_main(struct ConnectionTab *connectionTab);
+void terminal_attach_current_to_main();
+void terminal_regroup_all();
+void terminal_cluster();
 
-void apply_preferences ();
-void apply_profile ();
+void apply_preferences();
+void apply_profile();
 
-void help_home_page ();
-void Info ();
+void help_home_page();
+void Info();
 
-void update_screen_info ();
+void update_screen_info();
 
-void select_current_profile_menu_item (struct ConnectionTab *p_ct);
-struct ConnectionTab *get_connection_tab_from_child (GtkWidget *child);
-void refreshTabStatus (SConnectionTab *pTab);
-struct ConnectionTab *connection_tab_new ();
-struct ConnectionTab *get_current_connection_tab ();
-int connection_tab_getcwd (struct ConnectionTab *p_ct, char *directory);
+void select_current_profile_menu_item(struct ConnectionTab *p_ct);
+struct ConnectionTab *get_connection_tab_from_child(GtkWidget *child);
+void refreshTabStatus(SConnectionTab *pTab);
+struct ConnectionTab *connection_tab_new();
+struct ConnectionTab *get_current_connection_tab();
+int connection_tab_getcwd(struct ConnectionTab *p_ct, char *directory);
 
-void apply_profile (struct ConnectionTab *p_ct);
-void apply_profile_terminal (GtkWidget *terminal, struct Profile *p_profile);
-void update_all_profiles ();
+void apply_profile(struct ConnectionTab *p_ct);
+void apply_profile_terminal(GtkWidget *terminal, struct Profile *p_profile);
+void update_all_profiles();
 
-void start_gtk (GApplication *app);
-void connection_tab_close (struct ConnectionTab *p_ct);
+void start_gtk(GApplication *app);
+void connection_tab_close(struct ConnectionTab *p_ct);
 
 static inline void get_monitor_size(GtkWindow *win, int *width, int *height)
 {
-	GdkScreen *screen = gtk_window_get_screen (GTK_WINDOW (win));
+	GdkScreen *screen = gtk_window_get_screen(GTK_WINDOW(win));
 	GdkDisplay *dis = gdk_screen_get_display(screen);
 	GdkMonitor *mon = gdk_display_get_monitor_at_window(dis, gdk_screen_get_root_window(screen));
 	GdkRectangle geome;

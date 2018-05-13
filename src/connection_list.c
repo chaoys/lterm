@@ -35,33 +35,28 @@ static int namecmp(const void *n1, const void *n2)
 	return strcasecmp((const char *)n1, (const char *)n2);
 }
 
-void
-connection_init (Connection *pConn)
+void connection_init(Connection *pConn)
 {
-	memset (pConn, 0, sizeof (Connection) );
+	memset(pConn, 0, sizeof(Connection));
 }
 
-void
-cl_release (GList **p_cl)
+void cl_release(GList **p_cl)
 {
 	g_list_free_full(*p_cl, free_conn);
 	*p_cl = NULL;
 }
 
-Connection *
-cl_append (GList **p_cl, Connection *p_new)
+Connection *cl_append(GList **p_cl, Connection *p_new)
 {
 	Connection *p_new_decl;
-	p_new_decl = (Connection *) malloc (sizeof (Connection) );
-	memset (p_new_decl, 0, sizeof (Connection) );
-	memcpy (p_new_decl, p_new, sizeof (Connection) );
-
+	p_new_decl = (Connection *) malloc(sizeof(Connection));
+	memset(p_new_decl, 0, sizeof(Connection));
+	memcpy(p_new_decl, p_new, sizeof(Connection));
 	*p_cl = g_list_append(*p_cl, p_new_decl);
 	return (p_new_decl);
 }
 
-void
-cl_remove (GList **p_cl, char *name)
+void cl_remove(GList **p_cl, char *name)
 {
 	GList *res = g_list_find_custom(*p_cl, name, namecmp);
 	if (!res) return;
@@ -69,39 +64,34 @@ cl_remove (GList **p_cl, char *name)
 	g_list_free_full(res, free_conn);
 }
 
-Connection *
-cl_insert_sorted (GList **p_cl, Connection *p_new)
+Connection *cl_insert_sorted(GList **p_cl, Connection *p_new)
 {
 	Connection *p_new_decl;
-	p_new_decl = (Connection *) malloc (sizeof (Connection) );
-	memset (p_new_decl, 0, sizeof (Connection) );
-	memcpy (p_new_decl, p_new, sizeof (Connection) );
+	p_new_decl = (Connection *) malloc(sizeof(Connection));
+	memset(p_new_decl, 0, sizeof(Connection));
+	memcpy(p_new_decl, p_new, sizeof(Connection));
 	*p_cl = g_list_insert_sorted(*p_cl, p_new_decl, namecmp);
 	return (p_new_decl);
 }
 
-Connection *
-cl_get_by_index (GList *p_cl, int index)
+Connection *cl_get_by_index(GList *p_cl, int index)
 {
 	return g_list_nth_data(p_cl, index);
 }
 
-Connection *
-cl_get_by_name (GList *p_cl, char *name)
+Connection *cl_get_by_name(GList *p_cl, char *name)
 {
 	GList *res = g_list_find_custom(p_cl, name, namecmp);
 	return res ? res->data : NULL;
 }
 
-int
-cl_count (GList *p_cl)
+int cl_count(GList *p_cl)
 {
 	return g_list_length(p_cl);
 }
 
-void
-connection_copy (Connection *p_dst, Connection *p_src)
+void connection_copy(Connection *p_dst, Connection *p_src)
 {
-	memcpy (p_dst, p_src, sizeof (Connection) );
+	memcpy(p_dst, p_src, sizeof(Connection));
 }
 
