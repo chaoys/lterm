@@ -41,14 +41,6 @@
 #include "utils.h"
 #include "terminal.h"
 
-#include <gdk/gdkx.h>
-
-#define SHORTCUT_COPY "<shift><ctrl>C"
-#define SHORTCUT_PASTE "<shift><ctrl>V"
-#define SHORTCUT_FIND "<shift><ctrl>F"
-#define SHORTCUT_FIND_NEXT "<shift><ctrl>G"
-#define SHORTCUT_QUIT "<Alt>X"
-
 extern Globals globals;
 extern Prefs prefs;
 extern struct Profile g_profile;
@@ -59,8 +51,6 @@ GtkWidget *hpaned;
 GtkWidget *menubar, *main_toolbar;
 GSimpleActionGroup *action_group;
 GtkWidget *notebook;
-
-GdkScreen *g_screen;
 
 /* pointer to the list of open connections or NULL if there's no open connection */
 GList *connection_tab_list;
@@ -181,17 +171,6 @@ static void child_exit()
 	pid = wait(&status);
 	if (status > 0)
 		printf("process %d terminated with code %d (%s)\n", pid, status, strerror(status));
-}
-
-static void segv_handler(int signum)
-{
-	log_write("Critical error. Received signal %d\n", signum);
-	msgbox_error("Received signal %d.\n"
-	             "Sorry, this is a critical error and the program will be killed.\n"
-	             "Take a look on the website about what to do in cases like this.",
-	             signum);
-	signal(signum, SIG_DFL);
-	kill(getpid(), signum);
 }
 
 void tabInitConnection(SConnectionTab *pConn)
@@ -923,8 +902,6 @@ void terminal_detach(GtkOrientation orientation)
 		gtk_paned_add2(GTK_PANED(hpaned), hpaned_split);   // First division
 	else
 		gtk_paned_add1(GTK_PANED(parent), hpaned_split);
-	// Do an iteration, otherwise allocation is not correctly set
-	//lterm_iteration ();
 	GtkAllocation allocation;
 	gtk_widget_get_allocation(hpaned_split, &allocation);
 	gtk_paned_set_position(GTK_PANED(hpaned_split),
@@ -1157,32 +1134,6 @@ void terminal_cluster()
 	g_array_free(tabSelectionArray, FALSE);
 	gtk_widget_destroy(dialog);
 	g_object_unref(G_OBJECT(builder));
-}
-
-void clipboard_cb(GtkClipboard *clipboard, const gchar *text, gpointer data)
-{
-	if (text == NULL)
-		g_vte_selected_text = NULL;
-	else {
-		if (g_vte_selected_text)
-			free(g_vte_selected_text);
-		g_vte_selected_text = (char *) malloc(strlen(text) + 1);
-		memcpy(g_vte_selected_text, text, strlen(text) + 1);
-		log_debug("g_vte_selected_text = %s\n", g_vte_selected_text);
-	}
-}
-char *get_terminal_selection(VteTerminal *terminal)
-{
-	GdkDisplay *display;
-	GtkClipboard *clipboard;
-	if (vte_terminal_get_has_selection(terminal)) {
-		vte_terminal_copy_primary(terminal);
-		display = gtk_widget_get_display(p_current_connection_tab->vte);
-		clipboard = gtk_clipboard_get_for_display(display, GDK_SELECTION_PRIMARY);
-		gtk_clipboard_request_text(clipboard, clipboard_cb, NULL);
-	} else
-		g_vte_selected_text = NULL;
-	return (g_vte_selected_text);
 }
 
 void Info()
@@ -1581,13 +1532,11 @@ void start_gtk(GApplication *app)
 {
 	GtkWidget *vbox;          /* main vbox */
 	signal(SIGCHLD, child_exit);  /* a child process ends */
-	signal(SIGSEGV, segv_handler);  /* Segmentation fault */
 	connection_tab_list = NULL;
 	p_current_connection_tab = NULL;
 	log_write("Creating main window...\n");
 	main_window = gtk_application_window_new(GTK_APPLICATION(app));
 	gtk_window_set_icon_from_file(GTK_WINDOW(main_window), g_strconcat(globals.img_dir, "/main_icon.png", NULL), NULL);
-	g_screen = gtk_widget_get_screen(GTK_WIDGET(main_window));
 	set_title(0);
 	if (prefs.maximize)
 		gtk_window_maximize(GTK_WINDOW(main_window));
