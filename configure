@@ -38,7 +38,7 @@ if [ $debug -eq 1 ]; then
 	CFLAGS="$CFLAGS -g -DDEBUG"
 	echo "debug enabled"
 else
-	echo "debug disable"
+	echo "debug disabled"
 fi
 
 if [ $sshpass -eq 1 ]; then
