@@ -143,6 +143,7 @@ ssh_node_connect(struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth)
 	struct SSH_Node node, *p_node = NULL;
 	GError *error = NULL;
 	int rc, valid = 0;
+	long timeout = 3;
 	memset(&node, 0, sizeof(struct SSH_Node));
 	if ((p_node = ssh_list_search(p_ssh_list, p_auth->host, p_auth->user))) {
 		log_write("Found ssh node for %s@%s\n", p_auth->user, p_auth->host);
@@ -175,7 +176,8 @@ ssh_node_connect(struct SSH_List *p_ssh_list, struct SSH_Auth_Data *p_auth)
 	ssh_options_set(node.session, SSH_OPTIONS_HOST, p_auth->host);
 	ssh_options_set(node.session, SSH_OPTIONS_USER, p_auth->user);
 	ssh_options_set(node.session, SSH_OPTIONS_PORT, &p_auth->port);
-//	ssh_options_set(node.session, SSH_OPTIONS_TIMEOUT, &prefs.ssh_timeout);
+	//TODO
+	ssh_options_set(node.session, SSH_OPTIONS_TIMEOUT, &timeout);
 	rc = ssh_connect(node.session);
 	if (rc != SSH_OK) {
 		sprintf(p_auth->error_s, "%s", ssh_get_error(node.session));
