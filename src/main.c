@@ -46,7 +46,7 @@ Globals globals;
 Prefs prefs;
 struct Protocol g_ssh_prot = { "ssh", "-p %p -l %u %h", 22, PROT_FLAG_ASKPASSWORD };
 struct Profile g_profile;
-GApplication *application;
+//GApplication *application;
 
 void load_settings ();
 void save_settings ();
@@ -102,42 +102,6 @@ log_write (const char *fmt, ...)
 	fclose (log_fp);
 }
 
-gboolean
-doGTKMainIteration ()
-{
-	while (gtk_events_pending () )
-		gtk_main_iteration ();
-	return (G_SOURCE_REMOVE);
-}
-
-void
-addIdleGTKMainIteration ()
-{
-	gdk_threads_add_idle (doGTKMainIteration, NULL);
-}
-
-void
-lterm_iteration ()
-{
-	struct Iteration_Function_Request ifr_function;
-	doGTKMainIteration ();
-	while (ifr_get (&ifr_function) ) {
-		log_debug ("Requested iteration function: %d\n", ifr_function.id);
-		switch (ifr_function.id) {
-			case ITERATION_REBUILD_TREE_STORE:
-				rebuild_tree_store ();
-				break;
-			case ITERATION_REFRESH_TREE_VIEW:
-				refresh_connection_tree_view ( (GtkTreeView *) ifr_function.user_data);
-				break;
-			default:
-				break;
-		} /* switch */
-	}
-	/* prevent from 100% cpu usage */
-	g_usleep (1000);
-}
-
 int sTimeout = 0;
 pthread_t tidAlarm = 0; // Thread that must receive alarms
 
@@ -187,6 +151,18 @@ timerStop ()
 int timedOut ()
 {
 	return (sTimeout == 1);
+}
+
+static void
+activate (GApplication *app, gpointer user_data)
+{
+	log_write ("Building gui...\n");
+	start_gtk (app);
+#if 0
+	/* log on window */
+	if (prefs.startup_show_connections)
+		connection_log_on ();
+#endif
 }
 
 int
@@ -243,31 +219,36 @@ main (int argc, char *argv[])
 	ssh_list_init (&globals.ssh_list);
 	log_write ("Initializing threads...\n");
 	ssh_threads_set_callbacks (ssh_threads_get_pthread() );
-	// Register application. Needed for desktop notifications
+	ssh_init ();
+
+	GtkApplication *app;
+	app = gtk_application_new("org.app.lterm", G_APPLICATION_FLAGS_NONE);
+	g_signal_connect (app, "activate", G_CALLBACK (activate), NULL);
+	g_application_run (G_APPLICATION (app), argc, argv);
+
+#if 0
 	application = g_application_new ("lterm.application", G_APPLICATION_FLAGS_NONE);
 	g_application_register (application, NULL, NULL);
 	log_write ("Building gui...\n");
 	start_gtk (argc, argv);
+
 	log_write ("Initializing iteration function requests\n");
 	ifr_init ();
 	log_write ("Initializing SFTP\n");
-	ssh_init ();
-	/* log on window */
-	if (prefs.startup_show_connections)
-		connection_log_on ();
 	/* start main loop */
 	globals.running = 1;
 	log_write ("Starting main loop\n");
 	while (globals.running) {
 		lterm_iteration ();
 	}
+#endif
 	log_write ("Saving connections...\n");
-	save_connections_to_file_xml (globals.connections_xml);
+	save_connections(conn_list, globals.connections_xml);
 	log_write ("Saving settings...\n");
 	save_settings ();
 	log_write ("Saving profiles...\n");
 	save_profile (&g_profile, globals.profiles_file);
-	g_object_unref (application);
+	g_object_unref (app);
 	log_write ("End\n");
 	return 0;
 }

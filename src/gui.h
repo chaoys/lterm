@@ -31,8 +31,8 @@ enum { TAB_CONN_STATUS_DISCONNECTED = 0, TAB_CONN_STATUS_CONNECTING, TAB_CONN_ST
 #define TAB_LOGGED 2
 
 typedef struct ConnectionTab {
-	struct Connection connection;
-	struct Connection last_connection;
+	Connection connection;
+	Connection last_connection;
 	struct SSH_Info ssh_info;
 
 	int connectionStatus;
@@ -77,24 +77,11 @@ typedef struct ConnectionTab {
 #define MY_STOCK_FILE_NEW "file_new"
 
 
-/* requested operations within gtk iteration */
-
-#define ITERATION_MAX 20
-#define ITERATION_REBUILD_TREE_STORE 1
-#define ITERATION_REFRESH_TREE_VIEW 2
-
-struct Iteration_Function_Request {
-	int id;
-	void *user_data;
-};
-
-void ifr_add (int function_id, void *user_data);
-
 void msgbox_error (const char *fmt, ...);
 void msgbox_info (const char *fmt, ...);
 gint msgbox_yes_no (const char *fmt, ...);
 int query_value (char *title, char *labeltext, char *default_value, char *buffer, int type);
-int expand_args (struct Connection *p_conn, char *args, char *prefix, char *dest);
+int expand_args (Connection *p_conn, char *args, char *prefix, char *dest);
 int show_login_mask (struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth);
 
 void tabInitConnection (SConnectionTab *pConn);
@@ -122,7 +109,7 @@ void window_title_changed_cb (VteTerminal *vteterminal, gpointer user_data);
 void selection_changed_cb (VteTerminal *vteterminal, gpointer user_data);
 void terminal_focus_cb (GtkWidget       *widget, gpointer         user_data);
 
-void connection_log_on_param (struct Connection *p_conn);
+void connection_log_on_param (Connection *p_conn);
 void connection_log_on ();
 void connection_log_off ();
 void connection_duplicate ();
@@ -167,9 +154,7 @@ void apply_profile (struct ConnectionTab *p_ct);
 void apply_profile_terminal (GtkWidget *terminal, struct Profile *p_profile);
 void update_all_profiles ();
 
-void start_gtk (int argc, char **argv);
-void ifr_init (void);
-int ifr_get (struct Iteration_Function_Request *dest);
+void start_gtk (GApplication *app);
 void connection_tab_close (struct ConnectionTab *p_ct);
 
 static inline void get_monitor_size(GtkWindow *win, int *width, int *height)

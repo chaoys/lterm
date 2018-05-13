@@ -100,7 +100,6 @@ struct Protocol {
 };
 
 void lockSSH (const char *caller, gboolean flagLock);
-void lterm_iteration ();
 void log_reset ();
 void log_write (const char *fmt, ...);
 gboolean doGTKMainIteration ();

@@ -51,13 +51,7 @@
 
 extern Globals globals;
 extern Prefs prefs;
-extern struct Connection_List conn_list;
 extern struct Profile g_profile;
-extern struct GroupTree g_groups;
-
-int ifr_index_first = 0;
-int ifr_index_insert = 1;
-struct Iteration_Function_Request ifr[ITERATION_MAX];
 
 GtkWidget *main_window;
 GtkWidget *hpaned;
@@ -138,43 +132,6 @@ const gchar *ui_popup_desc =
 "  </child>"
 "</object>"
 "</interface>";
-
-void
-ifr_init (void)
-{
-	int i;
-	for (i = 0; i < ITERATION_MAX; i++)
-		memset (&ifr[i], 0, sizeof (struct Iteration_Function_Request) );
-	ifr_index_first = 0;
-	ifr_index_insert = 0;
-}
-
-void
-ifr_add (int function_id, void *user_data)
-{
-	/* Check if all slots are busy */
-	if (ifr[ifr_index_insert].id != 0)
-		return;
-	/* Avoid adjacent duplicates */
-	if (ifr[ifr_index_first].id == function_id)
-		return;
-	log_debug ("ifr[%d] = %d\n", ifr_index_insert, function_id);
-	ifr[ifr_index_insert].id = function_id;
-	ifr[ifr_index_insert].user_data = user_data;
-	ifr_index_insert = (ifr_index_insert + 1) % ITERATION_MAX;
-}
-
-int
-ifr_get (struct Iteration_Function_Request *dest)
-{
-	if (ifr[ifr_index_first].id == 0)
-		return (0);
-	dest->id = ifr[ifr_index_first].id;
-	dest->user_data = ifr[ifr_index_first].user_data;
-	ifr[ifr_index_first].id = 0;
-	ifr_index_first = (ifr_index_first + 1) % ITERATION_MAX;
-	return (1);
-}
 
 void
 msgbox_error (const char *fmt, ...)
@@ -399,7 +356,7 @@ query_value (char *title, char *labeltext, char *default_value, char *buffer, in
  * @return 0 if ok, 1 otherwise
  */
 int
-expand_args (struct Connection *p_conn, char *args, char *prefix, char *dest)
+expand_args (Connection *p_conn, char *args, char *prefix, char *dest)
 {
 	int i, c, i_dest;
 	int go_on;
@@ -632,7 +589,7 @@ connection_tab_new ()
 	g_signal_connect (connection_tab->vte, "selection-changed", G_CALLBACK (selection_changed_cb), connection_tab);
 	g_signal_connect (connection_tab->vte, "grab-focus", G_CALLBACK (terminal_focus_cb), connection_tab);
 	tabInitConnection (connection_tab);
-	memset (&connection_tab->connection, 0, sizeof (struct Connection) );
+	memset (&connection_tab->connection, 0, sizeof (Connection) );
 	return (connection_tab);
 }
 
@@ -737,7 +694,7 @@ connection_tab_getcwd (struct ConnectionTab *p_ct, char *directory)
 }
 
 void
-connection_log_on_param (struct Connection *p_conn)
+connection_log_on_param (Connection *p_conn)
 {
 	int retcode = 0;
 	struct ConnectionTab *p_connection_tab;
@@ -1019,7 +976,7 @@ terminal_detach (GtkOrientation orientation)
 	else
 		gtk_paned_add1 (GTK_PANED (parent), hpaned_split);
 	// Do an iteration, otherwise allocation is not correctly set
-	lterm_iteration ();
+	//lterm_iteration ();
 	GtkAllocation allocation;
 	gtk_widget_get_allocation (hpaned_split, &allocation);
 	gtk_paned_set_position (GTK_PANED (hpaned_split),
@@ -1447,6 +1404,7 @@ terminal_popup_menu (GdkEventButton *event)
 gint
 delete_event_cb (GtkWidget *window, GdkEventAny *e, gpointer data)
 {
+	printf("delete\n");
 	application_quit ();
 	return TRUE;
 }
@@ -1741,16 +1699,17 @@ static void setup_shortcuts(void)
   Creates the main user interface
 */
 void
-start_gtk (int argc, char **argv)
+start_gtk (GApplication *app)
 {
 	GtkWidget *vbox;          /* main vbox */
 	signal (SIGCHLD, child_exit); /* a child process ends */
 	signal (SIGSEGV, segv_handler); /* Segmentation fault */
 	connection_tab_list = NULL;
 	p_current_connection_tab = NULL;
-	gtk_init (&argc, &argv);
+//	gtk_init (&argc, &argv);
 	log_write ("Creating main window...\n");
-	main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+//	main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+	main_window = gtk_application_window_new (GTK_APPLICATION (app));
 	gtk_window_set_icon_from_file (GTK_WINDOW (main_window), g_strconcat (globals.img_dir, "/main_icon.png", NULL), NULL);
 	g_screen = gtk_widget_get_screen (GTK_WIDGET (main_window) );
 	set_title (0);
@@ -1774,7 +1733,7 @@ start_gtk (int argc, char **argv)
 	/* Paned window */
 	hpaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
 	/* list store for connetions */
-	connection_init_stuff ();
+	load_connections();
 	/* Notebook */
 	notebook = gtk_notebook_new ();
 	gtk_notebook_set_scrollable (GTK_NOTEBOOK (notebook), TRUE);
@@ -1787,7 +1746,7 @@ start_gtk (int argc, char **argv)
 	gtk_paned_add2 (GTK_PANED (hpaned), notebook);
 	gtk_box_pack_start (GTK_BOX (vbox), hpaned, TRUE, TRUE, 0);
 	gtk_widget_show (hpaned);
-	g_signal_connect (main_window, "delete_event", G_CALLBACK (delete_event_cb), NULL);
+//	g_signal_connect (main_window, "delete_event", G_CALLBACK (delete_event_cb), NULL);
 	g_signal_connect (main_window, "key-press-event", G_CALLBACK (key_press_event_cb), NULL);
 	gtk_window_set_default_size (GTK_WINDOW (main_window), prefs.w, prefs.h); /* keep this before gtk_widget_show() */
 	gtk_widget_show (main_window);

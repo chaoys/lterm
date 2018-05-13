@@ -25,195 +25,83 @@
 #include <stdio.h>
 #include "connection.h"
 #include "main.h"
-#include "utils.h"
 
-extern Globals globals;
-extern Prefs prefs;
-extern struct Connection_List conn_list;
-extern struct Protocol g_ssh_prot;
-
-void
-connection_init (SConnection *pConn)
+static void free_conn(gpointer data)
 {
-	memset (pConn, 0, sizeof (SConnection) );
+	free(data);
+}
+static int namecmp(const void *n1, const void *n2)
+{
+	return strcasecmp((const char *)n1, (const char *)n2);
 }
 
 void
-cl_init (struct Connection_List *p_cl)
+connection_init (Connection *pConn)
 {
-	p_cl->head = NULL;
-	p_cl->tail = NULL;
+	memset (pConn, 0, sizeof (Connection) );
 }
 
 void
-cl_release_chain (struct Connection *p_head)
+cl_release (GList **p_cl)
 {
-	if (p_head) {
-		cl_release_chain (p_head->next);
-		free (p_head);
-	}
+	g_list_free_full(*p_cl, free_conn);
+	*p_cl = NULL;
 }
 
-void
-cl_release (struct Connection_List *p_cl)
+Connection *
+cl_append (GList **p_cl, Connection *p_new)
 {
-	cl_release_chain (p_cl->head);
-	p_cl->head = 0;
-	p_cl->tail = 0;
-}
+	Connection *p_new_decl;
+	p_new_decl = (Connection *) malloc (sizeof (Connection) );
+	memset (p_new_decl, 0, sizeof (Connection) );
+	memcpy (p_new_decl, p_new, sizeof (Connection) );
 
-struct Connection *
-cl_append (struct Connection_List *p_cl, struct Connection *p_new)
-{
-	struct Connection *p_new_decl;
-	p_new_decl = (struct Connection *) malloc (sizeof (struct Connection) );
-	memset (p_new_decl, 0, sizeof (struct Connection) );
-	memcpy (p_new_decl, p_new, sizeof (struct Connection) );
-	p_new_decl->next = 0;
-	if (p_cl->head == 0) {
-		p_cl->head = p_new_decl;
-		p_cl->tail = p_new_decl;
-	} else {
-		p_cl->tail->next = p_new_decl;
-		p_cl->tail = p_new_decl;
-	}
+	*p_cl = g_list_append(*p_cl, p_new_decl);
 	return (p_new_decl);
 }
 
-struct Connection *
-cl_insert_sorted (struct Connection_List *p_cl, struct Connection *p_new)
+void
+cl_remove (GList **p_cl, char *name)
 {
-	struct Connection *p_new_decl, *p, *p_prec;
-	p_new_decl = (struct Connection *) malloc (sizeof (struct Connection) );
-	memset (p_new_decl, 0, sizeof (struct Connection) );
-	memcpy (p_new_decl, p_new, sizeof (struct Connection) );
-	p_new_decl->next = 0;
-	if (p_cl->head == 0) {
-		p_cl->head = p_new_decl;
-		p_cl->tail = p_new_decl;
-	} else {
-		p = p_cl->head;
-		p_prec = 0;
-		while (p) {
-			if (strcasecmp (p->name, p_new_decl->name) > 0) {
-				break;
-			}
-			p_prec = p;
-			p = p->next;
-		}
-		if (p == NULL) {         /* last */
-			p_cl->tail->next = p_new_decl;
-			p_cl->tail = p_new_decl;
-		} else {
-			if (p == p_cl->head) { /* first */
-				p_new_decl->next = p;
-				p_cl->head = p_new_decl;
-			} else {             /* middle */
-				p_prec->next = p_new_decl;
-				p_new_decl->next = p;
-			}
-		}
-	}
+	GList *res = g_list_find_custom(*p_cl, name, namecmp);
+	if (!res) return;
+	*p_cl = g_list_remove_link(*p_cl, res);
+	g_list_free_full(res, free_conn);
+}
+
+Connection *
+cl_insert_sorted (GList **p_cl, Connection *p_new)
+{
+	Connection *p_new_decl;
+	p_new_decl = (Connection *) malloc (sizeof (Connection) );
+	memset (p_new_decl, 0, sizeof (Connection) );
+	memcpy (p_new_decl, p_new, sizeof (Connection) );
+	*p_cl = g_list_insert_sorted(*p_cl, p_new_decl, namecmp);
 	return (p_new_decl);
 }
 
-struct Connection *
-cl_host_search (struct Connection_List *p_cl, char *host, char *skip_this)
+Connection *
+cl_get_by_index (GList *p_cl, int index)
 {
-	struct Connection *p_conn;
-	p_conn = p_cl->head;
-	while (p_conn) {
-		if (!strcmp (p_conn->host, host) ) {
-			if (skip_this) {
-				if (strcmp (p_conn->name, skip_this) )
-					break;
-			} else
-				break;
-		}
-		p_conn = p_conn->next;
-	}
-	return (p_conn);
+	return g_list_nth_data(p_cl, index);
 }
 
-struct Connection *
-cl_get_by_index (struct Connection_List *p_cl, int index)
+Connection *
+cl_get_by_name (GList *p_cl, char *name)
 {
-	struct Connection *p_conn;
-	int i;
-	p_conn = (struct Connection *) p_cl->head;
-	i = 0;
-	while (p_conn) {
-		if (i == index)
-			break;
-		p_conn = p_conn->next;
-		i ++;
-	}
-	return (p_conn);
-}
-
-struct Connection *
-cl_get_by_name (struct Connection_List *p_cl, char *name)
-{
-	struct Connection *p_conn;
-	p_conn = p_cl->head;
-	while (p_conn) {
-		if (!strcmp (p_conn->name, name) )
-			break;
-		p_conn = p_conn->next;
-	}
-	return (p_conn);
-}
-
-void
-cl_remove (struct Connection_List *p_cl, char *name)
-{
-	struct Connection *p_del, *p_prec;
-	p_prec = 0;
-	p_del = p_cl->head;
-	while (p_del) {
-		if (!strcmp (p_del->name, name) ) {
-			if (p_prec)
-				p_prec->next = p_del->next;
-			else
-				p_cl->head = p_del->next;
-			if (p_cl->tail == p_del)
-				p_cl->tail = p_prec;
-			free (p_del);
-			break;
-		}
-		p_prec = p_del;
-		p_del = p_del->next;
-	}
+	GList *res = g_list_find_custom(p_cl, name, namecmp);
+	return res ? res->data : NULL;
 }
 
 int
-cl_count (struct Connection_List *p_cl)
+cl_count (GList *p_cl)
 {
-	struct Connection *c;
-	int n;
-	c = p_cl->head;
-	n = 0;
-	while (c) {
-		n ++;
-		c = c->next;
-	}
-	return (n);
+	return g_list_length(p_cl);
 }
 
 void
-cl_dump (struct Connection_List *p_cl)
+connection_copy (Connection *p_dst, Connection *p_src)
 {
-	struct Connection *c;
-	c = p_cl->head;
-	while (c) {
-		printf ("%s %s %d\n", c->name, c->host, c->port);
-		c = c->next;
-	}
-}
-
-void
-connection_copy (struct Connection *p_dst, struct Connection *p_src)
-{
-	memcpy (p_dst, p_src, sizeof (struct Connection) );
+	memcpy (p_dst, p_src, sizeof (Connection) );
 }
 
