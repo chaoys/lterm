@@ -49,7 +49,6 @@ struct _globals {
 	char profiles_file[512];
 	char system_font[256];
 	char find_expr[256];
-	int original_font_size;
 
 	struct Protocol ssh_proto;
 	struct SSH_List ssh_list;

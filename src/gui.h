@@ -89,25 +89,6 @@ char *tabGetConnectionStatusDesc(int status);
 void tabSetConnectionStatus(SConnectionTab *pConn, int status);
 int tabGetConnectionStatus(SConnectionTab *pConn);
 int tabIsConnected(SConnectionTab *pConn);
-void tabSetFlag(SConnectionTab *pConn, unsigned int bitmask);
-void tabResetFlag(SConnectionTab *pConn, unsigned int bitmask);
-unsigned int tabGetFlag(SConnectionTab *pConn, unsigned int bitmask);
-
-void increase_font_size_cb(GtkWidget *widget, gpointer user_data);
-void decrease_font_size_cb(GtkWidget *widget, gpointer user_data);
-void adjust_font_size(GtkWidget *widget, /*gpointer data,*/ gint delta);
-void status_line_changed_cb(VteTerminal *vteterminal, gpointer user_data);
-void eof_cb(VteTerminal *vteterminal, gpointer user_data);
-
-void child_exited_cb(VteTerminal *vteterminal, gint status, gpointer user_data);
-
-void size_allocate_cb(GtkWidget *widget, GtkAllocation *allocation, gpointer user_data);
-gint delete_event_cb(GtkWidget *window, GdkEventAny *e, gpointer data);
-void terminal_popup_menu(GdkEventButton *event);
-gboolean button_press_event_cb(GtkWidget *widget, GdkEventButton *event, gpointer userdata);
-void window_title_changed_cb(VteTerminal *vteterminal, gpointer user_data);
-void selection_changed_cb(VteTerminal *vteterminal, gpointer user_data);
-void terminal_focus_cb(GtkWidget       *widget, gpointer         user_data);
 
 void connection_log_on_param(Connection *p_conn);
 void connection_log_on();
@@ -136,11 +117,6 @@ void terminal_cluster();
 
 void apply_preferences();
 void apply_profile();
-
-void help_home_page();
-void Info();
-
-void update_screen_info();
 
 void select_current_profile_menu_item(struct ConnectionTab *p_ct);
 struct ConnectionTab *get_connection_tab_from_child(GtkWidget *child);

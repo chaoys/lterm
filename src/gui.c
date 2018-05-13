@@ -58,8 +58,6 @@ struct ConnectionTab *p_current_connection_tab;
 
 int switch_tab_enabled = 1;
 
-char *g_vte_selected_text = NULL;
-
 // Cluster
 enum { COLUMN_CLUSTER_TERM_SELECTED, COLUMN_CLUSTER_TERM_NAME, N_CLUSTER_COLUMNS };
 GtkListStore *list_store_cluster;
@@ -68,6 +66,15 @@ typedef struct TabSelection {
 	gint selected;
 } STabSelection;
 GArray *tabSelectionArray;
+
+static void Info();
+static void eof_cb(VteTerminal *vteterminal, gpointer user_data);
+static void child_exited_cb(VteTerminal *vteterminal, gint status, gpointer user_data);
+static void terminal_popup_menu(GdkEventButton *event);
+static gboolean button_press_event_cb(GtkWidget *widget, GdkEventButton *event, gpointer userdata);
+static void terminal_focus_cb(GtkWidget *widget, gpointer user_data);
+static void selection_changed_cb(VteTerminal *vteterminal, gpointer user_data);
+static void contents_changed_cb(VteTerminal *vteterminal, gpointer user_data);
 
 void test(void)
 {
@@ -515,7 +522,6 @@ void connection_tab_close(struct ConnectionTab *p_ct)
 				p_current_connection_tab = NULL;
 		}
 	}
-	update_screen_info();
 }
 
 void close_button_clicked_cb(GtkButton *button, gpointer user_data)
@@ -533,11 +539,9 @@ static struct ConnectionTab * connection_tab_new()
 	connection_tab->vte = vte_terminal_new();
 	g_signal_connect(connection_tab->vte, "child-exited", G_CALLBACK(child_exited_cb), connection_tab);
 	g_signal_connect(connection_tab->vte, "eof", G_CALLBACK(eof_cb), connection_tab);
-	g_signal_connect(connection_tab->vte, "increase-font-size", G_CALLBACK(increase_font_size_cb), NULL);
-	g_signal_connect(connection_tab->vte, "decrease-font-size", G_CALLBACK(decrease_font_size_cb), NULL);
 	g_signal_connect(connection_tab->vte, "button-press-event", G_CALLBACK(button_press_event_cb), connection_tab->vte);
-	g_signal_connect(connection_tab->vte, "window-title-changed", G_CALLBACK(window_title_changed_cb), connection_tab);
 	g_signal_connect(connection_tab->vte, "selection-changed", G_CALLBACK(selection_changed_cb), connection_tab);
+	g_signal_connect(connection_tab->vte, "contents-changed", G_CALLBACK(contents_changed_cb), connection_tab);
 	g_signal_connect(connection_tab->vte, "grab-focus", G_CALLBACK(terminal_focus_cb), connection_tab);
 	tabInitConnection(connection_tab);
 	memset(&connection_tab->connection, 0, sizeof(Connection));
@@ -580,7 +584,6 @@ void connection_tab_add(struct ConnectionTab *connection_tab)
 	connection_tab->notebook = notebook;
 	/* Store original font */
 	font_desc = pango_font_description_copy(vte_terminal_get_font(VTE_TERMINAL(connection_tab->vte)));
-	globals.original_font_size = pango_font_description_get_size(font_desc) / PANGO_SCALE;
 	strcpy(globals.system_font, pango_font_description_to_string(font_desc));
 	pango_font_description_free(font_desc);
 	apply_preferences(connection_tab->vte);
@@ -666,7 +669,6 @@ void connection_log_on_param(Connection *p_conn)
 		log_on(p_connection_tab);
 		refreshTabStatus(p_current_connection_tab);
 	}
-	update_screen_info();
 }
 
 /**
@@ -687,7 +689,6 @@ void connection_log_off()
 		log_write("Terminal closed\n");
 		tabInitConnection(p_current_connection_tab);
 	}
-	update_screen_info();
 }
 
 void connection_duplicate()
@@ -1136,7 +1137,7 @@ void terminal_cluster()
 	g_object_unref(G_OBJECT(builder));
 }
 
-void Info()
+static void Info()
 {
 	int major, minor, micro;
 	char image_filename[1024];
@@ -1229,35 +1230,6 @@ void add_toolbar(GtkWidget *box)
 	g_object_unref(G_OBJECT(builder));
 }
 
-/**
- * update_title() - Updates the window title
- */
-void update_title()
-{
-	char title[256];
-	char appname[256];
-	char label[256];
-	if (p_current_connection_tab) {
-		strcpy(label, p_current_connection_tab->connection.name);
-	} else {
-		strcpy(label, "");
-	}
-	sprintf(appname, "%s %s", PACKAGE, VERSION);
-	if (label[0] != 0)
-		sprintf(title, "%s - %s", label, appname);
-	else
-		strcpy(title, appname);
-	gtk_window_set_title(GTK_WINDOW(main_window), title);
-}
-
-/**
- * update_screen_info() - Refresh title
- */
-void update_screen_info()
-{
-	update_title();
-}
-
 void terminal_popup_menu(GdkEventButton *event)
 {
 	GtkBuilder *builder;
@@ -1289,7 +1261,6 @@ void child_exited_cb(VteTerminal *vteterminal,
 	log_debug("connection '%s' disconnecting\n", p_ct->connection.name);
 	lt_ssh_disconnect(&p_ct->ssh_info);
 	terminal_write_ex(p_ct, "\n\rDisconnected. Hit enter to reconnect.\n\r", -1);
-	update_screen_info();
 }
 
 /**
@@ -1302,7 +1273,6 @@ void eof_cb(VteTerminal *vteterminal, gpointer user_data)
 	log_write("[%s] : %s\n", __func__, p_ct->connection.name);
 	connection_copy(&p_ct->last_connection, &p_ct->connection);
 	tabInitConnection(p_ct);
-	update_screen_info();
 	refreshTabStatus(p_ct);
 	lt_ssh_disconnect(&p_ct->ssh_info);
 }
@@ -1322,53 +1292,16 @@ gboolean button_press_event_cb(GtkWidget *widget, GdkEventButton *event, gpointe
 	return FALSE;
 }
 
-void window_title_changed_cb(VteTerminal *vteterminal, gpointer user_data)
-{
-	update_title();
-}
-
 void selection_changed_cb(VteTerminal *vteterminal, gpointer user_data)
 {
 	if (prefs.mouse_copy_on_select)
 		terminal_copy_to_clipboard(VTE_TERMINAL(p_current_connection_tab->vte));
 }
 
-void adjust_font_size(GtkWidget *widget, gint delta)
+void contents_changed_cb(VteTerminal *vteterminal, gpointer user_data)
 {
-	VteTerminal *terminal;
-	PangoFontDescription *desired;
-	gint newsize;
-	gint columns, rows, owidth, oheight;
-	/* Read the screen dimensions in cells. */
-	terminal = VTE_TERMINAL(widget);
-	columns = vte_terminal_get_column_count(terminal);
-	rows = vte_terminal_get_row_count(terminal);
-	/* Take into account padding and border overhead. */
-	gtk_window_get_size(GTK_WINDOW(main_window), &owidth, &oheight);
-	owidth -= vte_terminal_get_char_width(terminal) * columns;
-	oheight -= vte_terminal_get_char_height(terminal) * rows;
-	/* Calculate the new font size. */
-	desired = pango_font_description_copy(vte_terminal_get_font(terminal));
-	newsize = pango_font_description_get_size(desired) / PANGO_SCALE;
-	if (delta)
-		newsize += delta;
-	else
-		newsize = globals.original_font_size;
-	pango_font_description_set_size(desired, CLAMP(newsize, 4, 144) * PANGO_SCALE);
-	/* Change the font, then resize the window so that we have the same
-	 * number of rows and columns. */
-	vte_terminal_set_font(terminal, desired);
-	pango_font_description_free(desired);
-}
-
-void increase_font_size_cb(GtkWidget *widget, gpointer user_data)
-{
-	adjust_font_size(widget, 1);
-}
-
-void decrease_font_size_cb(GtkWidget *widget, gpointer user_data)
-{
-	adjust_font_size(widget, -1);
+	tabSetFlag((SConnectionTab*)user_data, TAB_CHANGED);
+	refreshTabStatus(user_data);
 }
 
 gboolean key_press_event_cb(GtkWidget *widget, GdkEventKey *event, gpointer user_data)
@@ -1386,7 +1319,6 @@ gboolean key_press_event_cb(GtkWidget *widget, GdkEventKey *event, gpointer user
 			p_current_connection_tab->enter_key_relogging = 1;
 			log_on(p_current_connection_tab);
 			refreshTabStatus(p_current_connection_tab);
-			update_screen_info();
 			/* TRUE to stop other handlers from being invoked for the event */
 			return TRUE;
 		}
@@ -1396,7 +1328,6 @@ gboolean key_press_event_cb(GtkWidget *widget, GdkEventKey *event, gpointer user
 
 void update_by_tab(struct ConnectionTab *pTab)
 {
-	update_screen_info();
 	refreshTabStatus(pTab);
 }
 
