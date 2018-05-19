@@ -45,8 +45,6 @@ Globals globals;
 Prefs prefs;
 struct Profile g_profile;
 
-static void load_settings();
-static void save_settings();
 static void help();
 
 // Access to ssh operations
@@ -196,50 +194,6 @@ int main(int argc, char *argv[])
 	g_object_unref(app);
 	log_write("End\n");
 	return 0;
-}
-
-static void load_settings()
-{
-	/* load settings */
-	prefs.tabs_position = profile_load_int(globals.conf_file, "general", "tabs_position", GTK_POS_TOP);
-	profile_load_string(globals.conf_file, "general", "font_fixed", prefs.font_fixed, DEFAULT_FIXED_FONT);
-	profile_load_string(globals.conf_file, "TERMINAL", "extra_word_chars", prefs.extra_word_chars, ":@-./_~?&=%+#");
-	prefs.rows = profile_load_int(globals.conf_file, "TERMINAL", "rows", 80);
-	prefs.columns = profile_load_int(globals.conf_file, "TERMINAL", "columns", 25);
-	profile_load_string(globals.conf_file, "TERMINAL", "character_encoding", prefs.character_encoding, "");
-	prefs.scrollback_lines = profile_load_int(globals.conf_file, "TERMINAL", "scrollback_lines", 512);
-	prefs.scroll_on_keystroke = profile_load_int(globals.conf_file, "TERMINAL", "scroll_on_keystroke", 1);
-	prefs.scroll_on_output = profile_load_int(globals.conf_file, "TERMINAL", "scroll_on_output", 1);
-	prefs.mouse_autohide = profile_load_int(globals.conf_file, "MOUSE", "autohide", 1);
-	prefs.mouse_copy_on_select = profile_load_int(globals.conf_file, "MOUSE", "copy_on_select", 0);
-	prefs.mouse_paste_on_right_button = profile_load_int(globals.conf_file, "MOUSE", "paste_on_right_button", 0);
-	prefs.w = profile_load_int(globals.conf_file, "GUI", "w", 640);
-	prefs.h = profile_load_int(globals.conf_file, "GUI", "h", 480);
-	prefs.maximize = profile_load_int(globals.conf_file, "GUI", "maximize", 0);
-	prefs.tab_alerts = profile_load_int(globals.conf_file, "GUI", "tab_alerts", 1);
-	profile_load_string(globals.conf_file, "GUI", "tab_status_changed_color", prefs.tab_status_changed_color, "blue");
-	profile_load_string(globals.conf_file, "GUI", "tab_status_disconnected_color", prefs.tab_status_disconnected_color, "#707070");
-	profile_load_string(globals.conf_file, "GUI", "tab_status_disconnected_alert_color", prefs.tab_status_disconnected_alert_color, "darkred");
-}
-
-static void save_settings()
-{
-	/* store the version of program witch saved this profile */
-	profile_modify_string(PROFILE_SAVE, globals.conf_file, "general", "package_version", VERSION);
-	profile_modify_int(PROFILE_SAVE, globals.conf_file, "general", "tabs_position", prefs.tabs_position);
-	profile_modify_string(PROFILE_SAVE, globals.conf_file, "general", "font_fixed", prefs.font_fixed);
-	profile_modify_int(PROFILE_SAVE, globals.conf_file, "TERMINAL", "scrollback_lines", prefs.scrollback_lines);
-	profile_modify_int(PROFILE_SAVE, globals.conf_file, "TERMINAL", "scroll_on_keystroke", prefs.scroll_on_keystroke);
-	profile_modify_int(PROFILE_SAVE, globals.conf_file, "TERMINAL", "scroll_on_output", prefs.scroll_on_output);
-	profile_modify_int(PROFILE_SAVE, globals.conf_file, "TERMINAL", "rows", prefs.rows);
-	profile_modify_int(PROFILE_SAVE, globals.conf_file, "TERMINAL", "columns", prefs.columns);
-	profile_modify_int(PROFILE_SAVE, globals.conf_file, "MOUSE", "autohide", prefs.mouse_autohide);
-	profile_modify_int(PROFILE_SAVE, globals.conf_file, "MOUSE", "copy_on_select", prefs.mouse_copy_on_select);
-	profile_modify_int(PROFILE_SAVE, globals.conf_file, "MOUSE", "paste_on_right_button", prefs.mouse_paste_on_right_button);
-	profile_modify_int(PROFILE_SAVE, globals.conf_file, "GUI", "maximize", prefs.maximize);
-	profile_modify_int(PROFILE_SAVE, globals.conf_file, "GUI", "w", prefs.w);
-	profile_modify_int(PROFILE_SAVE, globals.conf_file, "GUI", "h", prefs.h);
-	profile_modify_int(PROFILE_SAVE, globals.conf_file, "GUI", "tab_alerts", prefs.tab_alerts);
 }
 
 static void help()
