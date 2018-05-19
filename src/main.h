@@ -7,7 +7,6 @@
 #ifndef _MAIN_H
 #define _MAIN_H
 
-#include "ssh.h"
 #include "gtk/gtk.h"
 
 #ifdef DEBUG
@@ -51,7 +50,6 @@ struct _globals {
 	char find_expr[256];
 
 	struct Protocol ssh_proto;
-	struct SSH_List ssh_list;
 };
 
 typedef struct _globals Globals;

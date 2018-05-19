@@ -10,7 +10,6 @@
 #include <vte/vte.h>
 #include <unistd.h>
 #include "connection.h"
-#include "ssh.h"
 #include "profile.h"
 
 #define QUERY_USER 1
@@ -33,7 +32,6 @@ enum { TAB_CONN_STATUS_DISCONNECTED = 0, TAB_CONN_STATUS_CONNECTING, TAB_CONN_ST
 typedef struct ConnectionTab {
 	Connection connection;
 	Connection last_connection;
-	struct SSH_Info ssh_info;
 
 	int connectionStatus;
 	int enter_key_relogging;
@@ -80,9 +78,7 @@ typedef struct ConnectionTab {
 void msgbox_error(const char *fmt, ...);
 void msgbox_info(const char *fmt, ...);
 gint msgbox_yes_no(const char *fmt, ...);
-int query_value(char *title, char *labeltext, char *default_value, char *buffer, int type);
 int expand_args(Connection *p_conn, char *args, char *prefix, char *dest);
-int show_login_mask(struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth);
 
 void tabInitConnection(SConnectionTab *pConn);
 char *tabGetConnectionStatusDesc(int status);

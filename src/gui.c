@@ -242,7 +242,7 @@ static void set_title(char *user_s)
  * query_value() - open a dialog asking for a parameter value
  * @return length of value or -1 if user cancelled operation
  */
-int query_value(char *title, char *labeltext, char *default_value, char *buffer, int type)
+static int query_value(char *title, char *labeltext, char *default_value, char *buffer, int type)
 {
 	int ret;
 	char imagefile[256];
@@ -401,70 +401,6 @@ int expand_args(Connection *p_conn, char *args, char *prefix, char *dest)
 	return (go_on > 0 ? 0 : 1);
 }
 
-int show_login_mask(struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth)
-{
-	GtkWidget *dialog;
-	GtkBuilder *builder;
-	GError *error = NULL;
-	char ui[1024], image_auth_filename[1024];
-	int result, rc = 0;
-	builder = gtk_builder_new();
-	sprintf(ui, "%s/login.glade", globals.data_dir);
-	sprintf(image_auth_filename, "%s/keys-64.png", globals.img_dir);
-	if (gtk_builder_add_from_file(builder, ui, &error) == 0) {
-		msgbox_error("Can't load user interface file:\n%s", error->message);
-		g_object_unref(G_OBJECT(builder));
-		return (1);
-	}
-	GtkWidget *hbox_main = GTK_WIDGET(gtk_builder_get_object(builder, "hbox_main"));
-	GtkWidget *image_auth = GTK_WIDGET(gtk_builder_get_object(builder, "image_auth"));
-	GtkWidget *label_name = GTK_WIDGET(gtk_builder_get_object(builder, "label_name"));
-	GtkWidget *label_ip = GTK_WIDGET(gtk_builder_get_object(builder, "label_ip"));
-	GtkWidget *entry_user = GTK_WIDGET(gtk_builder_get_object(builder, "entry_user"));
-	GtkWidget *entry_password = GTK_WIDGET(gtk_builder_get_object(builder, "entry_password"));
-	gtk_label_set_text(GTK_LABEL(label_name), p_conn_tab->connection.name);
-	gtk_label_set_text(GTK_LABEL(label_ip), p_conn_tab->connection.host);
-	gtk_image_set_from_file(GTK_IMAGE(image_auth), image_auth_filename);
-	if (p_conn_tab->connection.last_user[0])
-		gtk_entry_set_text(GTK_ENTRY(entry_user), p_conn_tab->connection.last_user);
-	/* Create dialog */
-	dialog = gtk_dialog_new_with_buttons
-	         (("Authentication"), NULL,
-	          GTK_DIALOG_MODAL,
-	          "_Cancel", GTK_RESPONSE_CANCEL,
-	          "_Ok", GTK_RESPONSE_OK,
-	          NULL);
-	gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
-	gtk_entry_set_activates_default(GTK_ENTRY(entry_user), TRUE);
-	gtk_entry_set_activates_default(GTK_ENTRY(entry_password), TRUE);
-	gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
-	gtk_window_set_transient_for(GTK_WINDOW(GTK_DIALOG(dialog)), GTK_WINDOW(main_window));
-	gtk_container_add(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), hbox_main);
-	gtk_widget_show_all(gtk_dialog_get_content_area(GTK_DIALOG(dialog)));
-	if (p_auth->mode == CONN_AUTH_MODE_KEY) {
-		GtkWidget *label_password = GTK_WIDGET(gtk_builder_get_object(builder, "label_password"));
-		gtk_widget_hide(GTK_WIDGET(entry_password));
-		gtk_widget_hide(GTK_WIDGET(label_password));
-	}
-	result = gtk_dialog_run(GTK_DIALOG(dialog));
-	if (result == GTK_RESPONSE_OK) {
-		lt_ssh_init(&p_conn_tab->ssh_info);
-		strcpy(p_auth->user, gtk_entry_get_text(GTK_ENTRY(entry_user)));
-		strcpy(p_auth->password, gtk_entry_get_text(GTK_ENTRY(entry_password)));
-		strcpy(p_auth->host, p_conn_tab->connection.host);
-		p_auth->port = p_conn_tab->connection.port;
-		log_debug("got user input: %s/%s\n", p_auth->user, p_auth->password);
-		rc = 0;
-	} else {
-		rc = -1;
-	}
-	gtk_widget_destroy(dialog);
-	g_object_unref(G_OBJECT(builder));
-	while (gtk_events_pending())
-		gtk_main_iteration();
-	return (rc);
-}
-
 static int connection_tab_count(void)
 {
 	int n = 0;
@@ -509,9 +445,6 @@ void connection_tab_close(struct ConnectionTab *p_ct)
 		// Regroup this tab to adjust the view
 		if (p_ct->notebook != notebook)
 			terminal_attach_to_main(p_ct);
-		if (tabIsConnected(p_ct)) {
-			lt_ssh_disconnect(&p_ct->ssh_info);
-		}
 		page = gtk_notebook_page_num(GTK_NOTEBOOK(p_ct->notebook), p_ct->hbox_terminal);
 		log_write("page = %d\n", page);
 		if (page >= 0) {
@@ -685,7 +618,6 @@ void connection_log_off()
 		return;
 	if (tabIsConnected(p_current_connection_tab)) {
 		kill(p_current_connection_tab->pid, SIGTERM);
-		lt_ssh_disconnect(&p_current_connection_tab->ssh_info);
 		log_write("Terminal closed\n");
 		tabInitConnection(p_current_connection_tab);
 	}
@@ -1259,7 +1191,6 @@ void child_exited_cb(VteTerminal *vteterminal,
 	connection_copy(&p_ct->last_connection, &p_ct->connection);
 	refreshTabStatus(p_ct);
 	log_debug("connection '%s' disconnecting\n", p_ct->connection.name);
-	lt_ssh_disconnect(&p_ct->ssh_info);
 	terminal_write_ex(p_ct, "\n\rDisconnected. Hit enter to reconnect.\n\r", -1);
 }
 
@@ -1274,7 +1205,6 @@ void eof_cb(VteTerminal *vteterminal, gpointer user_data)
 	connection_copy(&p_ct->last_connection, &p_ct->connection);
 	tabInitConnection(p_ct);
 	refreshTabStatus(p_ct);
-	lt_ssh_disconnect(&p_ct->ssh_info);
 }
 
 gboolean button_press_event_cb(GtkWidget *widget, GdkEventButton *event, gpointer userdata)

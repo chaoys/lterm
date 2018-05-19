@@ -39,7 +39,6 @@
 #include "gui.h"
 #include "profile.h"
 #include "connection.h"
-#include "ssh.h"
 #include "utils.h"
 
 Globals globals;
@@ -178,7 +177,6 @@ int main(int argc, char *argv[])
 		profile_create_default(&g_profile);
 	}
 
-	ssh_list_init(&globals.ssh_list);
 	globals.ssh_proto = (struct Protocol){ "ssh", "-p %p -l %u %h", 22, PROT_FLAG_ASKPASSWORD };
 	log_write("Initializing threads...\n");
 	ssh_threads_set_callbacks(ssh_threads_get_pthread());

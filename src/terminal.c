@@ -42,25 +42,6 @@ extern GList *connection_tab_list;
 
 char *auth_state_desc[] = { "AUTH_STATE_NOT_LOGGED", "AUTH_STATE_GOT_USER", "AUTH_STATE_GOT_PASSWORD", "AUTH_STATE_LOGGED" };
 
-int terminal_connect_ssh(struct ConnectionTab *p_conn_tab, struct SSH_Auth_Data *p_auth)
-{
-	int login_rc = 0;
-	terminal_write_ex(p_conn_tab, "Connecting to %s...\n\r", p_conn_tab->connection.host);
-	login_rc = lt_ssh_connect(&p_conn_tab->ssh_info, &globals.ssh_list, p_auth);
-	log_debug("login_rc = %d\n", login_rc);
-	if (login_rc == 0) {
-		strcpy(p_conn_tab->connection.user, p_auth->user[0] ? p_auth->user : "");
-		strcpy(p_conn_tab->connection.password, p_auth->password[0] ? p_auth->password : "");
-	} else if (login_rc == SSH_ERR_CONNECT) {
-		msgbox_error("Can't connect to %s", p_conn_tab->connection.host);
-	} else if (login_rc == SSH_ERR_UNKNOWN_AUTH_METHOD) {
-		//break;
-	} else {
-		log_write("ssh: %d %s\n", login_rc, login_rc == 0 ? "" : p_conn_tab->ssh_info.error_s);
-	}
-	return (login_rc);
-}
-
 void spawn_cb(VteTerminal *terminal, GPid pid, GError *error, gpointer user_data)
 {
 	char error_msg[1024];
@@ -83,80 +64,13 @@ int log_on(struct ConnectionTab *p_conn_tab)
 	char expanded_args[1024], temp[64];
 	char **p_params;
 	int ret;
-	int rc = 0, login_rc = 0;
 	struct Protocol *p_prot = &globals.ssh_proto;
-	struct SSH_Auth_Data auth;
 	p_conn_tab->auth_attempt = 0;
 	p_conn_tab->auth_state = AUTH_STATE_NOT_LOGGED;
 	log_write("[%s] server:%s\n", __func__, p_conn_tab->connection.host);
 	tabSetConnectionStatus(p_conn_tab, TAB_CONN_STATUS_CONNECTING);
 	log_write("Init ssh\n");
-	lt_ssh_init(&p_conn_tab->ssh_info);
-	memset(&auth, 0, sizeof(struct SSH_Auth_Data));
-	strcpy(auth.host, p_conn_tab->connection.host);
-	auth.port = p_conn_tab->connection.port;
-	log_debug("auth.port %d\n", auth.port);
-	auth.mode = p_conn_tab->connection.auth_mode;
-	log_debug("auth.mode %d\n", auth.mode);
-	if (p_conn_tab->connection.user[0]) {
-		strcpy(auth.user, p_conn_tab->connection.user);
-		log_debug("auth.user %s\n", auth.user);
-	}
-	if (p_conn_tab->connection.password[0]) {
-		strcpy(auth.password, p_conn_tab->connection.password);
-		log_debug("auth.password %s\n", auth.password);
-	}
-	if (p_conn_tab->connection.identityFile[0]) {
-		strcpy(auth.identityFile, p_conn_tab->connection.identityFile);
-		log_debug("auth.idfile %s\n", auth.identityFile);
-	}
-	if (p_conn_tab->connection.auth_mode == CONN_AUTH_MODE_KEY) {
-		auth.mode = CONN_AUTH_MODE_KEY;
-		log_debug("Log in with key authentication and user %s\n",
-		          p_conn_tab->connection.user[0] == 0 ? "unknown" : p_conn_tab->connection.user);
-		if (p_conn_tab->connection.user[0] == 0) {
-			log_write("Prompt for username\n");
-			rc = show_login_mask(p_conn_tab, &auth);
-			strcpy(p_conn_tab->connection.user, auth.user);
-			strcpy(p_conn_tab->connection.password, auth.password);
-		} else {
-			rc = 0;
-		}
-		if (rc != 0) {
-			tabSetConnectionStatus(p_conn_tab, TAB_CONN_STATUS_DISCONNECTED);
-			return (1);
-		}
-	} else if (p_conn_tab->connection.auth_mode == CONN_AUTH_MODE_SAVE || p_conn_tab->enter_key_relogging
-	           || (p_conn_tab->connection.user[0] && p_conn_tab->connection.password[0])) {
-		if (p_conn_tab->enter_key_relogging) {
-			log_debug("Log in again with the same username and password (Enter key pressed).\n");
-		} else {
-			log_debug("Log in with saved username and password.\n");
-		}
-		login_rc = terminal_connect_ssh(p_conn_tab, &auth);
-		log_debug("ssh: %s\n", login_rc == 0 ? "authentication ok" : p_conn_tab->ssh_info.error_s);
-	} else {
-		while (p_conn_tab->auth_attempt < 3) {
-			log_debug("Prompt username and password\n");
-			rc = show_login_mask(p_conn_tab, &auth);
-			log_debug("show_login_mask() returns %d\n", rc);
-			if (rc == 0) {
-				strcpy(p_conn_tab->connection.user, auth.user);
-				strcpy(p_conn_tab->connection.password, auth.password);
-				rc = 0;
-				break;
-			}
-			tabSetConnectionStatus(p_conn_tab, TAB_CONN_STATUS_DISCONNECTED);
-			return (1);
-		}
-		if (p_conn_tab->auth_attempt >= 3)
-			login_rc = 1;
-	}
 	p_conn_tab->enter_key_relogging = 0;
-	if (login_rc) {
-		msgbox_error("%s", p_conn_tab->ssh_info.error_s);
-		return (1);
-	}
 #ifdef HAVE_SSHPASS
 	if (p_conn_tab->connection.password[0]) {
 		char cmd[300];
