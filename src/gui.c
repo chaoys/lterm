@@ -44,6 +44,7 @@
 extern Globals globals;
 extern Prefs prefs;
 extern struct Profile g_profile;
+extern GtkApplication *g_app;
 
 GtkWidget *main_window;
 GtkWidget *hpaned;
@@ -76,6 +77,9 @@ static void terminal_focus_cb(GtkWidget *widget, gpointer user_data);
 static void selection_changed_cb(VteTerminal *vteterminal, gpointer user_data);
 static void contents_changed_cb(VteTerminal *vteterminal, gpointer user_data);
 
+static void next_page();
+static void prev_page();
+
 void test(void)
 {
 	printf("test\n");
@@ -102,6 +106,9 @@ GActionEntry main_menu_items[] = {
 	{ "send_cluster", terminal_cluster },
 
 	{ "about", Info },
+
+	{ "nextpage", next_page },
+	{ "prevpage", prev_page },
 };
 
 const gchar *ui_popup_desc =
@@ -649,10 +656,12 @@ void application_quit()
 	if (n) {
 		sprintf(message, ("There are %d active terminal/s.\nExit anyway?"), n);
 		retcode = msgbox_yes_no(message);
-		if (retcode == GTK_RESPONSE_YES) {
-			//TODO
+		if (retcode != GTK_RESPONSE_YES) {
+			return;
 		}
 	}
+	log_debug("quit\n");
+	g_application_quit(G_APPLICATION(g_app));
 }
 
 GtkWidget *_get_active_widget()
@@ -1347,7 +1356,6 @@ void update_all_profiles()
 	}
 }
 
-#if 0
 static void next_page(void)
 {
 	GtkNotebook *nb = GTK_NOTEBOOK(notebook);
@@ -1368,23 +1376,20 @@ static void prev_page(void)
 void add_accelerator(const gchar *action_name,
                      const gchar *accel)
 {
-	GtkApplication *app = gtk_window_get_application(GTK_WINDOW(main_window));
-	if (!app) {
-		printf("no app\n");
-		exit(1);
-	}
 	const gchar *vaccels[] = {
 		accel,
 		NULL
 	};
-	gtk_application_set_accels_for_action(app, action_name, vaccels);
+	gtk_application_set_accels_for_action(g_app, action_name, vaccels);
 }
 
 static void setup_shortcuts(void)
 {
 	add_accelerator("lt.find", "<Primary><Shift>F");
+	add_accelerator("lt.nextpage", "<Primary>Page_Down");
+	add_accelerator("lt.prevpage", "<Primary>Page_Up");
+	add_accelerator("lt.quit", "<Primary>Q");
 }
-#endif
 /*
   Function: start_gtk
   Creates the main user interface
@@ -1440,7 +1445,6 @@ void start_gtk(GApplication *app)
 	/* Ensure that buttons images will be shown */
 	GtkSettings *default_settings = gtk_settings_get_default();
 	g_object_set(default_settings, "gtk-button-images", TRUE, NULL);
-#if 0
+
 	setup_shortcuts();
-#endif
 }

@@ -87,4 +87,6 @@ void timerStart(int seconds);
 void timerStop();
 int timedOut();
 
+extern GtkApplication *g_app;
+
 #endif

@@ -44,6 +44,7 @@
 Globals globals;
 Prefs prefs;
 struct Profile g_profile;
+GtkApplication *g_app;
 
 static void help();
 
@@ -180,10 +181,9 @@ int main(int argc, char *argv[])
 	ssh_threads_set_callbacks(ssh_threads_get_pthread());
 	ssh_init();
 
-	GtkApplication *app;
-	app = gtk_application_new("org.app.lterm", G_APPLICATION_FLAGS_NONE);
-	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
-	g_application_run(G_APPLICATION(app), argc, argv);
+	g_app = gtk_application_new("org.app.lterm", G_APPLICATION_FLAGS_NONE);
+	g_signal_connect(g_app, "activate", G_CALLBACK(activate), NULL);
+	g_application_run(G_APPLICATION(g_app), argc, argv);
 
 	log_write("Saving connections...\n");
 	save_connections(conn_list, globals.connections_xml);
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 	save_settings();
 	log_write("Saving profiles...\n");
 	save_profile(&g_profile, globals.profiles_file);
-	g_object_unref(app);
+	g_object_unref(g_app);
 	log_write("End\n");
 	return 0;
 }
