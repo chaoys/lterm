@@ -58,10 +58,7 @@ void load_settings(void)
 	GError *error = NULL;
 	GKeyFile *kf = g_key_file_new();
 	if (!g_key_file_load_from_file(kf, globals.conf_file, G_KEY_FILE_NONE, &error)) {
-		log_debug("Error loading config file: %s\n", error->message);
-		// TODO use default
-		g_key_file_free(kf);
-		return;
+		log_debug("Error loading config file: %s, use default\n", error->message);
 	}
 	prefs.tabs_position = config_load_int(kf, "general", "tabs_position", GTK_POS_TOP);
 	config_load_string(kf, "general", "font_fixed", prefs.font_fixed, DEFAULT_FIXED_FONT);
