@@ -1313,8 +1313,7 @@ void apply_preferences()
 			terminal_set_encoding(p_ct, prefs.character_encoding);
 		else
 			strcpy(prefs.character_encoding, vte_terminal_get_encoding(VTE_TERMINAL(vte)));
-		//use only default words. I dont know where the exceptions come from.
-		vte_terminal_set_word_char_exceptions(VTE_TERMINAL(vte), "");
+		vte_terminal_set_word_char_exceptions(VTE_TERMINAL(vte), "-_.");
 		gtk_window_set_resizable(GTK_WINDOW(main_window), TRUE);
 	}
 	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(notebook), prefs.tabs_position);
