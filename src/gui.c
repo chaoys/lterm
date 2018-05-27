@@ -488,7 +488,8 @@ static struct ConnectionTab * connection_tab_new()
 	return (connection_tab);
 }
 
-void connection_tab_add(struct ConnectionTab *connection_tab)
+/* if dup, new tab next to current; else, new tab appended in the end */
+void connection_tab_add(struct ConnectionTab *connection_tab, gboolean dup)
 {
 	GtkWidget *tab_label;
 	GtkWidget *close_button;
@@ -516,8 +517,13 @@ void connection_tab_add(struct ConnectionTab *connection_tab)
 	gtk_box_pack_end(GTK_BOX(tab_label), connection_tab->label, FALSE, FALSE, 0);
 	gtk_box_pack_end(GTK_BOX(tab_label), image_type, FALSE, FALSE, 0);
 	gtk_widget_show_all(tab_label);
-	new_pagenum = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook)) + 1;
-	gtk_notebook_insert_page_menu(GTK_NOTEBOOK(notebook), connection_tab->hbox_terminal, tab_label, gtk_label_new(connection_tab->connection.name), new_pagenum);
+	if (dup) {
+		new_pagenum = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook)) + 1;
+		gtk_notebook_insert_page_menu(GTK_NOTEBOOK(notebook), connection_tab->hbox_terminal, tab_label, gtk_label_new(connection_tab->connection.name), new_pagenum);
+	} else {
+		new_pagenum = gtk_notebook_get_n_pages(GTK_NOTEBOOK(notebook));
+		gtk_notebook_append_page_menu(GTK_NOTEBOOK(notebook), connection_tab->hbox_terminal, tab_label, gtk_label_new(connection_tab->connection.name));
+	}
 	gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(notebook), connection_tab->hbox_terminal, TRUE);
 	gtk_notebook_set_tab_detachable(GTK_NOTEBOOK(notebook), connection_tab->hbox_terminal, FALSE);
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), new_pagenum);
@@ -602,7 +608,7 @@ void connection_log_on_param(Connection *p_conn)
 		if (p_connection_tab->connection.auth_mode == CONN_AUTH_MODE_SAVE && p_connection_tab->connection.auth_password[0])
 			strcpy(p_connection_tab->connection.password, p_connection_tab->connection.auth_password);
 		/* Add the new tab */
-		connection_tab_add(p_connection_tab);
+		connection_tab_add(p_connection_tab, (p_conn != NULL));
 		p_current_connection_tab = p_connection_tab;
 		refreshTabStatus(p_current_connection_tab);
 		log_write("Log on...\n");
@@ -1290,7 +1296,6 @@ void terminal_focus_cb(GtkWidget *widget,
 	struct ConnectionTab *newTab = (struct ConnectionTab *) user_data;
 	if (p_current_connection_tab == newTab)
 		return;
-	log_debug("%s\n", vte_terminal_get_window_title(VTE_TERMINAL(newTab->vte)));
 	p_current_connection_tab = newTab;
 	update_by_tab(p_current_connection_tab);
 }
