@@ -62,7 +62,7 @@ void load_settings(void)
 	}
 	prefs.tabs_position = config_load_int(kf, "general", "tabs_position", GTK_POS_TOP);
 	config_load_string(kf, "general", "font_fixed", prefs.font_fixed, DEFAULT_FIXED_FONT);
-	config_load_string(kf, "TERMINAL", "extra_word_chars", prefs.extra_word_chars, ":@-./_~?&=%+#");
+	config_load_string(kf, "TERMINAL", "extra_word_chars", prefs.extra_word_chars, "-_.");
 	prefs.rows = config_load_int(kf, "TERMINAL", "rows", 80);
 	prefs.columns = config_load_int(kf, "TERMINAL", "columns", 25);
 	config_load_string(kf, "TERMINAL", "character_encoding", prefs.character_encoding, "");
@@ -96,6 +96,7 @@ void save_settings(void)
 	g_key_file_set_integer(kf, "TERMINAL", "scroll_on_output", prefs.scroll_on_output);
 	g_key_file_set_integer(kf, "TERMINAL", "rows", prefs.rows);
 	g_key_file_set_integer(kf, "TERMINAL", "columns", prefs.columns);
+	g_key_file_set_string(kf, "TERMINAL", "extra_word_chars", prefs.extra_word_chars);
 	g_key_file_set_integer(kf, "MOUSE", "autohide", prefs.mouse_autohide);
 	g_key_file_set_integer(kf, "MOUSE", "copy_on_select", prefs.mouse_copy_on_select);
 	g_key_file_set_integer(kf, "MOUSE", "paste_on_right_button", prefs.mouse_paste_on_right_button);
