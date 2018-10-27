@@ -479,7 +479,7 @@ static struct ConnectionTab * connection_tab_new()
 	connection_tab->vte = vte_terminal_new();
 	g_signal_connect(connection_tab->vte, "child-exited", G_CALLBACK(child_exited_cb), connection_tab);
 	g_signal_connect(connection_tab->vte, "eof", G_CALLBACK(eof_cb), connection_tab);
-	g_signal_connect(connection_tab->vte, "button-press-event", G_CALLBACK(button_press_event_cb), connection_tab->vte);
+//	g_signal_connect(connection_tab->vte, "button-press-event", G_CALLBACK(button_press_event_cb), connection_tab->vte);
 	g_signal_connect(connection_tab->vte, "selection-changed", G_CALLBACK(selection_changed_cb), connection_tab);
 	g_signal_connect(connection_tab->vte, "contents-changed", G_CALLBACK(contents_changed_cb), connection_tab);
 	g_signal_connect(connection_tab->vte, "grab-focus", G_CALLBACK(terminal_focus_cb), connection_tab);
