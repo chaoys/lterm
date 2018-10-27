@@ -332,7 +332,6 @@ static int validate_name(Connection *p_conn, char *item_name)
 	if (p_conn) { /* adding or updating a connection */
 		if (p_conn->host[0] == 0)
 			return (ERR_VALIDATE_MISSING_VALUES);
-		log_debug("check existing connections\n");
 		p_conn_ctrl = cl_get_by_name(conn_list, item_name);
 		if (p_conn_ctrl && p_conn_ctrl != p_conn) {
 			return (ERR_VALIDATE_EXISTING_CONNECTION);
@@ -504,10 +503,11 @@ static int add_update_connection(Connection *p_conn)
 				} else
 					msgbox_error(get_validation_error_string(err_name_validation));
 			} else {    /* add */
-				log_debug("add\n");
+				log_debug("add one connection %s %s %d\n", conn_new.name, conn_new.host, conn_new.port);
 				err_name_validation = validate_name(&conn_new, connection_name);
 				if (!err_name_validation) {
 					cl_insert_sorted(&conn_list, &conn_new);
+					save_connections(conn_list, globals.connections_xml);
 					rc = 0;
 					break;
 				} else
@@ -550,7 +550,6 @@ static void treeview_add_one_conn(gpointer data, gpointer userdata)
 	GtkListStore *ls = (GtkListStore *)userdata;
 	Connection *c = (Connection *)data;
 	GtkTreeIter iter;
-	log_debug("add one connection %s %s %d\n", c->name, c->host, c->port);
 	gtk_list_store_append(ls, &iter);
 	gtk_list_store_set(ls, &iter, NAME_COLUMN, c->name, HOST_COLUMN, c->host, PORT_COLUMN, c->port, -1);
 }
@@ -630,8 +629,10 @@ static void delete_button_clicked_cb(GtkButton *button, gpointer user_data)
 	sprintf(confirm_remove_message, "Remove connection '%s'?", c->name);
 	rc = msgbox_yes_no(confirm_remove_message);
 	if (rc == GTK_RESPONSE_YES) {
+		log_debug("delete one connection %s %s %d\n", c->name, c->host, c->port);
 		cl_remove(&conn_list, c->name);
 		update_connections_tree_view(tree_view);
+		save_connections(conn_list, globals.connections_xml);
 	}
 }
 
