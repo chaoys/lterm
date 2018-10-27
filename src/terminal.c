@@ -64,17 +64,20 @@ int log_on(struct ConnectionTab *p_conn_tab)
 	char expanded_args[1024], temp[64];
 	char **p_params;
 	int ret;
+	int prefix_len = 0;
 	struct Protocol *p_prot = &globals.ssh_proto;
+
 	p_conn_tab->auth_attempt = 0;
 	p_conn_tab->auth_state = AUTH_STATE_NOT_LOGGED;
 	log_write("[%s] server:%s\n", __func__, p_conn_tab->connection.host);
 	tabSetConnectionStatus(p_conn_tab, TAB_CONN_STATUS_CONNECTING);
 	log_write("Init ssh\n");
 	p_conn_tab->enter_key_relogging = 0;
+
 #ifdef HAVE_SSHPASS
 	if (p_conn_tab->connection.password[0]) {
 		char cmd[300];
-		sprintf(cmd, "sshpass -p %s %s", p_conn_tab->connection.password, p_prot->command);
+		prefix_len = sprintf(cmd, "sshpass -p %s %s", p_conn_tab->connection.password, p_prot->command);
 		ret = expand_args(&p_conn_tab->connection, p_prot->args, cmd, expanded_args);
 	} else
 #endif
@@ -107,14 +110,14 @@ int log_on(struct ConnectionTab *p_conn_tab)
 		strcat(expanded_args, " ");
 		strcat(expanded_args, p_conn_tab->connection.user_options);
 	}
-	log_debug("expand_args : %s\n", expanded_args);
+	/* omit password */
+	log_debug("expand_args : %s\n", expanded_args + prefix_len);
 	p_params = splitString(expanded_args, " ", TRUE, "\"", TRUE, NULL);
 	/*
 	 * now the array is something like
 	 * char *params[] = { "ssh", "fabio@localhost", NULL };
 	 */
 	terminal_write_ex(p_conn_tab, "Logging in...\n\r");
-	log_debug("using vte_terminal_fork_command_full()\n");
 	GSpawnFlags spawn_flags = G_SPAWN_SEARCH_PATH;
 	vte_terminal_spawn_async(VTE_TERMINAL(p_conn_tab->vte), VTE_PTY_DEFAULT, NULL, p_params, NULL,
 	                         spawn_flags, NULL, NULL, NULL, 10000/* 10s */, NULL, spawn_cb, p_conn_tab);
